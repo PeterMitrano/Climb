@@ -1,4 +1,14 @@
 apply plugin: 'com.android.application'
+apply plugin: 'com.google.protobuf'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.1'
+    }
+}
 
 android {
     compileSdkVersion 25
@@ -27,5 +37,27 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.2.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.android.support:design:25.2.0'
+    compile 'com.google.android.gms:play-services-fitness:9.8.0'
+    compile 'com.google.protobuf:protobuf-lite:3.0.0'
     testCompile 'junit:junit:4.12'
+}
+
+protobuf {
+    protoc {
+        // Download from repositories
+        artifact = 'com.google.protobuf:protoc:3.0.0'
+    }
+    plugins {
+        javalite {
+            // The codegen for lite comes as a separate artifact
+            artifact = 'com.google.protobuf:protoc-gen-javalite:3.0.0'
+        }
+    }
+    generateProtoTasks {
+        all().each { task ->
+            task.plugins {
+                javalite { }
+            }
+        }
+    }
 }
