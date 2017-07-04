@@ -1,10 +1,19 @@
 syntax = "proto3";
 
 option java_package = "com.peter.Climb";
+option java_outer_classname = "Msgs";
 
-message Msg {
+message Gyms{
+    repeated Gym gyms = 1;
+}
+
+message Gym {
     string name = 1;
     repeated Wall walls = 2;
+    string small_icon_url = 3;
+    string large_icon_url = 4;
+    int32 id = 5;
+    string map_url = 6;
 }
 
 message Wall {
@@ -21,6 +30,7 @@ message Polygon {
 message Route {
     string name = 1;
     Point2D position = 2;
+    int32 grade = 3;
 }
 
 message Point2D {
