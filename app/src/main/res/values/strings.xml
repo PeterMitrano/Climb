@@ -11,4 +11,6 @@
     <string name="gyms">Gyms</string>
     <string name="default_gym_text">No Gym Selected</string>
     <string name="search_hint">Search Your Gym</string>
+    <string name="no_gym_selected_title">No Gym Selected</string>
+    <string name="no_gym_selected_subtitle">Use the search box above to add your gym.</string>
 </resources>

@@ -7,6 +7,7 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.MatrixCursor;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -17,13 +18,14 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SearchView;
+import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
 
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -44,6 +46,9 @@ public class MainActivity extends AppCompatActivity
     private AppState app_state;
 
     private ImageView large_icon_image_view;
+    private TextView no_gym_selected_title;
+    private TextView no_gym_selected_subtitle;
+    private ImageView no_gym_selected_image;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +64,9 @@ public class MainActivity extends AppCompatActivity
         app_state.current_gym_id = settings.getInt(GYM_ID_PREF_KEY, -1);
 
         large_icon_image_view = (ImageView) findViewById(R.id.large_icon_image_view);
+        no_gym_selected_title = (TextView) findViewById(R.id.no_gym_selected_title);
+        no_gym_selected_subtitle = (TextView) findViewById(R.id.no_gym_selected_subtitle);
+        no_gym_selected_image = (ImageView) findViewById(R.id.no_gym_selected_image);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(this);
@@ -132,12 +140,19 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void handleGymData(Msgs.Gyms gyms) {
-        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-        app_state.current_gym_id = 1;
-
         if (app_state.current_gym_id == -1) {
-            // they have no gym selected...
+            // they have no gym selected, so tell them how to add one
+            no_gym_selected_title.setVisibility(View.VISIBLE);
+            no_gym_selected_subtitle.setVisibility(View.VISIBLE);
+            no_gym_selected_image.setVisibility(View.VISIBLE);
+            large_icon_image_view.setVisibility(View.GONE);
+
         } else {
+            no_gym_selected_title.setVisibility(View.GONE);
+            no_gym_selected_subtitle.setVisibility(View.GONE);
+            no_gym_selected_image.setVisibility(View.GONE);
+            large_icon_image_view.setVisibility(View.VISIBLE);
+
             for (Msgs.Gym gym : gyms.getGymsList()) {
                 if (gym.getId() == app_state.current_gym_id) {
                     // set the logo
@@ -146,7 +161,8 @@ public class MainActivity extends AppCompatActivity
                             large_icon_image_view,
                             0,
                             R.drawable.ic_error_black_24dp);
-                    RequestorSingleton.getInstance(getApplicationContext()).getImageLoader().get(url, listener);
+                    RequestorSingleton.getInstance(
+                            getApplicationContext()).getImageLoader().get(url, listener);
 
                     // mark this as the current gym
                     app_state.current_gym = gym;
@@ -160,6 +176,7 @@ public class MainActivity extends AppCompatActivity
         // add an item to the menu?
         return true;
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the options menu from XML
@@ -171,7 +188,8 @@ public class MainActivity extends AppCompatActivity
         SearchView searchView = (SearchView) menu.findItem(R.id.gym_search_view).getActionView();
         // Assumes current activity is the searchable activity
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
-        searchView.setIconifiedByDefault(false); // Do not iconify the widget; expand it by default
+        searchView.setFocusable(true);
+        searchView.setIconified(false);
 
         return true;
     }
