@@ -7,7 +7,7 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.MatrixCursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -24,7 +24,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SearchView;
-import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
 import com.android.volley.Response;
@@ -38,11 +37,8 @@ import com.peter.Climb.Msgs;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener {
 
-    static final int FIND_GYM_CODE = 1;
     private static final String GYM_ID_PREF_KEY = "gym_id_pref_key";
-    static final String FIND_GYM_KEY = "GYM_KEY";
     public static final String PREFS_NAME = "MyPrefsFile";
-    private int notification_id = 1;
     private AppState app_state;
 
     private ImageView large_icon_image_view;
@@ -58,10 +54,6 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         app_state = ((MyApplication) getApplicationContext()).getState();
-
-        // look up the currently selected gym
-        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-        app_state.current_gym_id = settings.getInt(GYM_ID_PREF_KEY, -1);
 
         large_icon_image_view = (ImageView) findViewById(R.id.large_icon_image_view);
         no_gym_selected_title = (TextView) findViewById(R.id.no_gym_selected_title);
@@ -80,80 +72,73 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        // make HTTP request to server for all the gym data
-        fetchGymData();
+        // kickoff HTTP request to server for all the gym data
+        if (app_state.gyms == null) {
+            fetchGymData();
+        }
     }
 
     private void fetchGymData() {
+        // TODO: use real server
         String url = "http://www.google.com";
         StringRequest gym_data_request = new StringRequest(url,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
                         try {
+                            // TODO: actually use this
                             Msgs.Gyms gyms = Msgs.Gyms.parseFrom(ByteString.copyFromUtf8(response));
                         } catch (InvalidProtocolBufferException e) {
                             // could not parse message. 100 % Sad Panda
                         }
 
                         // mock of what the server would return
-                        Msgs.Gyms gyms = Msgs.Gyms.newBuilder().addGyms(
-                                Msgs.Gym.newBuilder().setName("Ascend PGH").addWalls(
-                                        Msgs.Wall.newBuilder().setPolygon(
-                                                Msgs.Polygon.newBuilder().addPoints(
-                                                        Msgs.Point2D.newBuilder().setX(0).setY(0)
-                                                ).addPoints(
-                                                        Msgs.Point2D.newBuilder().setX(10).setY(0)
-                                                ).addPoints(
-                                                        Msgs.Point2D.newBuilder().setX(10).setY(10)
-                                                ).addPoints(
-                                                        Msgs.Point2D.newBuilder().setX(0).setY(10)
-                                                )
-                                        ).addRoutes(
-                                                Msgs.Route.newBuilder().setName("Lappnor Project").setPosition(
-                                                        Msgs.Point2D.newBuilder().setX(0).setY(0)
-                                                ).setGrade(17)
-                                        ).addRoutes(
-                                                Msgs.Route.newBuilder().setName("La Dura Dura").setPosition(
-                                                        Msgs.Point2D.newBuilder().setX(1).setY(0)
-                                                ).setGrade(16)
-                                        ).setName("The Dawn Wall")
-                                ).setSmallIconUrl(
-                                        "https://www.ascendpgh.com/sites/default/files/logo.png"
-                                ).setLargeIconUrl(
-                                        "https://www.ascendpgh.com/sites/all/themes/ascend_foundation/images/header-images/02-Header-Visiting-Ascend.jpg"
-                                ).setMapUrl(
-                                        "https://www.guthrie.org/sites/default/files/TCH_AreaMap.gif"
-                                ).setId(1)
-                        ).build();
-
-                        handleGymData(gyms);
+                        Msgs.Gyms gyms = fakeGymData();
+                        onGymDataSuccess(gyms);
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-
+                        // TODO: dafuk do I do here
                     }
                 });
         RequestorSingleton.getInstance(this).addToRequestQueue(gym_data_request);
     }
 
-    private void handleGymData(Msgs.Gyms gyms) {
+    private void onGymDataSuccess(Msgs.Gyms gyms) {
+        app_state.gyms = gyms;
+
+        // load up the gym
+        Intent intent = getIntent();
+        if (intent.getAction().equals(Intent.ACTION_VIEW)) {
+            Uri uri = getIntent().getData();
+            try {
+                int gym_id = Integer.parseInt(uri.getLastPathSegment().toLowerCase());
+                app_state.current_gym = app_state.gyms.getGyms(gym_id);
+                app_state.current_gym_id = gym_id;
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+            }
+        } else {
+            // try to look up the currently selected gym from preferences
+            SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+            app_state.current_gym_id = settings.getInt(GYM_ID_PREF_KEY, -1);
+        }
+
+        // set the Icon for the current gym (if there is one)
+        displayCurrentGym();
+    }
+
+    private void displayCurrentGym() {
         if (app_state.current_gym_id == -1) {
             // they have no gym selected, so tell them how to add one
             no_gym_selected_title.setVisibility(View.VISIBLE);
             no_gym_selected_subtitle.setVisibility(View.VISIBLE);
             no_gym_selected_image.setVisibility(View.VISIBLE);
             large_icon_image_view.setVisibility(View.GONE);
-
         } else {
-            no_gym_selected_title.setVisibility(View.GONE);
-            no_gym_selected_subtitle.setVisibility(View.GONE);
-            no_gym_selected_image.setVisibility(View.GONE);
-            large_icon_image_view.setVisibility(View.VISIBLE);
-
-            for (Msgs.Gym gym : gyms.getGymsList()) {
+            for (Msgs.Gym gym : app_state.gyms.getGymsList()) {
                 if (gym.getId() == app_state.current_gym_id) {
                     // set the logo
                     String url = gym.getLargeIconUrl();
@@ -168,28 +153,44 @@ public class MainActivity extends AppCompatActivity
                     app_state.current_gym = gym;
                 }
             }
+
+            no_gym_selected_title.setVisibility(View.GONE);
+            no_gym_selected_subtitle.setVisibility(View.GONE);
+            no_gym_selected_image.setVisibility(View.GONE);
+            large_icon_image_view.setVisibility(View.VISIBLE);
+
         }
     }
 
     @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        // add an item to the menu?
-        return true;
-    }
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the options menu from XML
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.toolbar_menu, menu);
 
         // Get the SearchView and set the searchable configuration
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         SearchView searchView = (SearchView) menu.findItem(R.id.gym_search_view).getActionView();
+
         // Assumes current activity is the searchable activity
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
         searchView.setFocusable(true);
         searchView.setIconified(false);
+
+        // Override the onQueryTextListener just to return true on Submit,
+        // so it doesn't reload the activity
+        searchView.setOnQueryTextListener(
+                new SearchView.OnQueryTextListener() {
+                    @Override
+                    public boolean onQueryTextSubmit(String query) {
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onQueryTextChange(String newText) {
+                        return false;
+                    }
+                }
+        );
 
         return true;
     }
@@ -217,14 +218,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
-        int id = item.getItemId();
-
-        if (id == R.id.add_new_gym) {
-            // open up some gym selector to search for a gym
-            Intent add_gym_intent = new Intent(this, FindGymActivity.class);
-            startActivityForResult(add_gym_intent, FIND_GYM_CODE);
-        }
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
@@ -262,21 +255,42 @@ public class MainActivity extends AppCompatActivity
         // mId allows you to update the notification later on.
         Notification notification = mBuilder.build();
         notification.flags = Notification.FLAG_ONGOING_EVENT;
+//        private int notification_id = 1;
 //        mNotificationManager.notify(notification_id, notification);
 
         Intent start_session_intent = new Intent(this, MapActivity.class);
         startActivity(start_session_intent);
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == FIND_GYM_CODE) {
-            if (resultCode == RESULT_OK) {
-                Bundle extras = data.getExtras();
-                int gym_position = extras.getInt(FIND_GYM_KEY);
-                app_state.current_gym = app_state.gyms.getGyms(gym_position);
-                app_state.current_gym_id = app_state.current_gym.getId();
-            }
-        }
+    private Msgs.Gyms fakeGymData() {
+        return Msgs.Gyms.newBuilder().addGyms(
+                Msgs.Gym.newBuilder().setName("Ascend PGH").addWalls(
+                        Msgs.Wall.newBuilder().setPolygon(
+                                Msgs.Polygon.newBuilder().addPoints(
+                                        Msgs.Point2D.newBuilder().setX(0).setY(0)
+                                ).addPoints(
+                                        Msgs.Point2D.newBuilder().setX(10).setY(0)
+                                ).addPoints(
+                                        Msgs.Point2D.newBuilder().setX(10).setY(10)
+                                ).addPoints(
+                                        Msgs.Point2D.newBuilder().setX(0).setY(10)
+                                )
+                        ).addRoutes(
+                                Msgs.Route.newBuilder().setName("Lappnor Project").setPosition(
+                                        Msgs.Point2D.newBuilder().setX(0).setY(0)
+                                ).setGrade(17)
+                        ).addRoutes(
+                                Msgs.Route.newBuilder().setName("La Dura Dura").setPosition(
+                                        Msgs.Point2D.newBuilder().setX(1).setY(0)
+                                ).setGrade(16)
+                        ).setName("The Dawn Wall")
+                ).setSmallIconUrl(
+                        "https://www.ascendpgh.com/sites/default/files/logo.png"
+                ).setLargeIconUrl(
+                        "https://www.ascendpgh.com/sites/all/themes/ascend_foundation/images/header-images/02-Header-Visiting-Ascend.jpg"
+                ).setMapUrl(
+                        "https://www.guthrie.org/sites/default/files/TCH_AreaMap.gif"
+                ).setId(0)
+        ).build();
     }
 }
