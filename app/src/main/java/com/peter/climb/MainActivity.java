@@ -7,10 +7,14 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.view.GravityCompat;
@@ -18,6 +22,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -30,17 +35,26 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.StringRequest;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.Scopes;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Scope;
+import com.google.android.gms.fitness.Fitness;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.peter.Climb.Msgs;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener {
+        implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener,
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String GYM_ID_PREF_KEY = "gym_id_pref_key";
     public static final String PREFS_NAME = "MyPrefsFile";
     public static final String START_SESSION_ACTION = "start_session_action";
+    private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 1;
     private AppState app_state;
+    private GoogleApiClient mClient = null;
 
     private ImageView large_icon_image_view;
     private TextView no_gym_selected_title;
@@ -76,6 +90,37 @@ public class MainActivity extends AppCompatActivity
         // kickoff HTTP request to server for all the gym data
         if (app_state.gyms == null) {
             fetchGymData();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        buildFitnessClient();
+    }
+
+    /**
+     * Build a {@link GoogleApiClient} that will authenticate the user and allow the application
+     * to connect to Fitness APIs. The scopes included should match the scopes your app needs
+     * (see documentation for details). Authentication will occasionally fail intentionally,
+     * and in those cases, there will be a known resolution, which the OnConnectionFailedListener()
+     * can address. Examples of this include the user never having signed in before, or having
+     * multiple accounts on the device and needing to specify which account to use, etc.
+     */
+    private void buildFitnessClient() {
+        if (mClient == null) {
+            GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestEmail()
+                    .requestScopes(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE),
+                            new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
+                    .build();
+
+            mClient = new GoogleApiClient.Builder(this)
+                    .addApi(Fitness.SENSORS_API)
+                    .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
+                    .addConnectionCallbacks(this)
+                    .enableAutoManage(this, 0, this)
+                    .build();
         }
     }
 
@@ -296,5 +341,30 @@ public class MainActivity extends AppCompatActivity
                         "https://www.guthrie.org/sites/default/files/TCH_AreaMap.gif"
                 ).setId(0)
         ).build();
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        Log.e(this.getClass().toString(), "Connected!!!");
+        // Now you can make calls to the Fitness APIs.
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        // If your connection to the sensor gets lost at some point,
+        // you'll be able to determine the reason and react to it here.
+        if (i == GoogleApiClient.ConnectionCallbacks.CAUSE_NETWORK_LOST) {
+            Log.e(this.getClass().toString(), "Connection lost.  Cause: Network Lost.");
+        } else if (i
+                == GoogleApiClient.ConnectionCallbacks.CAUSE_SERVICE_DISCONNECTED) {
+            Log.e(this.getClass().toString(),
+                    "Connection lost.  Reason: Service Disconnected");
+        }
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.e(this.getClass().toString(), "Google Play services connection failed. Cause: "
+                + connectionResult.toString());
     }
 }

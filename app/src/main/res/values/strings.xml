@@ -13,4 +13,6 @@
     <string name="search_hint">Search Your Gym</string>
     <string name="no_gym_selected_title">No Gym Selected</string>
     <string name="no_gym_selected_subtitle">Use the search box above to add your gym.</string>
+    <string name="permission_rationale">This Permission Isn\'t Actually Necessary</string>
+    <string name="ok">OK</string>
 </resources>
