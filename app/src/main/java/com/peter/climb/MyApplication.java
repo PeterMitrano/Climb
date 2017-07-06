@@ -17,5 +17,12 @@ class AppState {
     Msgs.Gyms gyms;
     Msgs.Gym current_gym;
     int current_gym_id;
-    boolean start_session_requested;
+
+    enum SessionState {
+        IN_PROGRESS,
+        PAUSED,
+        NOT_IN_PROGRESS,
+    }
+
+    SessionState session_in_progress;
 }

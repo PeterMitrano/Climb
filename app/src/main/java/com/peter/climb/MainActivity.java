@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity
 
     private static final String GYM_ID_PREF_KEY = "gym_id_pref_key";
     public static final String PREFS_NAME = "MyPrefsFile";
+    public static final String START_SESSION_ACTION = "start_session_action";
     private AppState app_state;
 
     private ImageView large_icon_image_view;
@@ -60,7 +61,7 @@ public class MainActivity extends AppCompatActivity
         no_gym_selected_subtitle = (TextView) findViewById(R.id.no_gym_selected_subtitle);
         no_gym_selected_image = (ImageView) findViewById(R.id.no_gym_selected_image);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.start_session_button);
         fab.setOnClickListener(this);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -225,41 +226,44 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onClick(View v) {
-        NotificationCompat.Builder mBuilder =
-                new NotificationCompat.Builder(this)
-                        .setSmallIcon(R.drawable.ic_menu_camera)
-                        .setContentTitle("My notification")
-                        .setContentText("Hello World!");
+        if (v.getId() == R.id.start_session_button) {
+            NotificationCompat.Builder mBuilder =
+                    new NotificationCompat.Builder(this)
+                            .setSmallIcon(R.drawable.ic_terrain_black_24dp)
+                            .setContentTitle("Climb")
+                            .setContentText("Session In Progress");
 
-        // Creates an explicit intent for an Activity in your app
-        Intent resultIntent = new Intent(this, MapActivity.class);
+            // Creates an explicit intent for an Activity in your app
+            Intent resultIntent = new Intent(this, MapActivity.class);
 
-        // The stack builder object will contain an artificial back stack for the
-        // started Activity.
-        // This ensures that navigating backward from the Activity leads out of
-        // your application to the Home screen.
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-        // Adds the back stack for the Intent (but not the Intent itself)
-        stackBuilder.addParentStack(MapActivity.class);
-        // Adds the Intent that starts the Activity to the top of the stack
-        stackBuilder.addNextIntent(resultIntent);
-        PendingIntent resultPendingIntent =
-                stackBuilder.getPendingIntent(
-                        0,
-                        PendingIntent.FLAG_UPDATE_CURRENT
-                );
-        mBuilder.setContentIntent(resultPendingIntent);
-        NotificationManager mNotificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            // The stack builder object will contain an artificial back stack for the
+            // started Activity.
+            // This ensures that navigating backward from the Activity leads out of
+            // your application to the Home screen.
+            TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+            // Adds the back stack for the Intent (but not the Intent itself)
+            stackBuilder.addParentStack(MapActivity.class);
+            // Adds the Intent that starts the Activity to the top of the stack
+            stackBuilder.addNextIntent(resultIntent);
+            PendingIntent resultPendingIntent =
+                    stackBuilder.getPendingIntent(
+                            0,
+                            PendingIntent.FLAG_UPDATE_CURRENT
+                    );
+            mBuilder.setContentIntent(resultPendingIntent);
+            NotificationManager mNotificationManager =
+                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        // mId allows you to update the notification later on.
-        Notification notification = mBuilder.build();
-        notification.flags = Notification.FLAG_ONGOING_EVENT;
+            // mId allows you to update the notification later on.
+            Notification notification = mBuilder.build();
+            notification.flags = Notification.FLAG_ONGOING_EVENT;
 //        private int notification_id = 1;
 //        mNotificationManager.notify(notification_id, notification);
 
-        Intent start_session_intent = new Intent(this, MapActivity.class);
-        startActivity(start_session_intent);
+            Intent start_session_intent = new Intent(this, MapActivity.class);
+            start_session_intent.setAction(START_SESSION_ACTION);
+            startActivity(start_session_intent);
+        }
     }
 
     private Msgs.Gyms fakeGymData() {
