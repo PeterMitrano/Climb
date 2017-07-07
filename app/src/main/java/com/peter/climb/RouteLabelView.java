@@ -28,18 +28,15 @@ public class RouteLabelView extends View {
     public void setPosition(Msgs.Point2D position) {
         this.position = position;
         invalidate();
-        requestLayout();
     }
 
     public void setRouteName(String routeName) {
         this.routeName = routeName;
         invalidate();
-        requestLayout();
     }
 
     public void setRouteGrade(int routeGrade) {
         this.routeGrade = routeGrade;
         invalidate();
-        requestLayout();
     }
 }
