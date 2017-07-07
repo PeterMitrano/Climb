@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.android.volley.toolbox.ImageLoader;
+import com.peter.Climb.Msgs;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -16,17 +17,17 @@ import java.util.TimerTask;
 public class MapActivity extends AppCompatActivity implements View.OnClickListener {
 
     private View decor_view;
-    private ImageView map_image_view;
     private Button end_session_button;
     private AppState app_state;
     private TextView timer_view;
+    private GymMapView gym_map_view;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
-        app_state = ((MyApplication)getApplicationContext()).getState();
+        app_state = ((MyApplication) getApplicationContext()).getState();
 
         decor_view = getWindow().getDecorView();
 
@@ -35,15 +36,15 @@ public class MapActivity extends AppCompatActivity implements View.OnClickListen
 
         timer_view = (TextView) findViewById(R.id.time);
 
-        map_image_view = (ImageView) findViewById(R.id.map_image_view);
+        gym_map_view = (GymMapView) findViewById(R.id.map_view);
+        gym_map_view.setGym(app_state.current_gym);
 
-        if (getIntent().getAction() == MainActivity.START_SESSION_ACTION) {
+        if (getIntent().getAction().equals(MainActivity.START_SESSION_ACTION)) {
             app_state.session_in_progress = AppState.SessionState.IN_PROGRESS;
             start_session_timer();
         }
 
         loadMap();
-
     }
 
     private void start_session_timer() {
@@ -57,7 +58,7 @@ public class MapActivity extends AppCompatActivity implements View.OnClickListen
                     public void run() {
                         int minutes = 12;
                         int seconds = 34;
-                        timer_view.setText(String.valueOf(minutes)+":"+String.valueOf(seconds));
+                        timer_view.setText(String.valueOf(minutes) + ":" + String.valueOf(seconds));
                     }
 
                 });
@@ -67,13 +68,6 @@ public class MapActivity extends AppCompatActivity implements View.OnClickListen
     }
 
     private void loadMap() {
-        ImageLoader.ImageListener listener = ImageLoader.getImageListener(
-                map_image_view,
-                0,
-                R.drawable.ic_error_black_24dp);
-        String map_url = app_state.current_gym.getMapUrl();
-        RequestorSingleton.getInstance(this).getImageLoader().get(map_url, listener);
-
     }
 
     @Override
@@ -88,7 +82,8 @@ public class MapActivity extends AppCompatActivity implements View.OnClickListen
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 flags = flags | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-            };
+            }
+            ;
 
             decor_view.setSystemUiVisibility(flags);
         }
