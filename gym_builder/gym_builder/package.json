@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/petermitrano/climb/issues"
   },
-  "homepage": "https://github.com/petermitrano/climb#readme"
+  "homepage": "https://github.com/petermitrano/climb#readme",
+  "dependencies": {
+    "google-protobuf": "^3.3.0"
+  }
 }
