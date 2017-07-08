@@ -1,12 +1,13 @@
-goog.provide('proto.Gym');
+proto = require("./Gym_pb.js");
 
+let gym = new proto.Gym();
 let canvas, stage;
 let drawingCanvas;
 let down;
 let points = [];
 let color = "#ff0000"
 
-function init() {
+window.onload = function init() {
   // set the canvas size dynamically
   canvas = document.getElementById('map-canvas');
   sidebar = document.getElementById('sidebar');
