@@ -1,4 +1,6 @@
 from flask import Flask, render_template
+from google.protobuf.message import DecodeError
+import base64
 import Gym_pb2
 
 app = Flask(__name__)
@@ -9,18 +11,17 @@ def root():
 
 @app.route('/gyms', methods=['GET'])
 def get_gyms():
-    # eventually we will contact DB for this
-    gyms = Gym_pb2.Gyms()
-    ascend = gyms.gyms.add()
-    ascend.name = "Ascend PGH"
-    north = gyms.gyms.add()
-    north.name = "Climb North"
-    return gyms.SerializeToString()
+    # load up the serialized protocol buffer from disc and serve http request
+    f = open('./gyms.bas64', 'rb')
+    b64 = f.read()
+    f.close()
+    data = base64.b64decode(b64)
+    try:
+        gyms = Gym_pb2.Gyms.FromString(data)
+        return gyms.SerializeToString(), 200
+    except DecodeError:
+        return "File could not be parsed into valid Protbuf object", 500
 
-@app.route('/gyms', methods=['PUT'])
-def put_gyms():
-    # could automatically insert into DB. might be a bad idea...
-    return "inserting/updating a gym"
 
 if __name__ == '__main__':
     app.debug = True

@@ -1797,7 +1797,7 @@ function handleDownload(event) {
   contents = writer.getResultBase64String();
 
   let element = document.createElement('a');
-  element.setAttribute('href', 'data:text/plain;base64,' + contents);
+  element.setAttribute('href', 'data:,' + contents);
   element.setAttribute('download', 'my_gym.map');
 
   element.style.display = 'none';
