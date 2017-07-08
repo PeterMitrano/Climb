@@ -1,5 +1,5 @@
 proto = require("google-protobuf");
-msgs = require("./Gym_pb.js");
+msgs = require("gym_pb");
 
 let gym = new msgs.Gym();
 let canvas, stage;

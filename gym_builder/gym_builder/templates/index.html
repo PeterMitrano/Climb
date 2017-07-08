@@ -12,8 +12,12 @@
     <script defer src="https://code.createjs.com/easeljs-0.8.2.min.js"></script>
     <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
     <script defer src="{{ url_for("static", filename="js/loader.js") }}"></script>
+    <script defer>window.exports={};</script>
+    <script defer src="{{ url_for("static", filename="js/google-protobuf.js") }}"></script>
+    <script defer>require.register('google-protobuf', window.exports);window.exports = {};</script>
     <script defer src="{{ url_for("static", filename="js/Gym_pb.js") }}"></script>
-    <script defer src="{{ url_for("static", filename="js/bundle.js") }}"></script>
+    <script defer>require.register('gym_pb', window.exports);</script>
+    <script defer src="{{ url_for("static", filename="js/custom.js") }}"></script>
   </head>
   <body>
     <!-- Always shows a header, even in smaller screens. -->
