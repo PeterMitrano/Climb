@@ -5,7 +5,7 @@
  */
 // GENERATED CODE -- DO NOT EDIT!
 
-var jspb = require('./google-protobuf.js');
+var jspb = require('google-protobuf');
 var goog = jspb;
 var global = Function('return this')();
 
@@ -249,7 +249,6 @@ proto.Gym.toObject = function(includeInstance, msg) {
     name: msg.getName(),
     wallsList: jspb.Message.toObjectList(msg.getWallsList(),
     proto.Wall.toObject, includeInstance),
-    smallIconUrl: msg.getSmallIconUrl(),
     largeIconUrl: msg.getLargeIconUrl(),
     mapUrl: msg.getMapUrl()
   };
@@ -297,10 +296,6 @@ proto.Gym.deserializeBinaryFromReader = function(msg, reader) {
       reader.readMessage(value,proto.Wall.deserializeBinaryFromReader);
       msg.getWallsList().push(value);
       msg.setWallsList(msg.getWallsList());
-      break;
-    case 3:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setSmallIconUrl(value);
       break;
     case 4:
       var value = /** @type {string} */ (reader.readString());
@@ -361,13 +356,6 @@ proto.Gym.prototype.serializeBinaryToWriter = function (writer) {
       2,
       f,
       proto.Wall.serializeBinaryToWriter
-    );
-  }
-  f = this.getSmallIconUrl();
-  if (f.length > 0) {
-    writer.writeString(
-      3,
-      f
     );
   }
   f = this.getLargeIconUrl();
@@ -431,21 +419,6 @@ proto.Gym.prototype.setWallsList = function(value) {
 
 proto.Gym.prototype.clearWallsList = function() {
   this.setWallsList([]);
-};
-
-
-/**
- * optional string small_icon_url = 3;
- * @return {string}
- */
-proto.Gym.prototype.getSmallIconUrl = function() {
-  return /** @type {string} */ (jspb.Message.getFieldProto3(this, 3, ""));
-};
-
-
-/** @param {string} value  */
-proto.Gym.prototype.setSmallIconUrl = function(value) {
-  jspb.Message.setField(this, 3, value);
 };
 
 

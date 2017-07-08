@@ -10,9 +10,7 @@ message Gyms{
 message Gym {
     string name = 1;
     repeated Wall walls = 2;
-    string small_icon_url = 3;
     string large_icon_url = 4;
-    string map_url = 6;
 }
 
 message Wall {

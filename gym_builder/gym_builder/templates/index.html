@@ -30,14 +30,28 @@
         </span>
         <nav id="sidebar" class="mdl-navigation">
           <form action="#">
+            <!-- gym name -->
             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-              <input class="mdl-textfield__input" type="text" id="gym_name">
+              <input class="mdl-textfield__input" type="text" id="gym-name">
               <label class="mdl-textfield__label" for="gym_name">Gym Name</label>
             </div>
+
+            <!-- gym icon url -->
             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-              <input class="mdl-textfield__input" type="text" id="large_icon_url">
+              <input class="mdl-textfield__input" type="text" id="large-icon-url">
               <label class="mdl-textfield__label" for="large_icon_url">URL for Large Icon</label>
             </div>
+
+            <!-- load file button-->
+            <button id="upload-file-button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+              <i class="material-icons">file_upload</i> Upload Existing Map
+            </button>
+
+            <!-- download file button -->
+            <button id="download-file-button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+              Download Map File
+            </button>
+
           </form>
         </nav>
       </div>
@@ -49,7 +63,7 @@
 
         <!-- add wall button -->
         <button id="add-wall-fab" class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
-            <i class="material-icons">timeline</i>
+          <i class="material-icons">timeline</i>
         </button>
         <div class="mdl-tooltip mdl-tooltip--left" data-mdl-for="add-wall-fab">
           Add New Wall
@@ -61,14 +75,6 @@
         </button>
         <div class="mdl-tooltip mdl-tooltip--left" data-mdl-for="add-route-fab">
           Add New Route
-        </div>
-
-        <!-- load file button-->
-        <button id="load-file-fab" class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
-            <i class="material-icons">file_upload</i>
-        </button>
-        <div class="mdl-tooltip mdl-tooltip--left" data-mdl-for="load-file-fab">
-          Load Map File
         </div>
 
       </div>

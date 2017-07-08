@@ -11,10 +11,12 @@ canvas#map-canvas {
   margin: 18px;
 }
 
-button#load-file-fab {
-  position: absolute;
-  right: 18px;
-  bottom: 166px;
+button#download-file-button {
+  margin: 18px;
+}
+
+button#upload-file-button {
+  margin: 18px;
 }
 
 button#add-route-fab {

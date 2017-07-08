@@ -330,12 +330,8 @@ public class MainActivity extends AppCompatActivity
                     Msgs.Point2D.newBuilder().setX(1).setY(0)
                 ).setGrade(16)
             ).setName("The Dawn Wall")
-        ).setSmallIconUrl(
-            "https://www.ascendpgh.com/sites/default/files/logo.png"
         ).setLargeIconUrl(
             "https://www.ascendpgh.com/sites/all/themes/ascend_foundation/images/header-images/02-Header-Visiting-Ascend.jpg"
-        ).setMapUrl(
-            "https://www.guthrie.org/sites/default/files/TCH_AreaMap.gif"
         )
     ).build();
   }

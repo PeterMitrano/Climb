@@ -1,0 +1,11 @@
+{
+  "name": "gym_builder",
+  "version": "1.0.0",
+  "description": "gym builder web app",
+  "main": "index.js",
+  "dependencies": {
+    "google-protobuf": "^3.3.0"
+  },
+  "author": "Peter Mitrano",
+  "license": "WTFPL"
+}
