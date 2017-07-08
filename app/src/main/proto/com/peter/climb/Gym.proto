@@ -12,7 +12,6 @@ message Gym {
     repeated Wall walls = 2;
     string small_icon_url = 3;
     string large_icon_url = 4;
-    int32 id = 5;
     string map_url = 6;
 }
 

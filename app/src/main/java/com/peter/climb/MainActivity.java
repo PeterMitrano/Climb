@@ -186,27 +186,22 @@ public class MainActivity extends AppCompatActivity
       noGymSelectedImage.setVisibility(View.VISIBLE);
       largeIconImageView.setVisibility(View.GONE);
     } else {
-      for (Msgs.Gym gym : appState.gyms.getGymsList()) {
-        if (gym.getId() == appState.getCurrentGymId()) {
-          // set the logo
-          String url = gym.getLargeIconUrl();
-          ImageLoader.ImageListener listener = ImageLoader.getImageListener(
-              largeIconImageView,
-              0,
-              R.drawable.ic_error_black_24dp);
-          RequestorSingleton.getInstance(
-              getApplicationContext()).getImageLoader().get(url, listener);
+      // get the gym
+      Msgs.Gym gym = appState.getCurrentGym();
 
-          // mark this as the current gym
-          appState.setCurrentGym(gym.getId());
-        }
-      }
+      // set the logo
+      String url = gym.getLargeIconUrl();
+      ImageLoader.ImageListener listener = ImageLoader.getImageListener(
+          largeIconImageView,
+          0,
+          R.drawable.ic_error_black_24dp);
+      RequestorSingleton.getInstance(
+          getApplicationContext()).getImageLoader().get(url, listener);
 
       noGymSelectedTitle.setVisibility(View.GONE);
       noGymSelectedSubtitle.setVisibility(View.GONE);
       noGymSelectedImage.setVisibility(View.GONE);
       largeIconImageView.setVisibility(View.VISIBLE);
-
     }
   }
 
@@ -341,7 +336,7 @@ public class MainActivity extends AppCompatActivity
             "https://www.ascendpgh.com/sites/all/themes/ascend_foundation/images/header-images/02-Header-Visiting-Ascend.jpg"
         ).setMapUrl(
             "https://www.guthrie.org/sites/default/files/TCH_AreaMap.gif"
-        ).setId(0)
+        )
     ).build();
   }
 
