@@ -1,12 +1,8 @@
-var canvas, stage;
-var drawingCanvas;
-var oldPt;
-var oldMidPt;
-var color;
-var stroke;
-var colors;
-var index;
-var points = [];
+let canvas, stage;
+let drawingCanvas;
+let down;
+let points = [];
+let color = "#ff0000"
 
 function init() {
   // set the canvas size dynamically
@@ -38,26 +34,31 @@ function handleMouseClick(event) {
 
 function handleMouseDown(event) {
   if (!event.primary) { return; }
-  color = "#ffffff"
-  stroke = Math.random() * 30 + 10 | 0;
-  oldPt = new createjs.Point(stage.mouseX, stage.mouseY);
-  oldMidPt = oldPt.clone();
-  stage.addEventListener("stagemousemove", handleMouseMove);
-}
-
-function handleMouseMove(event) {
-  if (!event.primary) { return; }
-  var midPt = new createjs.Point(oldPt.x + stage.mouseX >> 1, oldPt.y + stage.mouseY >> 1);
-  drawingCanvas.graphics.clear().setStrokeStyle(stroke, 'round', 'round').beginStroke(color).moveTo(midPt.x, midPt.y).curveTo(oldPt.x, oldPt.y, oldMidPt.x, oldMidPt.y);
-  oldPt.x = stage.mouseX;
-  oldPt.y = stage.mouseY;
-  oldMidPt.x = midPt.x;
-  oldMidPt.y = midPt.y;
-  stage.update();
+  down = new createjs.Point(stage.mouseX, stage.mouseY);
 }
 
 function handleMouseUp(event) {
   if (!event.primary) { return; }
-  stage.removeEventListener("stagemousemove", handleMouseMove);
-}
+  let up = new createjs.Point(stage.mouseX, stage.mouseY);
+  let dx = up.x - down.x;
+  let dy = up.y - down.y;
+  let l2_dist = Math.sqrt(dx * dx + dy * dy);
 
+  if (l2_dist == 0) {
+    // click event
+    points.push(up);
+
+    let g = new createjs.Graphics();
+
+    if (points.length > 1) {
+      g = drawingCanvas.graphics;
+      g.setStrokeStyle(4, 'round', 'round').beginStroke("#000").moveTo(points[0].x, points[0].y);
+      for (let i = 0; i < points.length; i++) {
+        let p = points[i];
+        g = g.lineTo(p.x, p.y);
+      }
+      g.endStroke();
+    }
+    stage.update();
+  }
+}
