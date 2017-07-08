@@ -9,15 +9,17 @@ def root():
 
 @app.route('/gyms', methods=['GET'])
 def get_gyms():
+    # eventually we will contact DB for this
     gyms = Gym_pb2.Gyms()
-    gym = gyms.gyms.add()
-    gym.name = "Ascend PGH"
-    wall = gym.walls.add()
-    wall.name = "slab"
+    ascend = gyms.gyms.add()
+    ascend.name = "Ascend PGH"
+    north = gyms.gyms.add()
+    north.name = "Climb North"
     return gyms.SerializeToString()
 
 @app.route('/gyms', methods=['PUT'])
 def put_gyms():
+    # could automatically insert into DB. might be a bad idea...
     return "inserting/updating a gym"
 
 if __name__ == '__main__':

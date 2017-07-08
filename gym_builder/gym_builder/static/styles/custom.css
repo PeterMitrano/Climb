@@ -7,6 +7,10 @@ nav#sidebar {
   padding: 10%;
 }
 
+canvas#map-canvas {
+  margin: 18px;
+}
+
 button#load-file-fab {
   position: absolute;
   right: 18px;
