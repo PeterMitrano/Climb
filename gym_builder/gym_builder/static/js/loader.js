@@ -3,8 +3,14 @@
 	var modules = {};
 	var cache = {};
 
+	var hasOwn = Object.prototype.hasOwnProperty;
+
 	root.require = function(name) {
-		if (!Object.hasOwnProperty.call(cache, name)) {
+		if (!hasOwn.call(modules, name)) {
+			throw new Error('unknown module ' + name);
+		}
+
+		if (!hasOwn.call(cache, name)) {
 			var module = {
 				id: name,
 			};
