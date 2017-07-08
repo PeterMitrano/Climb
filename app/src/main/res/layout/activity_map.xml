@@ -48,7 +48,7 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:background="@color/white"
-        custom:background_color="#ff0000" />
+        custom:background_color="#aaa" />
 
 </android.support.constraint.ConstraintLayout>
 

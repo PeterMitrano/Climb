@@ -7,14 +7,12 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.view.GravityCompat;
@@ -30,7 +28,6 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.SearchView;
 import android.widget.TextView;
-
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
@@ -46,325 +43,330 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.peter.Climb.Msgs;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener,
-        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+    implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener,
+    GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String GYM_ID_PREF_KEY = "gym_id_pref_key";
-    public static final String PREFS_NAME = "MyPrefsFile";
-    public static final String START_SESSION_ACTION = "start_session_action";
-    private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 1;
-    private AppState app_state;
-    private GoogleApiClient mClient = null;
+  public static final String PREFS_NAME = "MyPrefsFile";
+  public static final String START_SESSION_ACTION = "start_session_action";
+  private static final String GYM_ID_PREF_KEY = "gym_id_pref_key";
+  private AppState appState;
+  private GoogleApiClient mClient = null;
 
-    private ImageView large_icon_image_view;
-    private TextView no_gym_selected_title;
-    private TextView no_gym_selected_subtitle;
-    private ImageView no_gym_selected_image;
+  private ImageView largeIconImageView;
+  private TextView noGymSelectedTitle;
+  private TextView noGymSelectedSubtitle;
+  private ImageView noGymSelectedImage;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_main);
+    Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+    setSupportActionBar(toolbar);
 
-        app_state = ((MyApplication) getApplicationContext()).getState();
+    appState = ((MyApplication) getApplicationContext()).getState();
 
-        large_icon_image_view = (ImageView) findViewById(R.id.large_icon_image_view);
-        no_gym_selected_title = (TextView) findViewById(R.id.no_gym_selected_title);
-        no_gym_selected_subtitle = (TextView) findViewById(R.id.no_gym_selected_subtitle);
-        no_gym_selected_image = (ImageView) findViewById(R.id.no_gym_selected_image);
+    largeIconImageView = (ImageView) findViewById(R.id.large_icon_image_view);
+    noGymSelectedTitle = (TextView) findViewById(R.id.no_gym_selected_title);
+    noGymSelectedSubtitle = (TextView) findViewById(R.id.no_gym_selected_subtitle);
+    noGymSelectedImage = (ImageView) findViewById(R.id.no_gym_selected_image);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.start_session_button);
-        fab.setOnClickListener(this);
+    FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.start_session_button);
+    fab.setOnClickListener(this);
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
+    DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+    ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+        this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+    drawer.addDrawerListener(toggle);
+    toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
+    NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+    navigationView.setNavigationItemSelectedListener(this);
 
-        // kickoff HTTP request to server for all the gym data
-        if (app_state.gyms == null) {
-            fetchGymData();
-        }
+    // kickoff HTTP request to server for all the gym data
+    if (appState.gyms == null) {
+      fetchGymData();
     }
+  }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        buildFitnessClient();
+  @Override
+  protected void onResume() {
+    super.onResume();
+//        buildFitnessClient();
+  }
+
+  /**
+   * Build a {@link GoogleApiClient} that will authenticate the user and allow the application
+   * to connect to Fitness APIs. The scopes included should match the scopes your app needs
+   * (see documentation for details). Authentication will occasionally fail intentionally,
+   * and in those cases, there will be a known resolution, which the OnConnectionFailedListener()
+   * can address. Examples of this include the user never having signed in before, or having
+   * multiple accounts on the device and needing to specify which account to use, etc.
+   */
+  private void buildFitnessClient() {
+    if (mClient == null) {
+      GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+          .requestEmail()
+          .requestScopes(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE),
+              new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
+          .build();
+
+      mClient = new GoogleApiClient.Builder(this)
+          .addApi(Fitness.SENSORS_API)
+          .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
+          .addConnectionCallbacks(this)
+          .enableAutoManage(this, 0, this)
+          .build();
     }
+  }
 
-    /**
-     * Build a {@link GoogleApiClient} that will authenticate the user and allow the application
-     * to connect to Fitness APIs. The scopes included should match the scopes your app needs
-     * (see documentation for details). Authentication will occasionally fail intentionally,
-     * and in those cases, there will be a known resolution, which the OnConnectionFailedListener()
-     * can address. Examples of this include the user never having signed in before, or having
-     * multiple accounts on the device and needing to specify which account to use, etc.
-     */
-    private void buildFitnessClient() {
-        if (mClient == null) {
-            GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                    .requestEmail()
-                    .requestScopes(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE),
-                            new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
-                    .build();
-
-            mClient = new GoogleApiClient.Builder(this)
-                    .addApi(Fitness.SENSORS_API)
-                    .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
-                    .addConnectionCallbacks(this)
-                    .enableAutoManage(this, 0, this)
-                    .build();
-        }
-    }
-
-    private void fetchGymData() {
-        // TODO: use real server
-        String url = "http://www.google.com";
-        StringRequest gym_data_request = new StringRequest(url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        try {
-                            // TODO: actually use this
-                            Msgs.Gyms gyms = Msgs.Gyms.parseFrom(ByteString.copyFromUtf8(response));
-                        } catch (InvalidProtocolBufferException e) {
-                            // could not parse message. 100 % Sad Panda
-                        }
-
-                        // mock of what the server would return
-                        Msgs.Gyms gyms = fakeGymData();
-                        onGymDataSuccess(gyms);
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        // TODO: dafuk do I do here
-                    }
-                });
-        RequestorSingleton.getInstance(this).addToRequestQueue(gym_data_request);
-    }
-
-    private void onGymDataSuccess(Msgs.Gyms gyms) {
-        app_state.gyms = gyms;
-
-        // load up the gym
-        Intent intent = getIntent();
-        if (intent.getAction().equals(Intent.ACTION_VIEW)) {
-            Uri uri = getIntent().getData();
+  private void fetchGymData() {
+    // TODO: use real server
+    String url = "http://www.google.com";
+    StringRequest gymDataRequest = new StringRequest(url,
+        new Response.Listener<String>() {
+          @Override
+          public void onResponse(String response) {
             try {
-                int gym_id = Integer.parseInt(uri.getLastPathSegment().toLowerCase());
-                app_state.current_gym = app_state.gyms.getGyms(gym_id);
-                app_state.current_gym_id = gym_id;
-            } catch (NumberFormatException e) {
-                e.printStackTrace();
-            }
-        } else {
-            // try to look up the currently selected gym from preferences
-            SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-            app_state.current_gym_id = settings.getInt(GYM_ID_PREF_KEY, -1);
-        }
-
-        // set the Icon for the current gym (if there is one)
-        displayCurrentGym();
-    }
-
-    private void displayCurrentGym() {
-        if (app_state.current_gym_id == -1) {
-            // they have no gym selected, so tell them how to add one
-            no_gym_selected_title.setVisibility(View.VISIBLE);
-            no_gym_selected_subtitle.setVisibility(View.VISIBLE);
-            no_gym_selected_image.setVisibility(View.VISIBLE);
-            large_icon_image_view.setVisibility(View.GONE);
-        } else {
-            for (Msgs.Gym gym : app_state.gyms.getGymsList()) {
-                if (gym.getId() == app_state.current_gym_id) {
-                    // set the logo
-                    String url = gym.getLargeIconUrl();
-                    ImageLoader.ImageListener listener = ImageLoader.getImageListener(
-                            large_icon_image_view,
-                            0,
-                            R.drawable.ic_error_black_24dp);
-                    RequestorSingleton.getInstance(
-                            getApplicationContext()).getImageLoader().get(url, listener);
-
-                    // mark this as the current gym
-                    app_state.current_gym = gym;
-                }
+              // TODO: actually use this
+              Msgs.Gyms gyms = Msgs.Gyms.parseFrom(ByteString.copyFromUtf8(response));
+            } catch (InvalidProtocolBufferException e) {
+              // could not parse message. 100 % Sad Panda
             }
 
-            no_gym_selected_title.setVisibility(View.GONE);
-            no_gym_selected_subtitle.setVisibility(View.GONE);
-            no_gym_selected_image.setVisibility(View.GONE);
-            large_icon_image_view.setVisibility(View.VISIBLE);
+            // mock of what the server would return
+            Msgs.Gyms gyms = fakeGymData();
+            onGymDataSuccess(gyms);
+          }
+        },
+        new Response.ErrorListener() {
+          @Override
+          public void onErrorResponse(VolleyError error) {
+            // TODO: dafuk do I do here
+          }
+        });
+    RequestorSingleton.getInstance(this).addToRequestQueue(gymDataRequest);
+  }
 
+  private void onGymDataSuccess(Msgs.Gyms gyms) {
+    appState.gyms = gyms;
+
+    // load up the gym
+    Intent intent = getIntent();
+    if (intent.getAction().equals(Intent.ACTION_VIEW)) {
+      Uri uri = getIntent().getData();
+      try {
+        int gymId = Integer.parseInt(uri.getLastPathSegment().toLowerCase());
+        appState.setCurrentGym(gymId);
+      } catch (NumberFormatException e) {
+        e.printStackTrace();
+      }
+    } else {
+      // try to look up the currently selected gym from preferences
+      SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+      int gymId = settings.getInt(GYM_ID_PREF_KEY, -1);
+
+      // TODO: remove this.
+      if (gymId == -1) {
+        appState.setCurrentGym(0);
+      } else {
+        appState.setCurrentGym(gymId);
+      }
+    }
+
+    // set the Icon for the current gym (if there is one)
+    displayCurrentGym();
+  }
+
+  private void displayCurrentGym() {
+    if (appState.getCurrentGymId() == -1) {
+      // they have no gym selected, so tell them how to add one
+      noGymSelectedTitle.setVisibility(View.VISIBLE);
+      noGymSelectedSubtitle.setVisibility(View.VISIBLE);
+      noGymSelectedImage.setVisibility(View.VISIBLE);
+      largeIconImageView.setVisibility(View.GONE);
+    } else {
+      for (Msgs.Gym gym : appState.gyms.getGymsList()) {
+        if (gym.getId() == appState.getCurrentGymId()) {
+          // set the logo
+          String url = gym.getLargeIconUrl();
+          ImageLoader.ImageListener listener = ImageLoader.getImageListener(
+              largeIconImageView,
+              0,
+              R.drawable.ic_error_black_24dp);
+          RequestorSingleton.getInstance(
+              getApplicationContext()).getImageLoader().get(url, listener);
+
+          // mark this as the current gym
+          appState.setCurrentGym(gym.getId());
         }
+      }
+
+      noGymSelectedTitle.setVisibility(View.GONE);
+      noGymSelectedSubtitle.setVisibility(View.GONE);
+      noGymSelectedImage.setVisibility(View.GONE);
+      largeIconImageView.setVisibility(View.VISIBLE);
+
     }
+  }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.toolbar_menu, menu);
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    MenuInflater inflater = getMenuInflater();
+    inflater.inflate(R.menu.toolbar_menu, menu);
 
-        // Get the SearchView and set the searchable configuration
-        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        SearchView searchView = (SearchView) menu.findItem(R.id.gym_search_view).getActionView();
+    // Get the SearchView and set the searchable configuration
+    SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+    SearchView searchView = (SearchView) menu.findItem(R.id.gym_search_view).getActionView();
 
-        // Assumes current activity is the searchable activity
-        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
-        searchView.setFocusable(true);
-        searchView.setIconified(false);
+    // Assumes current activity is the searchable activity
+    searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+    searchView.setFocusable(true);
+    searchView.setIconified(false);
 
-        // Override the onQueryTextListener just to return true on Submit,
-        // so it doesn't reload the activity
-        searchView.setOnQueryTextListener(
-                new SearchView.OnQueryTextListener() {
-                    @Override
-                    public boolean onQueryTextSubmit(String query) {
-                        return true;
-                    }
+    // Override the onQueryTextListener just to return true on Submit,
+    // so it doesn't reload the activity
+    searchView.setOnQueryTextListener(
+        new SearchView.OnQueryTextListener() {
+          @Override
+          public boolean onQueryTextSubmit(String query) {
+            return true;
+          }
 
-                    @Override
-                    public boolean onQueryTextChange(String newText) {
-                        return false;
-                    }
-                }
-        );
-
-        return true;
-    }
-
-    @Override
-    public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
+          @Override
+          public boolean onQueryTextChange(String newText) {
+            return false;
+          }
         }
+    );
+
+    return true;
+  }
+
+  @Override
+  public void onBackPressed() {
+    DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+    if (drawer.isDrawerOpen(GravityCompat.START)) {
+      drawer.closeDrawer(GravityCompat.START);
+    } else {
+      super.onBackPressed();
     }
+  }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
+  @Override
+  protected void onStop() {
+    super.onStop();
 
-        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putInt(GYM_ID_PREF_KEY, app_state.current_gym_id);
-        editor.apply();
-    }
+    SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+    SharedPreferences.Editor editor = settings.edit();
+    editor.putInt(GYM_ID_PREF_KEY, appState.getCurrentGymId());
+    editor.apply();
+  }
 
-    @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
-    }
+  @Override
+  public boolean onNavigationItemSelected(MenuItem item) {
+    // Handle navigation view item clicks here.
+    DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+    drawer.closeDrawer(GravityCompat.START);
+    return true;
+  }
 
-    @Override
-    public void onClick(View v) {
-        if (v.getId() == R.id.start_session_button) {
-            NotificationCompat.Builder mBuilder =
-                    new NotificationCompat.Builder(this)
-                            .setSmallIcon(R.drawable.ic_terrain_black_24dp)
-                            .setContentTitle("Climb")
-                            .setContentText("Session In Progress");
+  @Override
+  public void onClick(View v) {
+    if (v.getId() == R.id.start_session_button) {
+      NotificationCompat.Builder mBuilder =
+          new NotificationCompat.Builder(this)
+              .setSmallIcon(R.drawable.ic_terrain_black_24dp)
+              .setContentTitle("Climb")
+              .setContentText("Session In Progress");
 
-            // Creates an explicit intent for an Activity in your app
-            Intent resultIntent = new Intent(this, MapActivity.class);
+      // Creates an explicit intent for an Activity in your app
+      Intent resultIntent = new Intent(this, MapActivity.class);
 
-            // The stack builder object will contain an artificial back stack for the
-            // started Activity.
-            // This ensures that navigating backward from the Activity leads out of
-            // your application to the Home screen.
-            TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-            // Adds the back stack for the Intent (but not the Intent itself)
-            stackBuilder.addParentStack(MapActivity.class);
-            // Adds the Intent that starts the Activity to the top of the stack
-            stackBuilder.addNextIntent(resultIntent);
-            PendingIntent resultPendingIntent =
-                    stackBuilder.getPendingIntent(
-                            0,
-                            PendingIntent.FLAG_UPDATE_CURRENT
-                    );
-            mBuilder.setContentIntent(resultPendingIntent);
-            NotificationManager mNotificationManager =
-                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+      // The stack builder object will contain an artificial back stack for the
+      // started Activity.
+      // This ensures that navigating backward from the Activity leads out of
+      // your application to the Home screen.
+      TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+      // Adds the back stack for the Intent (but not the Intent itself)
+      stackBuilder.addParentStack(MapActivity.class);
+      // Adds the Intent that starts the Activity to the top of the stack
+      stackBuilder.addNextIntent(resultIntent);
+      PendingIntent resultPendingIntent =
+          stackBuilder.getPendingIntent(
+              0,
+              PendingIntent.FLAG_UPDATE_CURRENT
+          );
+      mBuilder.setContentIntent(resultPendingIntent);
+      NotificationManager mNotificationManager =
+          (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-            // mId allows you to update the notification later on.
-            Notification notification = mBuilder.build();
-            notification.flags = Notification.FLAG_ONGOING_EVENT;
+      // mId allows you to update the notification later on.
+      Notification notification = mBuilder.build();
+      notification.flags = Notification.FLAG_ONGOING_EVENT;
 //        private int notification_id = 1;
 //        mNotificationManager.notify(notification_id, notification);
 
-            Intent start_session_intent = new Intent(this, MapActivity.class);
-            start_session_intent.setAction(START_SESSION_ACTION);
-            startActivity(start_session_intent);
-        }
+      Intent startSessionIntent = new Intent(this, MapActivity.class);
+      startSessionIntent.setAction(START_SESSION_ACTION);
+      startActivity(startSessionIntent);
     }
+  }
 
-    private Msgs.Gyms fakeGymData() {
-        return Msgs.Gyms.newBuilder().addGyms(
-                Msgs.Gym.newBuilder().setName("Ascend PGH").addWalls(
-                        Msgs.Wall.newBuilder().setPolygon(
-                                Msgs.Polygon.newBuilder().addPoints(
-                                        Msgs.Point2D.newBuilder().setX(0).setY(0)
-                                ).addPoints(
-                                        Msgs.Point2D.newBuilder().setX(10).setY(0)
-                                ).addPoints(
-                                        Msgs.Point2D.newBuilder().setX(10).setY(10)
-                                ).addPoints(
-                                        Msgs.Point2D.newBuilder().setX(0).setY(10)
-                                )
-                        ).addRoutes(
-                                Msgs.Route.newBuilder().setName("Lappnor Project").setPosition(
-                                        Msgs.Point2D.newBuilder().setX(0).setY(0)
-                                ).setGrade(17)
-                        ).addRoutes(
-                                Msgs.Route.newBuilder().setName("La Dura Dura").setPosition(
-                                        Msgs.Point2D.newBuilder().setX(1).setY(0)
-                                ).setGrade(16)
-                        ).setName("The Dawn Wall")
-                ).setSmallIconUrl(
-                        "https://www.ascendpgh.com/sites/default/files/logo.png"
-                ).setLargeIconUrl(
-                        "https://www.ascendpgh.com/sites/all/themes/ascend_foundation/images/header-images/02-Header-Visiting-Ascend.jpg"
-                ).setMapUrl(
-                        "https://www.guthrie.org/sites/default/files/TCH_AreaMap.gif"
-                ).setId(0)
-        ).build();
-    }
+  private Msgs.Gyms fakeGymData() {
+    return Msgs.Gyms.newBuilder().addGyms(
+        Msgs.Gym.newBuilder().setName("Ascend PGH").addWalls(
+            Msgs.Wall.newBuilder().setPolygon(
+                Msgs.Polygon.newBuilder().addPoints(
+                    Msgs.Point2D.newBuilder().setX(0).setY(0)
+                ).addPoints(
+                    Msgs.Point2D.newBuilder().setX(10).setY(0)
+                ).addPoints(
+                    Msgs.Point2D.newBuilder().setX(10).setY(10)
+                ).addPoints(
+                    Msgs.Point2D.newBuilder().setX(0).setY(10)
+                )
+            ).addRoutes(
+                Msgs.Route.newBuilder().setName("Lappnor Project").setPosition(
+                    Msgs.Point2D.newBuilder().setX(0).setY(0)
+                ).setGrade(17)
+            ).addRoutes(
+                Msgs.Route.newBuilder().setName("La Dura Dura").setPosition(
+                    Msgs.Point2D.newBuilder().setX(1).setY(0)
+                ).setGrade(16)
+            ).setName("The Dawn Wall")
+        ).setSmallIconUrl(
+            "https://www.ascendpgh.com/sites/default/files/logo.png"
+        ).setLargeIconUrl(
+            "https://www.ascendpgh.com/sites/all/themes/ascend_foundation/images/header-images/02-Header-Visiting-Ascend.jpg"
+        ).setMapUrl(
+            "https://www.guthrie.org/sites/default/files/TCH_AreaMap.gif"
+        ).setId(0)
+    ).build();
+  }
 
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        Log.e(this.getClass().toString(), "Connected!!!");
-        // Now you can make calls to the Fitness APIs.
-    }
+  @Override
+  public void onConnected(@Nullable Bundle bundle) {
+    Log.e(this.getClass().toString(), "Connected!!!");
+    // Now you can make calls to the Fitness APIs.
+  }
 
-    @Override
-    public void onConnectionSuspended(int i) {
-        // If your connection to the sensor gets lost at some point,
-        // you'll be able to determine the reason and react to it here.
-        if (i == GoogleApiClient.ConnectionCallbacks.CAUSE_NETWORK_LOST) {
-            Log.e(this.getClass().toString(), "Connection lost.  Cause: Network Lost.");
-        } else if (i
-                == GoogleApiClient.ConnectionCallbacks.CAUSE_SERVICE_DISCONNECTED) {
-            Log.e(this.getClass().toString(),
-                    "Connection lost.  Reason: Service Disconnected");
-        }
+  @Override
+  public void onConnectionSuspended(int i) {
+    // If your connection to the sensor gets lost at some point,
+    // you'll be able to determine the reason and react to it here.
+    if (i == GoogleApiClient.ConnectionCallbacks.CAUSE_NETWORK_LOST) {
+      Log.e(this.getClass().toString(), "Connection lost.  Cause: Network Lost.");
+    } else if (i
+        == GoogleApiClient.ConnectionCallbacks.CAUSE_SERVICE_DISCONNECTED) {
+      Log.e(this.getClass().toString(),
+          "Connection lost.  Reason: Service Disconnected");
     }
+  }
 
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Log.e(this.getClass().toString(), "Google Play services connection failed. Cause: "
-                + connectionResult.toString());
-    }
+  @Override
+  public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+    Log.e(this.getClass().toString(), "Google Play services connection failed. Cause: "
+        + connectionResult.toString());
+  }
 }
