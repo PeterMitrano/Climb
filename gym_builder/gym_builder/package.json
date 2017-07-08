@@ -1,0 +1,19 @@
+{
+  "name": "gym_builder",
+  "version": "1.0.0",
+  "description": "web app for building gym maps",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/petermitrano/climb.git"
+  },
+  "author": "Peter Mitrano",
+  "license": "WTFPL",
+  "bugs": {
+    "url": "https://github.com/petermitrano/climb/issues"
+  },
+  "homepage": "https://github.com/petermitrano/climb#readme"
+}

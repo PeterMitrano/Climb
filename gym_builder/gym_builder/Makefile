@@ -1,3 +1,8 @@
+SRC_DIR=../../climb/app/src/main/proto/com/peter/climb
+PROTO=$(SRC_DIR)/Gym.proto
+
 all:
-	/opt/protoc-3.0/bin/protoc -I=../../climb/app/src/main/proto/com/peter/climb --python_out=. ../../climb/app/src/main/proto/com/peter/climb/Gym.proto
+	/opt/protoc-3.0/bin/protoc -I=$(SRC_DIR) --python_out=. $(PROTO)
+	/opt/protoc-3.0/bin/protoc --proto_path=$(SRC_DIR) --js_out=library=,binary:static/js $(PROTO)
+
 
