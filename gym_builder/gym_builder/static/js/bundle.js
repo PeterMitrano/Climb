@@ -625,7 +625,8 @@ proto.Gym.toObject = function(includeInstance, msg) {
     wallsList: jspb.Message.toObjectList(msg.getWallsList(),
     proto.Wall.toObject, includeInstance),
     largeIconUrl: msg.getLargeIconUrl(),
-    mapUrl: msg.getMapUrl()
+    width: msg.getWidth(),
+    height: msg.getHeight()
   };
 
   if (includeInstance) {
@@ -676,9 +677,13 @@ proto.Gym.deserializeBinaryFromReader = function(msg, reader) {
       var value = /** @type {string} */ (reader.readString());
       msg.setLargeIconUrl(value);
       break;
+    case 5:
+      var value = /** @type {number} */ (reader.readFloat());
+      msg.setWidth(value);
+      break;
     case 6:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setMapUrl(value);
+      var value = /** @type {number} */ (reader.readFloat());
+      msg.setHeight(value);
       break;
     default:
       reader.skipField();
@@ -740,9 +745,16 @@ proto.Gym.prototype.serializeBinaryToWriter = function (writer) {
       f
     );
   }
-  f = this.getMapUrl();
-  if (f.length > 0) {
-    writer.writeString(
+  f = this.getWidth();
+  if (f !== 0.0) {
+    writer.writeFloat(
+      5,
+      f
+    );
+  }
+  f = this.getHeight();
+  if (f !== 0.0) {
+    writer.writeFloat(
       6,
       f
     );
@@ -813,16 +825,31 @@ proto.Gym.prototype.setLargeIconUrl = function(value) {
 
 
 /**
- * optional string map_url = 6;
- * @return {string}
+ * optional float width = 5;
+ * @return {number}
  */
-proto.Gym.prototype.getMapUrl = function() {
-  return /** @type {string} */ (jspb.Message.getFieldProto3(this, 6, ""));
+proto.Gym.prototype.getWidth = function() {
+  return /** @type {number} */ (jspb.Message.getFieldProto3(this, 5, 0));
 };
 
 
-/** @param {string} value  */
-proto.Gym.prototype.setMapUrl = function(value) {
+/** @param {number} value  */
+proto.Gym.prototype.setWidth = function(value) {
+  jspb.Message.setField(this, 5, value);
+};
+
+
+/**
+ * optional float height = 6;
+ * @return {number}
+ */
+proto.Gym.prototype.getHeight = function() {
+  return /** @type {number} */ (jspb.Message.getFieldProto3(this, 6, 0));
+};
+
+
+/** @param {number} value  */
+proto.Gym.prototype.setHeight = function(value) {
   jspb.Message.setField(this, 6, value);
 };
 

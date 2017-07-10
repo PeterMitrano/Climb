@@ -1,54 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:custom="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#ffffff">
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:custom="http://schemas.android.com/apk/res-auto"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:background="#ffffff">
 
-    <android.support.constraint.ConstraintLayout
-        android:id="@+id/session_info"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="#222"
-        android:padding="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent">
+  <android.support.constraint.ConstraintLayout
+    android:id="@+id/session_info"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:padding="8dp"
+    android:background="#222"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintLeft_toLeftOf="parent"
+    app:layout_constraintRight_toRightOf="parent">
 
-        <TextView
-            android:id="@+id/time"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingTop="16dp"
-            android:text="@string/init_time"
-            android:textColor="#ddd"
-            android:textSize="20sp"
-            app:layout_constraintLeft_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+    <TextView
+      android:id="@+id/time"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:paddingTop="16dp"
+      android:text="@string/init_time"
+      android:textColor="#ddd"
+      android:textSize="20sp"
+      app:layout_constraintLeft_toRightOf="parent"
+      app:layout_constraintTop_toTopOf="parent" />
 
-        <Button
-            android:id="@+id/end_session_button"
-            style="@style/Widget.AppCompat.Button.Borderless.Colored"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/end"
-            android:textSize="20sp"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+    <Button
+      android:id="@+id/end_session_button"
+      style="@style/Widget.AppCompat.Button.Borderless.Colored"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="@string/end"
+      android:textSize="20sp"
+      app:layout_constraintRight_toRightOf="parent"
+      app:layout_constraintTop_toTopOf="parent" />
 
-    </android.support.constraint.ConstraintLayout>
+  </android.support.constraint.ConstraintLayout>
 
-    <com.peter.climb.GymMapView
-        android:id="@+id/map_view"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/session_info"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:background="@color/white"
-        custom:background_color="#aaa" />
+  <com.peter.climb.GymMapView
+    android:id="@+id/map_view"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:background="@color/black"
+    android:clipChildren="false"
+    app:layout_constraintBottom_toTopOf="@id/session_info"
+    app:layout_constraintLeft_toLeftOf="parent"
+    app:layout_constraintRight_toRightOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    custom:floor_color="#607D8B" />
 
 </android.support.constraint.ConstraintLayout>
 

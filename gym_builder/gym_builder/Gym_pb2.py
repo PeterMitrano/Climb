@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='Gym.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\tGym.proto\"\x1a\n\x04Gyms\x12\x12\n\x04gyms\x18\x01 \x03(\x0b\x32\x04.Gym\"R\n\x03Gym\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x14\n\x05walls\x18\x02 \x03(\x0b\x32\x05.Wall\x12\x16\n\x0elarge_icon_url\x18\x04 \x01(\t\x12\x0f\n\x07map_url\x18\x06 \x01(\t\"G\n\x04Wall\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x19\n\x07polygon\x18\x02 \x01(\x0b\x32\x08.Polygon\x12\x16\n\x06routes\x18\x03 \x03(\x0b\x32\x06.Route\"7\n\x07Polygon\x12\x18\n\x06points\x18\x01 \x03(\x0b\x32\x08.Point2D\x12\x12\n\ncolor_code\x18\x02 \x01(\t\"@\n\x05Route\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x1a\n\x08position\x18\x02 \x01(\x0b\x32\x08.Point2D\x12\r\n\x05grade\x18\x03 \x01(\x05\"\x1f\n\x07Point2D\x12\t\n\x01x\x18\x01 \x01(\x02\x12\t\n\x01y\x18\x02 \x01(\x02\x42\x17\n\x0f\x63om.peter.ClimbB\x04Msgsb\x06proto3')
+  serialized_pb=_b('\n\tGym.proto\"\x1a\n\x04Gyms\x12\x12\n\x04gyms\x18\x01 \x03(\x0b\x32\x04.Gym\"`\n\x03Gym\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x14\n\x05walls\x18\x02 \x03(\x0b\x32\x05.Wall\x12\x16\n\x0elarge_icon_url\x18\x04 \x01(\t\x12\r\n\x05width\x18\x05 \x01(\x02\x12\x0e\n\x06height\x18\x06 \x01(\x02\"G\n\x04Wall\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x19\n\x07polygon\x18\x02 \x01(\x0b\x32\x08.Polygon\x12\x16\n\x06routes\x18\x03 \x03(\x0b\x32\x06.Route\"7\n\x07Polygon\x12\x18\n\x06points\x18\x01 \x03(\x0b\x32\x08.Point2D\x12\x12\n\ncolor_code\x18\x02 \x01(\t\"@\n\x05Route\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x1a\n\x08position\x18\x02 \x01(\x0b\x32\x08.Point2D\x12\r\n\x05grade\x18\x03 \x01(\x05\"\x1f\n\x07Point2D\x12\t\n\x01x\x18\x01 \x01(\x02\x12\t\n\x01y\x18\x02 \x01(\x02\x42\x17\n\x0f\x63om.peter.ClimbB\x04Msgsb\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -86,9 +86,16 @@ _GYM = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
-      name='map_url', full_name='Gym.map_url', index=3,
-      number=6, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
+      name='width', full_name='Gym.width', index=3,
+      number=5, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='height', full_name='Gym.height', index=4,
+      number=6, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -105,7 +112,7 @@ _GYM = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=41,
-  serialized_end=123,
+  serialized_end=137,
 )
 
 
@@ -149,8 +156,8 @@ _WALL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=125,
-  serialized_end=196,
+  serialized_start=139,
+  serialized_end=210,
 )
 
 
@@ -187,8 +194,8 @@ _POLYGON = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=198,
-  serialized_end=253,
+  serialized_start=212,
+  serialized_end=267,
 )
 
 
@@ -232,8 +239,8 @@ _ROUTE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=255,
-  serialized_end=319,
+  serialized_start=269,
+  serialized_end=333,
 )
 
 
@@ -270,8 +277,8 @@ _POINT2D = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=321,
-  serialized_end=352,
+  serialized_start=335,
+  serialized_end=366,
 )
 
 _GYMS.fields_by_name['gyms'].message_type = _GYM

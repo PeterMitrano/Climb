@@ -25,6 +25,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.SearchView;
 import android.widget.TextView;
@@ -56,6 +57,7 @@ public class MainActivity extends AppCompatActivity
   private TextView noGymSelectedTitle;
   private TextView noGymSelectedSubtitle;
   private ImageView noGymSelectedImage;
+  private FloatingActionButton startSessionButton;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -70,9 +72,9 @@ public class MainActivity extends AppCompatActivity
     noGymSelectedTitle = (TextView) findViewById(R.id.no_gym_selected_title);
     noGymSelectedSubtitle = (TextView) findViewById(R.id.no_gym_selected_subtitle);
     noGymSelectedImage = (ImageView) findViewById(R.id.no_gym_selected_image);
-
-    FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.start_session_button);
-    fab.setOnClickListener(this);
+    startSessionButton = (FloatingActionButton) findViewById(R.id.start_session_button);
+    startSessionButton.setEnabled(false);
+    startSessionButton.setOnClickListener(this);
 
     DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
     ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -83,15 +85,15 @@ public class MainActivity extends AppCompatActivity
     NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
     navigationView.setNavigationItemSelectedListener(this);
 
-    // kickoff HTTP request to server for all the gym data
-    if (appState.gyms == null) {
-      fetchGymData();
-    }
   }
 
   @Override
   protected void onResume() {
     super.onResume();
+
+    // kickoff HTTP request to server for all the gym data
+    fetchGymData();
+
 //        buildFitnessClient();
   }
 
@@ -127,22 +129,23 @@ public class MainActivity extends AppCompatActivity
         new Response.Listener<String>() {
           @Override
           public void onResponse(String response) {
+            Log.e(this.getClass().toString(), response);
             try {
               // TODO: actually use this
               Msgs.Gyms gyms = Msgs.Gyms.parseFrom(ByteString.copyFromUtf8(response));
+              onGymDataSuccess(gyms);
             } catch (InvalidProtocolBufferException e) {
-              // could not parse message. 100 % Sad Panda
+              // could not parse message.
+              // mock of what the server would return
+              Msgs.Gyms gyms = fakeGymData();
+              onGymDataSuccess(gyms);
             }
-
-            // mock of what the server would return
-            Msgs.Gyms gyms = fakeGymData();
-            onGymDataSuccess(gyms);
           }
         },
         new Response.ErrorListener() {
           @Override
           public void onErrorResponse(VolleyError error) {
-            // TODO: dafuk do I do here
+            Log.e(this.getClass().toString(), "error: " + error.getMessage());
           }
         });
     RequestorSingleton.getInstance(this).addToRequestQueue(gymDataRequest);
@@ -165,13 +168,16 @@ public class MainActivity extends AppCompatActivity
       // try to look up the currently selected gym from preferences
       SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
       int gymId = settings.getInt(GYM_ID_PREF_KEY, -1);
-
-      // TODO: remove this.
       if (gymId == -1) {
+        // TODO: proper error handling
         appState.setCurrentGym(0);
       } else {
         appState.setCurrentGym(gymId);
       }
+
+      // TODO: remove this.
+      appState.setCurrentGym(0);
+      startSessionButton.setEnabled(true);
     }
 
     // set the Icon for the current gym (if there is one)
@@ -317,10 +323,12 @@ public class MainActivity extends AppCompatActivity
                 ).addPoints(
                     Msgs.Point2D.newBuilder().setX(10).setY(0)
                 ).addPoints(
+                    Msgs.Point2D.newBuilder().setX(15).setY(5)
+                ).addPoints(
                     Msgs.Point2D.newBuilder().setX(10).setY(10)
                 ).addPoints(
-                    Msgs.Point2D.newBuilder().setX(0).setY(10)
-                )
+                    Msgs.Point2D.newBuilder().setX(0).setY(14)
+                ).setColorCode("#FFC107")
             ).addRoutes(
                 Msgs.Route.newBuilder().setName("Lappnor Project").setPosition(
                     Msgs.Point2D.newBuilder().setX(0).setY(0)
@@ -330,9 +338,31 @@ public class MainActivity extends AppCompatActivity
                     Msgs.Point2D.newBuilder().setX(1).setY(0)
                 ).setGrade(16)
             ).setName("The Dawn Wall")
+        ).addWalls(
+            Msgs.Wall.newBuilder().setPolygon(
+                Msgs.Polygon.newBuilder().addPoints(
+                    Msgs.Point2D.newBuilder().setX(0).setY(30)
+                ).addPoints(
+                    Msgs.Point2D.newBuilder().setX(5).setY(30)
+                ).addPoints(
+                    Msgs.Point2D.newBuilder().setX(6).setY(35)
+                ).addPoints(
+                    Msgs.Point2D.newBuilder().setX(4).setY(40)
+                ).addPoints(
+                    Msgs.Point2D.newBuilder().setX(0).setY(37)
+                ).setColorCode("#9C27B0")
+            ).addRoutes(
+                Msgs.Route.newBuilder().setName("Pikachu").setPosition(
+                    Msgs.Point2D.newBuilder().setX(5).setY(2)
+                ).setGrade(7)
+            ).addRoutes(
+                Msgs.Route.newBuilder().setName("Magikarp").setPosition(
+                    Msgs.Point2D.newBuilder().setX(4).setY(8)
+                ).setGrade(10)
+            ).setName("Slab")
         ).setLargeIconUrl(
-            "https://www.ascendpgh.com/sites/all/themes/ascend_foundation/images/header-images/02-Header-Visiting-Ascend.jpg"
-        )
+            "https://www.ascendpgh.com/sites/all/themes/ascend_foundation/images/Ascend-Mobile-Logo.png"
+        ).setWidth(20).setHeight(100)
     ).build();
   }
 

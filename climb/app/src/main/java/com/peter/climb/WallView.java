@@ -11,11 +11,13 @@ import com.peter.Climb.Msgs;
 
 public class WallView extends View {
 
+  public static final int WALL_OUTLINE_STROKE_WIDTH = 8;
   private Paint wallOutlinePaint;
   private Paint wallPaint;
   private Msgs.Wall wall;
 
   private Path wallPath;
+  private float metersToPixels = 1.f;
 
   public WallView(Context context) {
     super(context);
@@ -35,9 +37,9 @@ public class WallView extends View {
     super.onDraw(canvas);
 
     Msgs.Polygon polygon = this.wall.getPolygon();
-    for (Msgs.Point2D p : polygon.getPointsList()) {
-      float px = p.getX();
-      float py = p.getY();
+    for (Msgs.Point2D p : this.wall.getPolygon().getPointsList()) {
+      float px = metersToPixels * p.getX();
+      float py = metersToPixels * p.getY();
       if (wallPath.isEmpty()) {
         wallPath.moveTo(px, py);
       } else {
@@ -45,18 +47,13 @@ public class WallView extends View {
       }
     }
 
-    Msgs.Point2D p0 = polygon.getPoints(0);
-    float x0 = p0.getX();
-    float y0 = p0.getY();
-    wallPath.lineTo(x0, y0);
-
     canvas.drawPath(wallPath, wallPaint);
     canvas.drawPath(wallPath, wallOutlinePaint);
-
   }
 
   @Override
   protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+    super.onSizeChanged(w, h, oldw, oldh);
   }
 
   public void setWall(Msgs.Wall wall) {
@@ -79,7 +76,15 @@ public class WallView extends View {
       }
 
       wallOutlinePaint.setColor(Color.BLACK);
+      wallOutlinePaint.setStrokeWidth(WALL_OUTLINE_STROKE_WIDTH);
     }
+  }
+
+  public void setMetersToPixels(float metersToPixels) {
+    this.metersToPixels = metersToPixels;
+
+    wallPath = new Path();
+    invalidate();
   }
 }
 

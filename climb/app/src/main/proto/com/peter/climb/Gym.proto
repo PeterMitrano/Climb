@@ -3,35 +3,38 @@ syntax = "proto3";
 option java_package = "com.peter.Climb";
 option java_outer_classname = "Msgs";
 
-message Gyms{
-    repeated Gym gyms = 1;
+message Gyms {
+  repeated Gym gyms = 1;
 }
 
 message Gym {
-    string name = 1;
-    repeated Wall walls = 2;
-    string large_icon_url = 4;
+  string name = 1;
+  repeated Wall walls = 2;
+  string large_icon_url = 4;
+  float width = 5;
+  float height = 6;
 }
 
 message Wall {
-    string name = 1;
-    Polygon polygon = 2;
-    repeated Route routes = 3;
+  string name = 1;
+  Polygon polygon = 2;
+  repeated Route routes = 3;
 }
 
 message Polygon {
-    repeated Point2D points = 1;
-    string color_code = 2;
+  // points should be in the unit METERS
+  repeated Point2D points = 1;
+  string color_code = 2;
 }
 
 message Route {
-    string name = 1;
-    Point2D position = 2;
-    int32 grade = 3;
+  string name = 1;
+  Point2D position = 2;
+  int32 grade = 3;
 }
 
 message Point2D {
-    float x = 1;
-    float y = 2;
+  float x = 1;
+  float y = 2;
 }
 
