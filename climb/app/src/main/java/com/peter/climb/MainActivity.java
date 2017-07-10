@@ -25,7 +25,6 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.SearchView;
 import android.widget.TextView;
@@ -129,7 +128,6 @@ public class MainActivity extends AppCompatActivity
         new Response.Listener<String>() {
           @Override
           public void onResponse(String response) {
-            Log.e(this.getClass().toString(), response);
             try {
               // TODO: actually use this
               Msgs.Gyms gyms = Msgs.Gyms.parseFrom(ByteString.copyFromUtf8(response));
@@ -316,53 +314,55 @@ public class MainActivity extends AppCompatActivity
 
   private Msgs.Gyms fakeGymData() {
     return Msgs.Gyms.newBuilder().addGyms(
-        Msgs.Gym.newBuilder().setName("Ascend PGH").addWalls(
-            Msgs.Wall.newBuilder().setPolygon(
-                Msgs.Polygon.newBuilder().addPoints(
-                    Msgs.Point2D.newBuilder().setX(0).setY(0)
-                ).addPoints(
-                    Msgs.Point2D.newBuilder().setX(10).setY(0)
-                ).addPoints(
-                    Msgs.Point2D.newBuilder().setX(15).setY(5)
-                ).addPoints(
-                    Msgs.Point2D.newBuilder().setX(10).setY(10)
-                ).addPoints(
-                    Msgs.Point2D.newBuilder().setX(0).setY(14)
-                ).setColorCode("#FFC107")
-            ).addRoutes(
-                Msgs.Route.newBuilder().setName("Lappnor Project").setPosition(
-                    Msgs.Point2D.newBuilder().setX(1).setY(1)
-                ).setGrade(17)
-            ).addRoutes(
-                Msgs.Route.newBuilder().setName("La Dura Dura").setPosition(
-                    Msgs.Point2D.newBuilder().setX(2).setY(3)
-                ).setGrade(16)
-            ).setName("The Dawn Wall")
-        ).addWalls(
-            Msgs.Wall.newBuilder().setPolygon(
-                Msgs.Polygon.newBuilder().addPoints(
-                    Msgs.Point2D.newBuilder().setX(0).setY(30)
-                ).addPoints(
-                    Msgs.Point2D.newBuilder().setX(5).setY(30)
-                ).addPoints(
-                    Msgs.Point2D.newBuilder().setX(6).setY(35)
-                ).addPoints(
-                    Msgs.Point2D.newBuilder().setX(4).setY(40)
-                ).addPoints(
-                    Msgs.Point2D.newBuilder().setX(0).setY(37)
-                ).setColorCode("#9C27B0")
-            ).addRoutes(
-                Msgs.Route.newBuilder().setName("Pikachu").setPosition(
-                    Msgs.Point2D.newBuilder().setX(5).setY(32)
-                ).setGrade(7)
-            ).addRoutes(
-                Msgs.Route.newBuilder().setName("Magikarp").setPosition(
-                    Msgs.Point2D.newBuilder().setX(4).setY(38)
-                ).setGrade(10)
-            ).setName("Slab")
+        Msgs.Gym.newBuilder().setName("Ascend PGH").addFloors(
+            Msgs.Floor.newBuilder().addWalls(
+                Msgs.Wall.newBuilder().setPolygon(
+                    Msgs.Polygon.newBuilder().addPoints(
+                        Msgs.Point2D.newBuilder().setX(0).setY(0)
+                    ).addPoints(
+                        Msgs.Point2D.newBuilder().setX(10).setY(0)
+                    ).addPoints(
+                        Msgs.Point2D.newBuilder().setX(15).setY(5)
+                    ).addPoints(
+                        Msgs.Point2D.newBuilder().setX(10).setY(10)
+                    ).addPoints(
+                        Msgs.Point2D.newBuilder().setX(0).setY(14)
+                    ).setColorCode("#FFC107")
+                ).addRoutes(
+                    Msgs.Route.newBuilder().setName("Lappnor Project").setPosition(
+                        Msgs.Point2D.newBuilder().setX(1).setY(1)
+                    ).setGrade(17)
+                ).addRoutes(
+                    Msgs.Route.newBuilder().setName("La Dura Dura").setPosition(
+                        Msgs.Point2D.newBuilder().setX(2).setY(3)
+                    ).setGrade(16)
+                ).setName("The Dawn Wall")
+            ).addWalls(
+                Msgs.Wall.newBuilder().setPolygon(
+                    Msgs.Polygon.newBuilder().addPoints(
+                        Msgs.Point2D.newBuilder().setX(0).setY(30)
+                    ).addPoints(
+                        Msgs.Point2D.newBuilder().setX(5).setY(30)
+                    ).addPoints(
+                        Msgs.Point2D.newBuilder().setX(6).setY(35)
+                    ).addPoints(
+                        Msgs.Point2D.newBuilder().setX(4).setY(60)
+                    ).addPoints(
+                        Msgs.Point2D.newBuilder().setX(0).setY(67)
+                    ).setColorCode("#9C27B0")
+                ).addRoutes(
+                    Msgs.Route.newBuilder().setName("Pikachu").setPosition(
+                        Msgs.Point2D.newBuilder().setX(5).setY(32)
+                    ).setGrade(7)
+                ).addRoutes(
+                    Msgs.Route.newBuilder().setName("Magikarp").setPosition(
+                        Msgs.Point2D.newBuilder().setX(4).setY(38)
+                    ).setGrade(10)
+                ).setName("Slab")
+            ).setWidth(25).setHeight(70)
         ).setLargeIconUrl(
             "https://www.ascendpgh.com/sites/all/themes/ascend_foundation/images/Ascend-Mobile-Logo.png"
-        ).setWidth(25).setHeight(70)
+        )
     ).build();
   }
 

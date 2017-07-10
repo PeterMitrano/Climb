@@ -49,7 +49,7 @@
     app:layout_constraintLeft_toLeftOf="parent"
     app:layout_constraintRight_toRightOf="parent"
     app:layout_constraintTop_toTopOf="parent"
-    custom:floor_color="#607D8B" />
+    custom:floor_color="#9E9E9E" />
 
 </android.support.constraint.ConstraintLayout>
 

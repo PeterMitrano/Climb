@@ -9,10 +9,15 @@ message Gyms {
 
 message Gym {
   string name = 1;
-  repeated Wall walls = 2;
-  string large_icon_url = 4;
-  float width = 5;
-  float height = 6;
+  string large_icon_url = 2;
+  repeated Floor floors = 3;
+}
+
+message Floor {
+  repeated Wall walls = 1;
+  Polygon polygon = 2;
+  float width = 3;
+  float height = 4;
 }
 
 message Wall {

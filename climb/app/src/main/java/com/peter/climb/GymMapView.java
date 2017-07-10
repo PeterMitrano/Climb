@@ -9,7 +9,6 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -21,21 +20,26 @@ import java.util.List;
 public class GymMapView extends ViewGroup {
 
   public static final float MAX_ZOOM_FACTOR = 4.0f;
-  private int floorColor;
+  public static final int GYM_FLOOR_OUTLINE_STROKE_WIDTH = 36;
+  private static final int GYM_FLOOR_OUTLINE_COLOR = 0xff2f0366;
   private List<WallView> wallViews;
   private List<RouteLabelView> labelViews;
   private Msgs.Gym gym;
   private ScaleGestureDetector scaleGestureDetector;
+  private Paint gymFloorPaint;
+  private Paint gymFloorOutlinePaint;
+  private RectF gymFloorRect;
   private float metersToPixels;
   private float scaleFactor = 1f;
   private float lastTouchX;
   private float lastTouchY;
-  private int activePointerId;
   private float posX;
   private float posY;
-  private Paint gymFloorPaint;
-  private RectF gymFloorRect;
-
+  private float focusX;
+  private float focusY;
+  private int activePointerId;
+  private int floorColor;
+  private int floor;
 
   public GymMapView(Context context) {
     super(context);
@@ -83,15 +87,15 @@ public class GymMapView extends ViewGroup {
     super.onSizeChanged(w, h, oldw, oldh);
 
     if (gym != null) {
-      float gymAspectRatio = gym.getHeight() / gym.getWidth();
+      float gymAspectRatio = gym.getFloors(floor).getHeight() / gym.getFloors(floor).getWidth();
       float screenAspectRatio = (float) getHeight() / getWidth();
 
       if (gymAspectRatio > screenAspectRatio) {
         // gym fills width
-        metersToPixels = getWidth() / gym.getWidth();
+        metersToPixels = getWidth() / gym.getFloors(floor).getWidth();
       } else {
         // gym fills height
-        metersToPixels = getHeight() / gym.getHeight();
+        metersToPixels = getHeight() / gym.getFloors(floor).getHeight();
       }
 
       updateFloorRect();
@@ -130,8 +134,16 @@ public class GymMapView extends ViewGroup {
   protected void onDraw(Canvas canvas) {
     super.onDraw(canvas);
     canvas.translate(posX, posY);
-    canvas.scale(scaleFactor, scaleFactor);
+    canvas.scale(scaleFactor, scaleFactor, focusX, focusY);
     canvas.drawRect(gymFloorRect, gymFloorPaint);
+  }
+
+  @Override
+  protected void dispatchDraw(Canvas canvas) {
+    super.dispatchDraw(canvas);
+
+    // We can draw on top of children here
+    canvas.drawRect(gymFloorRect, gymFloorOutlinePaint);
   }
 
   @Override
@@ -161,8 +173,10 @@ public class GymMapView extends ViewGroup {
           final float dx = x - lastTouchX;
           final float dy = y - lastTouchY;
 
-          posX = Math.max(Math.min(0, posX + dx), -gym.getWidth() * metersToPixels + getWidth());
-          posY = Math.max(Math.min(0, posY + dy), -gym.getHeight() * metersToPixels + getHeight());
+          float minX = -gym.getFloors(floor).getWidth() * metersToPixels * scaleFactor + getWidth();
+          float minY = -gym.getFloors(floor).getHeight() * metersToPixels * scaleFactor + getHeight();
+          posX = Math.max(Math.min(0, posX + dx), minX);
+          posY = Math.max(Math.min(0, posY + dy), minY);
 
           invalidate();
           invalidateChildren();
@@ -213,8 +227,8 @@ public class GymMapView extends ViewGroup {
   }
 
   private void updateFloorRect() {
-    float w = gym.getWidth() * metersToPixels;
-    float h = gym.getHeight() * metersToPixels;
+    float w = gym.getFloors(floor).getWidth() * metersToPixels;
+    float h = gym.getFloors(floor).getHeight() * metersToPixels;
     gymFloorRect.set(0, 0, w, h);
   }
 
@@ -224,7 +238,7 @@ public class GymMapView extends ViewGroup {
       updateFloorRect();
 
       // add all the walls first
-      for (Msgs.Wall wall : gym.getWallsList()) {
+      for (Msgs.Wall wall : gym.getFloors(floor).getWallsList()) {
         WallView wallView = new WallView(getContext());
         wallView.setWall(wall);
 
@@ -233,7 +247,7 @@ public class GymMapView extends ViewGroup {
       }
 
       // then add the routes on top
-      for (Msgs.Wall wall : gym.getWallsList()) {
+      for (Msgs.Wall wall : gym.getFloors(floor).getWallsList()) {
         for (Msgs.Route route : wall.getRoutesList()) {
           RouteLabelView labelView = new RouteLabelView(getContext());
           labelView.setRouteGrade(route.getGrade());
@@ -252,6 +266,11 @@ public class GymMapView extends ViewGroup {
     gymFloorRect = new RectF();
     gymFloorPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     gymFloorPaint.setColor(floorColor);
+
+    gymFloorOutlinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    gymFloorOutlinePaint.setStyle(Paint.Style.STROKE);
+    gymFloorOutlinePaint.setStrokeWidth(GYM_FLOOR_OUTLINE_STROKE_WIDTH);
+    gymFloorOutlinePaint.setColor(GYM_FLOOR_OUTLINE_COLOR);
 
     wallViews = new ArrayList<>();
     labelViews = new ArrayList<>();
@@ -272,6 +291,9 @@ public class GymMapView extends ViewGroup {
 
       // Don't let the object get too small or too large.
       scaleFactor = Math.max(1f, Math.min(scaleFactor, MAX_ZOOM_FACTOR));
+
+      focusX = scaleGestureDetector.getFocusX();
+      focusY = scaleGestureDetector.getFocusY();
 
       invalidate();
       invalidateChildren();

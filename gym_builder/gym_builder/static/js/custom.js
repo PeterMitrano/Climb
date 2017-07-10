@@ -43,12 +43,28 @@ window.onload = function init() {
   p0.setY(0);
 
   p1 = new msgs.Point2D();
-  p1.setX(1);
-  p1.setY(1);
+  p1.setX(0);
+  p1.setY(10);
+
+  p2 = new msgs.Point2D();
+  p2.setX(10);
+  p2.setY(10);
+
+  p3 = new msgs.Point2D();
+  p3.setX(10);
+  p3.setY(0);
+
+  p4 = new msgs.Point2D();
+  p4.setX(5);
+  p4.setY(0);
+
+  p5 = new msgs.Point2D();
+  p5.setX(5);
+  p5.setY(0);
 
   polygon = new msgs.Polygon();
   polygon.setColorCode("#ff00ff");
-  polygon.setPointsList([p0, p1]);
+  polygon.setPointsList([p0, p4, p5]);
 
   route0 = new msgs.Route();
   route0.setName("Lappnor Project");
@@ -60,11 +76,41 @@ window.onload = function init() {
   wall.setPolygon(polygon);
   wall.setRoutesList([route0]);
 
-  gym.setWallsList([wall]);
+  floor_polygon = new msgs.Polygon();
+  floor_polygon.setColorCode("#ff00ff");
+  floor_polygon.setPointsList([p0, p1, p2, p3]);
+
+  floor = new msgs.Floor();
+  floor.setWallsList([wall]);
+  floor.setWidth(100);
+  floor.setHeight(100);
+  floor.setPolygon(floor_polygon);
+
+  gym.setFloorsList([floor]);
   gym.setName("Ascend PGH");
   gym.setLargeIconUrl("https://www.ascendpgh.com/sites/all/themes/ascend_foundation/images/header-images/02-Header-Visiting-Ascend.jpg");
 
   stage.addChild(drawingCanvas);
+  stage.update();
+
+  drawGym();
+}
+
+function drawGym() {
+  let g = drawingCanvas.graphics;
+
+  let S = 40
+  let cols = canvas.width / S;
+  let rows = canvas.height / S;
+
+  for (let i = 0; i < rows; i++) {
+    g.beginStroke("black").moveTo(0, i*S).lineTo(canvas.width, i*S);
+  }
+
+  for (let i = 0; i < cols; i++) {
+    g.beginStroke("black").moveTo(i*S, 0).lineTo(i*S, canvas.height);
+  }
+
   stage.update();
 }
 
@@ -73,7 +119,7 @@ function handleMouseMove(event) {
   let current_p = new createjs.Point(stage.mouseX, stage.mouseY);
 
   if (points.length > 0) {
-    g = drawingCanvas.graphics;
+    let g = drawingCanvas.graphics;
     g.setStrokeStyle(4, 'round', 'round').beginStroke("#000").moveTo(points[0].x, points[0].y);
     for (let i = 0; i < points.length; i++) {
       let p = points[i];
@@ -86,37 +132,12 @@ function handleMouseMove(event) {
 
 }
 
-function handleDownload(event) {
-  gym.setName(gym_name_input.value);
-  gym.setLargeIconUrl(icon_url_input.value);
-
-  writer = new proto.BinaryWriter();
-  gym.serializeBinaryToWriter(writer);
-  contents = writer.getResultBase64String();
-
-  let element = document.createElement('a');
-  element.setAttribute('href', 'data:,' + contents);
-  element.setAttribute('download', 'my_gym.map');
-
-  element.style.display = 'none';
-  document.body.appendChild(element);
-
-  element.click();
-
-  document.body.removeChild(element);
-}
-
-function handleUpload(event) {
-}
-
 function handleMouseClick(event, pt) {
   if (!event.primary) { return; }
   points.push(pt);
 
-  let g = new createjs.Graphics();
-
   if (points.length > 1) {
-    g = drawingCanvas.graphics;
+    let g = drawingCanvas.graphics;
     g.setStrokeStyle(4, 'round', 'round').beginStroke("#000").moveTo(points[0].x, points[0].y);
     for (let i = 0; i < points.length; i++) {
       let p = points[i];
@@ -142,4 +163,27 @@ function handleMouseUp(event) {
   if (l2_dist == 0) {
     handleMouseClick(event, up);
   }
+}
+
+function handleDownload(event) {
+  gym.setName(gym_name_input.value);
+  gym.setLargeIconUrl(icon_url_input.value);
+
+  writer = new proto.BinaryWriter();
+  gym.serializeBinaryToWriter(writer);
+  contents = writer.getResultBase64String();
+
+  let element = document.createElement('a');
+  element.setAttribute('href', 'data:,' + contents);
+  element.setAttribute('download', 'my_gym.map');
+
+  element.style.display = 'none';
+  document.body.appendChild(element);
+
+  element.click();
+
+  document.body.removeChild(element);
+}
+
+function handleUpload(event) {
 }

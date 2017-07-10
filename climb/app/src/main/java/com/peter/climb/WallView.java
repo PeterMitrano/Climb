@@ -11,7 +11,7 @@ import com.peter.Climb.Msgs;
 
 public class WallView extends View {
 
-  public static final int WALL_OUTLINE_STROKE_WIDTH = 8;
+  public static final int WALL_OUTLINE_STROKE_WIDTH = 4;
   private Paint wallOutlinePaint;
   private Paint wallPaint;
   private Msgs.Wall wall;
