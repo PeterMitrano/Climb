@@ -331,11 +331,11 @@ public class MainActivity extends AppCompatActivity
                 ).setColorCode("#FFC107")
             ).addRoutes(
                 Msgs.Route.newBuilder().setName("Lappnor Project").setPosition(
-                    Msgs.Point2D.newBuilder().setX(0).setY(0)
+                    Msgs.Point2D.newBuilder().setX(1).setY(1)
                 ).setGrade(17)
             ).addRoutes(
                 Msgs.Route.newBuilder().setName("La Dura Dura").setPosition(
-                    Msgs.Point2D.newBuilder().setX(1).setY(0)
+                    Msgs.Point2D.newBuilder().setX(2).setY(3)
                 ).setGrade(16)
             ).setName("The Dawn Wall")
         ).addWalls(
@@ -353,16 +353,16 @@ public class MainActivity extends AppCompatActivity
                 ).setColorCode("#9C27B0")
             ).addRoutes(
                 Msgs.Route.newBuilder().setName("Pikachu").setPosition(
-                    Msgs.Point2D.newBuilder().setX(5).setY(2)
+                    Msgs.Point2D.newBuilder().setX(5).setY(32)
                 ).setGrade(7)
             ).addRoutes(
                 Msgs.Route.newBuilder().setName("Magikarp").setPosition(
-                    Msgs.Point2D.newBuilder().setX(4).setY(8)
+                    Msgs.Point2D.newBuilder().setX(4).setY(38)
                 ).setGrade(10)
             ).setName("Slab")
         ).setLargeIconUrl(
             "https://www.ascendpgh.com/sites/all/themes/ascend_foundation/images/Ascend-Mobile-Logo.png"
-        ).setWidth(20).setHeight(100)
+        ).setWidth(25).setHeight(70)
     ).build();
   }
 

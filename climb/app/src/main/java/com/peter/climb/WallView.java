@@ -51,11 +51,6 @@ public class WallView extends View {
     canvas.drawPath(wallPath, wallOutlinePaint);
   }
 
-  @Override
-  protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-    super.onSizeChanged(w, h, oldw, oldh);
-  }
-
   public void setWall(Msgs.Wall wall) {
     this.wall = wall;
     invalidate();

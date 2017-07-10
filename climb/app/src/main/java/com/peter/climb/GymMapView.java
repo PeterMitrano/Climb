@@ -5,11 +5,11 @@ import static android.view.MotionEvent.INVALID_POINTER_ID;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -20,13 +20,14 @@ import java.util.List;
 
 public class GymMapView extends ViewGroup {
 
+  public static final float MAX_ZOOM_FACTOR = 4.0f;
   private int floorColor;
   private List<WallView> wallViews;
   private List<RouteLabelView> labelViews;
   private Msgs.Gym gym;
   private ScaleGestureDetector scaleGestureDetector;
   private float metersToPixels;
-  private float scaleFactor;
+  private float scaleFactor = 1f;
   private float lastTouchX;
   private float lastTouchY;
   private int activePointerId;
@@ -85,7 +86,7 @@ public class GymMapView extends ViewGroup {
       float gymAspectRatio = gym.getHeight() / gym.getWidth();
       float screenAspectRatio = (float) getHeight() / getWidth();
 
-      if (gymAspectRatio < screenAspectRatio) {
+      if (gymAspectRatio > screenAspectRatio) {
         // gym fills width
         metersToPixels = getWidth() / gym.getWidth();
       } else {
@@ -97,6 +98,10 @@ public class GymMapView extends ViewGroup {
 
       for (WallView wallView : wallViews) {
         wallView.setMetersToPixels(metersToPixels);
+      }
+
+      for (RouteLabelView labelView : labelViews) {
+        labelView.setMetersToPixels(metersToPixels);
       }
 
       for (WallView wallView : wallViews) {
@@ -156,8 +161,8 @@ public class GymMapView extends ViewGroup {
           final float dx = x - lastTouchX;
           final float dy = y - lastTouchY;
 
-          posX = Math.min(0, posX + dx);
-          posY = Math.min(0, posY + dy);
+          posX = Math.max(Math.min(0, posX + dx), -gym.getWidth() * metersToPixels + getWidth());
+          posY = Math.max(Math.min(0, posY + dy), -gym.getHeight() * metersToPixels + getHeight());
 
           invalidate();
           invalidateChildren();
@@ -208,8 +213,8 @@ public class GymMapView extends ViewGroup {
   }
 
   private void updateFloorRect() {
-    int w = (int) (gym.getWidth() * metersToPixels);
-    int h = (int) (gym.getHeight() * metersToPixels);
+    float w = gym.getWidth() * metersToPixels;
+    float h = gym.getHeight() * metersToPixels;
     gymFloorRect.set(0, 0, w, h);
   }
 
@@ -266,8 +271,10 @@ public class GymMapView extends ViewGroup {
       scaleFactor *= detector.getScaleFactor();
 
       // Don't let the object get too small or too large.
-      scaleFactor = Math.max(1f, Math.min(scaleFactor, 5.0f));
+      scaleFactor = Math.max(1f, Math.min(scaleFactor, MAX_ZOOM_FACTOR));
 
+      invalidate();
+      invalidateChildren();
       return true;
     }
   }
