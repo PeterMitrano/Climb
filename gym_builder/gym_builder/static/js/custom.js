@@ -2,8 +2,9 @@ proto = require("google-protobuf");
 msgs = require("./Gym_pb.js");
 
 let gym = new msgs.Gym();
+let new_wall;
 let canvas, stage;
-let drawingCanvas;
+let background;
 let down;
 let points = [];
 let color = "#ff0000"
@@ -17,13 +18,15 @@ window.onload = function init() {
   download_button = document.getElementById('download-file-button');
   gym_name_input = document.getElementById('gym-name');
   icon_url_input = document.getElementById('large-icon-url');
+  new_wall_fab = document.getElementById('add-wall-fab');
+  new_route_fab = document.getElementById('add-route-fab');
 
   upload_button.onclick = handleUpload;
   download_button.onclick = handleDownload;
 
   // set the canvas size dynamically
-  canvas.width = window.innerWidth - sidebar.clientWidth - 118;
-  canvas.height = window.innerHeight - 100;
+  canvas.width = window.innerWidth - sidebar.clientWidth - 148;
+  canvas.height = window.innerHeight - 130;
 
   stage = new createjs.Stage("map-canvas");
   canvas.style.backgroundColor = "#d2d2d2";
@@ -32,7 +35,7 @@ window.onload = function init() {
   stage.enableDOMEvents(true);
   createjs.Touch.enable(stage);
   createjs.Ticker.framerate = 24;
-  drawingCanvas = new createjs.Shape();
+  background = new createjs.Shape();
 
   stage.addEventListener("stagemousedown", handleMouseDown);
   stage.addEventListener("stagemouseup", handleMouseUp);
@@ -90,14 +93,14 @@ window.onload = function init() {
   gym.setName("Ascend PGH");
   gym.setLargeIconUrl("https://www.ascendpgh.com/sites/all/themes/ascend_foundation/images/header-images/02-Header-Visiting-Ascend.jpg");
 
-  stage.addChild(drawingCanvas);
+  stage.addChild(background);
   stage.update();
 
   drawGym();
 }
 
 function drawGym() {
-  let g = drawingCanvas.graphics;
+  let g = background.graphics;
 
   let S = 40
   let cols = canvas.width / S;
@@ -111,6 +114,10 @@ function drawGym() {
     g.beginStroke("black").moveTo(i*S, 0).lineTo(i*S, canvas.height);
   }
 
+  g.endStroke();
+
+  console.log("drawing gym");
+
   stage.update();
 }
 
@@ -119,14 +126,14 @@ function handleMouseMove(event) {
   let current_p = new createjs.Point(stage.mouseX, stage.mouseY);
 
   if (points.length > 0) {
-    let g = drawingCanvas.graphics;
-    g.setStrokeStyle(4, 'round', 'round').beginStroke("#000").moveTo(points[0].x, points[0].y);
+    let g = background.graphics;
+    g.clear();
+    g.setStrokeStyle(4, 'round', 'round').beginStroke("black").moveTo(points[0].x, points[0].y);
     for (let i = 0; i < points.length; i++) {
       let p = points[i];
-      g = g.lineTo(p.x, p.y);
+      g.lineTo(p.x, p.y);
     }
-    g = g.lineTo(current_p.x, current_p.y);
-    g.endStroke();
+    g.lineTo(current_p.x, current_p.y);
   }
   stage.update();
 
@@ -135,16 +142,22 @@ function handleMouseMove(event) {
 function handleMouseClick(event, pt) {
   if (!event.primary) { return; }
   points.push(pt);
+  let PT_SIZE = 4;
+  let g = background.graphics;
 
   if (points.length > 1) {
-    let g = drawingCanvas.graphics;
-    g.setStrokeStyle(4, 'round', 'round').beginStroke("#000").moveTo(points[0].x, points[0].y);
+    g.setStrokeStyle(4, 'round', 'round').beginStroke("black").moveTo(points[0].x, points[0].y);
     for (let i = 0; i < points.length; i++) {
       let p = points[i];
-      g = g.lineTo(p.x, p.y);
+      g.lineTo(p.x, p.y);
+      g.beginFill("black");
+      g.drawCircle(p.x, p.y, PT_SIZE);
     }
-    g.endStroke();
   }
+  else {
+    g.beginFill("black").drawCircle(pt.x, pt.y, PT_SIZE);
+  }
+
   stage.update();
 }
 

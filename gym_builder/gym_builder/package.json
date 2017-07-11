@@ -4,7 +4,10 @@
   "description": "gym builder web app",
   "main": "index.js",
   "dependencies": {
-    "google-protobuf": "^3.3.0"
+    "google-protobuf": "^3.3.0",
+    "gulp": "^3.9.1",
+    "gulp-browserify": "^0.5.1",
+    "gulp-rename": "^1.2.2"
   },
   "author": "Peter Mitrano",
   "license": "WTFPL"
