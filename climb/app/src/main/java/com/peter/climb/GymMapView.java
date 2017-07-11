@@ -23,6 +23,7 @@ public class GymMapView extends ViewGroup {
   public static final float MAX_ZOOM_FACTOR = 2.0f;
   public static final int GYM_FLOOR_OUTLINE_STROKE_WIDTH = 36;
   private static final int GYM_FLOOR_OUTLINE_COLOR = 0xff3d3d3d;
+  private static final float MIN_ZOOM_FACTOR = 0.5f;
   private List<WallView> wallViews;
   private List<RouteLabelView> labelViews;
   private Msgs.Gym gym;
@@ -36,11 +37,9 @@ public class GymMapView extends ViewGroup {
   private float lastTouchY;
   private float posX;
   private float posY;
-  private float focusX;
-  private float focusY;
   private int activePointerId;
   private int floorColor;
-  private int floor;
+  private int floor = 0;
 
   public GymMapView(Context context) {
     super(context);
@@ -174,10 +173,6 @@ public class GymMapView extends ViewGroup {
           final float dx = x - lastTouchX;
           final float dy = y - lastTouchY;
 
-//          float minX = -gym.getFloors(floor).getWidth() * metersToPixels * scaleFactor + getWidth();
-//          float minY = -gym.getFloors(floor).getHeight() * metersToPixels * scaleFactor + getHeight();
-//          posX = Math.max(Math.min(0, posX + dx), minX);
-//          posY = Math.max(Math.min(0, posY + dy), minY);
           posX = posX + dx;
           posY = posY + dy;
 
@@ -288,10 +283,7 @@ public class GymMapView extends ViewGroup {
       scaleFactor *= detector.getScaleFactor();
 
       // Don't let the object get too small or too large.
-      scaleFactor = Math.max(1f, Math.min(scaleFactor, MAX_ZOOM_FACTOR));
-
-      focusX = scaleGestureDetector.getFocusX();
-      focusY = scaleGestureDetector.getFocusY();
+      scaleFactor = Math.max(MIN_ZOOM_FACTOR, Math.min(scaleFactor, MAX_ZOOM_FACTOR));
 
       invalidate();
       invalidateChildren();

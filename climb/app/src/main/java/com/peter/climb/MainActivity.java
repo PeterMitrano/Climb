@@ -303,8 +303,8 @@ public class MainActivity extends AppCompatActivity
       // mId allows you to update the notification later on.
       Notification notification = mBuilder.build();
       notification.flags = Notification.FLAG_ONGOING_EVENT;
-//        private int notification_id = 1;
-//        mNotificationManager.notify(notification_id, notification);
+      int notification_id = 1;
+      mNotificationManager.notify(notification_id, notification);
 
       Intent startSessionIntent = new Intent(this, MapActivity.class);
       startSessionIntent.setAction(START_SESSION_ACTION);

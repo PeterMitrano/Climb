@@ -1,21 +1,26 @@
 package com.peter.climb;
 
-import android.os.Build;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 public class MapActivity extends AppCompatActivity implements View.OnClickListener {
 
+  private static final String STAT_TIME_MILLIS_KEY = "start_time_millis_key";
   private View decor_view;
   private Button endSessionButton;
   private AppState appState;
   private TextView timerView;
   private GymMapView gymMapView;
+  private long startTimeMillis = 0;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -34,26 +39,49 @@ public class MapActivity extends AppCompatActivity implements View.OnClickListen
     gymMapView = (GymMapView) findViewById(R.id.map_view);
     gymMapView.setGym(appState.getCurrentGym());
 
-    if (getIntent().getAction().equals(MainActivity.START_SESSION_ACTION)) {
+    Intent intent = getIntent();
+    String action = intent.getAction();
+    if (action != null && action.equals(MainActivity.START_SESSION_ACTION)) {
+      startTimeMillis = System.currentTimeMillis();
       appState.sessionInProgress = AppState.SessionState.IN_PROGRESS;
-      startSessionTimer();
     }
 
+    startSessionTimer();
     loadMap();
   }
 
+  @Override
+  protected void onResume() {
+    super.onResume();
+    if (startTimeMillis == 0) {
+      SharedPreferences settings = getSharedPreferences(MainActivity.PREFS_NAME, 0);
+      startTimeMillis = settings.getLong(STAT_TIME_MILLIS_KEY, -1);
+    }
+  }
+
+  @Override
+  protected void onPause() {
+    super.onPause();
+    SharedPreferences settings = getSharedPreferences(MainActivity.PREFS_NAME, 0);
+    SharedPreferences.Editor editor = settings.edit();
+    editor.putLong(STAT_TIME_MILLIS_KEY, startTimeMillis);
+    editor.apply();
+  }
+
   private void startSessionTimer() {
-    Timer t = new Timer();
-    t.scheduleAtFixedRate(new TimerTask() {
+    new Timer().scheduleAtFixedRate(new TimerTask() {
       @Override
       public void run() {
         runOnUiThread(new Runnable() {
 
           @Override
           public void run() {
-            int minutes = 12;
-            int seconds = 34;
-            timerView.setText(String.valueOf(minutes) + ":" + String.valueOf(seconds));
+            long millis = System.currentTimeMillis() - startTimeMillis;
+            String hms = String
+                .format(Locale.US, "%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(millis),
+                    TimeUnit.MILLISECONDS.toMinutes(millis) % TimeUnit.HOURS.toMinutes(1),
+                    TimeUnit.MILLISECONDS.toSeconds(millis) % TimeUnit.MINUTES.toSeconds(1));
+            timerView.setText(hms);
           }
 
         });
