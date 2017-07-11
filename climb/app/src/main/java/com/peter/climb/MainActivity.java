@@ -49,6 +49,7 @@ public class MainActivity extends AppCompatActivity
   public static final String PREFS_NAME = "MyPrefsFile";
   public static final String START_SESSION_ACTION = "start_session_action";
   private static final String GYM_ID_PREF_KEY = "gym_id_pref_key";
+  public static final int SESSION_NOTIFICATION_ID = 1;
   private AppState appState;
   private GoogleApiClient mClient = null;
 
@@ -303,8 +304,7 @@ public class MainActivity extends AppCompatActivity
       // mId allows you to update the notification later on.
       Notification notification = mBuilder.build();
       notification.flags = Notification.FLAG_ONGOING_EVENT;
-      int notification_id = 1;
-      mNotificationManager.notify(notification_id, notification);
+      mNotificationManager.notify(SESSION_NOTIFICATION_ID, notification);
 
       Intent startSessionIntent = new Intent(this, MapActivity.class);
       startSessionIntent.setAction(START_SESSION_ACTION);

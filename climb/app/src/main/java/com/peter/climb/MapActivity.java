@@ -1,5 +1,7 @@
 package com.peter.climb;
 
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -114,6 +116,10 @@ public class MapActivity extends AppCompatActivity implements View.OnClickListen
   public void onClick(View v) {
     if (v.getId() == R.id.end_session_button) {
       appState.sessionInProgress = AppState.SessionState.NOT_IN_PROGRESS;
+      NotificationManager notificationManager = (NotificationManager) getSystemService(
+          Context.NOTIFICATION_SERVICE);
+      notificationManager.cancel(MainActivity.SESSION_NOTIFICATION_ID);
+
       finish();
     }
   }
