@@ -9,6 +9,7 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -19,9 +20,9 @@ import java.util.List;
 
 public class GymMapView extends ViewGroup {
 
-  public static final float MAX_ZOOM_FACTOR = 4.0f;
+  public static final float MAX_ZOOM_FACTOR = 2.0f;
   public static final int GYM_FLOOR_OUTLINE_STROKE_WIDTH = 36;
-  private static final int GYM_FLOOR_OUTLINE_COLOR = 0xff2f0366;
+  private static final int GYM_FLOOR_OUTLINE_COLOR = 0xff3d3d3d;
   private List<WallView> wallViews;
   private List<RouteLabelView> labelViews;
   private Msgs.Gym gym;
@@ -133,8 +134,8 @@ public class GymMapView extends ViewGroup {
   @Override
   protected void onDraw(Canvas canvas) {
     super.onDraw(canvas);
+    canvas.scale(scaleFactor, scaleFactor, getWidth() / 2, getHeight() / 2);
     canvas.translate(posX, posY);
-    canvas.scale(scaleFactor, scaleFactor, focusX, focusY);
     canvas.drawRect(gymFloorRect, gymFloorPaint);
   }
 
@@ -173,10 +174,12 @@ public class GymMapView extends ViewGroup {
           final float dx = x - lastTouchX;
           final float dy = y - lastTouchY;
 
-          float minX = -gym.getFloors(floor).getWidth() * metersToPixels * scaleFactor + getWidth();
-          float minY = -gym.getFloors(floor).getHeight() * metersToPixels * scaleFactor + getHeight();
-          posX = Math.max(Math.min(0, posX + dx), minX);
-          posY = Math.max(Math.min(0, posY + dy), minY);
+//          float minX = -gym.getFloors(floor).getWidth() * metersToPixels * scaleFactor + getWidth();
+//          float minY = -gym.getFloors(floor).getHeight() * metersToPixels * scaleFactor + getHeight();
+//          posX = Math.max(Math.min(0, posX + dx), minX);
+//          posY = Math.max(Math.min(0, posY + dy), minY);
+          posX = posX + dx;
+          posY = posY + dy;
 
           invalidate();
           invalidateChildren();
@@ -275,15 +278,10 @@ public class GymMapView extends ViewGroup {
     wallViews = new ArrayList<>();
     labelViews = new ArrayList<>();
 
-    scaleGestureDetector = new ScaleGestureDetector(getContext(), new MapGestureListener());
+    scaleGestureDetector = new ScaleGestureDetector(getContext(), new MapScaleGestureListener());
   }
 
-  /**
-   * Extends {@link GestureDetector.SimpleOnGestureListener} to provide custom gesture
-   * processing.
-   */
-  private class MapGestureListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
-
+  private class MapScaleGestureListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
 
     @Override
     public boolean onScale(ScaleGestureDetector detector) {

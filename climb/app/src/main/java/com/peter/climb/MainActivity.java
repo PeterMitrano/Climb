@@ -334,7 +334,7 @@ public class MainActivity extends AppCompatActivity
                     ).setGrade(17)
                 ).addRoutes(
                     Msgs.Route.newBuilder().setName("La Dura Dura").setPosition(
-                        Msgs.Point2D.newBuilder().setX(2).setY(3)
+                        Msgs.Point2D.newBuilder().setX(13).setY(35)
                     ).setGrade(16)
                 ).setName("The Dawn Wall")
             ).addWalls(
