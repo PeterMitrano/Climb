@@ -3288,13 +3288,13 @@ let icon_url_input;
 
 window.onload = function init() {
   canvas = document.getElementById('map-canvas');
-  sidebar = document.getElementById('sidebar');
-  upload_button = document.getElementById('upload-file-button');
-  download_button = document.getElementById('download-file-button');
+  let sidebar = document.getElementById('sidebar');
+  let upload_button = document.getElementById('upload-file-button');
+  let download_button = document.getElementById('download-file-button');
   gym_name_input = document.getElementById('gym-name');
   icon_url_input = document.getElementById('large-icon-url');
-  new_wall_fab = document.getElementById('add-wall-fab');
-  new_route_fab = document.getElementById('add-route-fab');
+  let new_wall_fab = document.getElementById('add-wall-fab');
+  let new_route_fab = document.getElementById('add-route-fab');
 
   upload_button.onclick = handleUpload;
   download_button.onclick = handleDownload;
@@ -3372,12 +3372,12 @@ window.onload = function init() {
   stage.update();
 
   drawGym();
-}
+};
 
 function drawGym() {
   let g = background.graphics;
 
-  let S = 40
+  let S = 40;
   let cols = canvas.width / S;
   let rows = canvas.height / S;
 
