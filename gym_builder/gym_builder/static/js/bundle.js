@@ -3273,8 +3273,8 @@ proto.Point2D.prototype.setY = function(value) {
 goog.object.extend(exports, proto);
 
 },{"google-protobuf":3}],6:[function(require,module,exports){
-proto = require("google-protobuf");
-msgs = require("./Gym_pb.js");
+proto = require('google-protobuf');
+msgs = require('./Gym_pb.js');
 
 let gym = new msgs.Gym();
 let new_wall;
@@ -3282,7 +3282,7 @@ let canvas, stage;
 let background;
 let down;
 let points = [];
-let color = "#ff0000"
+let color = '#ff0000';
 let gym_name_input;
 let icon_url_input;
 
@@ -3303,8 +3303,8 @@ window.onload = function init() {
   canvas.width = window.innerWidth - sidebar.clientWidth - 148;
   canvas.height = window.innerHeight - 130;
 
-  stage = new createjs.Stage("map-canvas");
-  canvas.style.backgroundColor = "#d2d2d2";
+  stage = new createjs.Stage('map-canvas');
+  canvas.style.backgroundColor = '#d2d2d2';
 
   stage.autoClear = false;
   stage.enableDOMEvents(true);
@@ -3312,61 +3312,62 @@ window.onload = function init() {
   createjs.Ticker.framerate = 24;
   background = new createjs.Shape();
 
-  stage.addEventListener("stagemousedown", handleMouseDown);
-  stage.addEventListener("stagemouseup", handleMouseUp);
-  stage.addEventListener("stagemousemove", handleMouseMove);
+  stage.addEventListener('stagemousedown', handleMouseDown);
+  stage.addEventListener('stagemouseup', handleMouseUp);
+  stage.addEventListener('stagemousemove', handleMouseMove);
 
-  p0 = new msgs.Point2D();
+  let p0 = new msgs.Point2D();
   p0.setX(0);
   p0.setY(0);
 
-  p1 = new msgs.Point2D();
+  let p1 = new msgs.Point2D();
   p1.setX(0);
   p1.setY(10);
 
-  p2 = new msgs.Point2D();
+  let p2 = new msgs.Point2D();
   p2.setX(10);
   p2.setY(10);
 
-  p3 = new msgs.Point2D();
+  let p3 = new msgs.Point2D();
   p3.setX(10);
   p3.setY(0);
 
-  p4 = new msgs.Point2D();
+  let p4 = new msgs.Point2D();
   p4.setX(5);
   p4.setY(0);
 
-  p5 = new msgs.Point2D();
+  let p5 = new msgs.Point2D();
   p5.setX(5);
   p5.setY(0);
 
-  polygon = new msgs.Polygon();
-  polygon.setColorCode("#ff00ff");
+  let polygon = new msgs.Polygon();
+  polygon.setColorCode('#ff00ff');
   polygon.setPointsList([p0, p4, p5]);
 
-  route0 = new msgs.Route();
-  route0.setName("Lappnor Project");
+  let route0 = new msgs.Route();
+  route0.setName('Lappnor Project');
   route0.setPosition(p0);
   route0.setGrade(17);
 
-  wall = new msgs.Wall();
-  wall.setName("The Dawn Wall");
+  let wall = new msgs.Wall();
+  wall.setName('The Dawn Wall');
   wall.setPolygon(polygon);
   wall.setRoutesList([route0]);
 
-  floor_polygon = new msgs.Polygon();
-  floor_polygon.setColorCode("#ff00ff");
+  let floor_polygon = new msgs.Polygon();
+  floor_polygon.setColorCode('#ff00ff');
   floor_polygon.setPointsList([p0, p1, p2, p3]);
 
-  floor = new msgs.Floor();
+  let floor = new msgs.Floor();
   floor.setWallsList([wall]);
   floor.setWidth(100);
   floor.setHeight(100);
   floor.setPolygon(floor_polygon);
 
   gym.setFloorsList([floor]);
-  gym.setName("Ascend PGH");
-  gym.setLargeIconUrl("https://www.ascendpgh.com/sites/all/themes/ascend_foundation/images/header-images/02-Header-Visiting-Ascend.jpg");
+  gym.setName('Ascend PGH');
+  gym.setLargeIconUrl(
+      'https://www.ascendpgh.com/sites/all/themes/ascend_foundation/images/header-images/02-Header-Visiting-Ascend.jpg');
 
   stage.addChild(background);
   stage.update();
@@ -3382,28 +3383,32 @@ function drawGym() {
   let rows = canvas.height / S;
 
   for (let i = 0; i < rows; i++) {
-    g.beginStroke("black").moveTo(0, i*S).lineTo(canvas.width, i*S);
+    g.beginStroke('black').moveTo(0, i * S).lineTo(canvas.width, i * S);
   }
 
   for (let i = 0; i < cols; i++) {
-    g.beginStroke("black").moveTo(i*S, 0).lineTo(i*S, canvas.height);
+    g.beginStroke('black').moveTo(i * S, 0).lineTo(i * S, canvas.height);
   }
 
   g.endStroke();
 
-  console.log("drawing gym");
+  console.log('drawing gym');
 
   stage.update();
 }
 
 function handleMouseMove(event) {
-  if (!event.primary) { return; }
+  if (!event.primary) {
+    return;
+  }
   let current_p = new createjs.Point(stage.mouseX, stage.mouseY);
 
   if (points.length > 0) {
     let g = background.graphics;
     g.clear();
-    g.setStrokeStyle(4, 'round', 'round').beginStroke("black").moveTo(points[0].x, points[0].y);
+    g.setStrokeStyle(4, 'round', 'round').
+        beginStroke('black').
+        moveTo(points[0].x, points[0].y);
     for (let i = 0; i < points.length; i++) {
       let p = points[i];
       g.lineTo(p.x, p.y);
@@ -3415,34 +3420,42 @@ function handleMouseMove(event) {
 }
 
 function handleMouseClick(event, pt) {
-  if (!event.primary) { return; }
+  if (!event.primary) {
+    return;
+  }
   points.push(pt);
   let PT_SIZE = 4;
   let g = background.graphics;
 
   if (points.length > 1) {
-    g.setStrokeStyle(4, 'round', 'round').beginStroke("black").moveTo(points[0].x, points[0].y);
+    g.setStrokeStyle(4, 'round', 'round').
+        beginStroke('black').
+        moveTo(points[0].x, points[0].y);
     for (let i = 0; i < points.length; i++) {
       let p = points[i];
       g.lineTo(p.x, p.y);
-      g.beginFill("black");
+      g.beginFill('black');
       g.drawCircle(p.x, p.y, PT_SIZE);
     }
   }
   else {
-    g.beginFill("black").drawCircle(pt.x, pt.y, PT_SIZE);
+    g.beginFill('black').drawCircle(pt.x, pt.y, PT_SIZE);
   }
 
   stage.update();
 }
 
 function handleMouseDown(event) {
-  if (!event.primary) { return; }
+  if (!event.primary) {
+    return;
+  }
   down = new createjs.Point(stage.mouseX, stage.mouseY);
 }
 
 function handleMouseUp(event) {
-  if (!event.primary) { return; }
+  if (!event.primary) {
+    return;
+  }
   let up = new createjs.Point(stage.mouseX, stage.mouseY);
   let dx = up.x - down.x;
   let dy = up.y - down.y;
@@ -3457,9 +3470,9 @@ function handleDownload(event) {
   gym.setName(gym_name_input.value);
   gym.setLargeIconUrl(icon_url_input.value);
 
-  writer = new proto.BinaryWriter();
+  let writer = new proto.BinaryWriter();
   gym.serializeBinaryToWriter(writer);
-  contents = writer.getResultBase64String();
+  let contents = writer.getResultBase64String();
 
   let element = document.createElement('a');
   element.setAttribute('href', 'data:,' + contents);

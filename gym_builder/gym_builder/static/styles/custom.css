@@ -7,6 +7,27 @@ nav#sidebar {
   padding: 10%;
 }
 
+div#floors {
+  position: absolute;
+  width: 48px;
+  top: 32px;
+  right: 32px;
+  border: solid;
+}
+
+div#floors-chart {
+  position: absolute;
+  left: 16px;
+  background: #ff0000;
+  width: 16px;
+  height: 48px;
+}
+
+p#floors-label {
+  text-align: center;
+  font-size: 12sp;
+}
+
 canvas#map-canvas {
   margin: 18px;
 }
