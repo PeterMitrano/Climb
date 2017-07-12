@@ -22,7 +22,7 @@ public class MapActivity extends AppCompatActivity implements View.OnClickListen
   private AppState appState;
   private TextView timerView;
   private GymMapView gymMapView;
-  private long startTimeMillis = 0;
+  private long startTimeMillis = -1;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -41,11 +41,24 @@ public class MapActivity extends AppCompatActivity implements View.OnClickListen
     gymMapView = (GymMapView) findViewById(R.id.map_view);
     gymMapView.setGym(appState.getCurrentGym());
 
-    Intent intent = getIntent();
-    String action = intent.getAction();
-    if (action != null && action.equals(MainActivity.START_SESSION_ACTION)) {
-      startTimeMillis = System.currentTimeMillis();
-      appState.sessionInProgress = AppState.SessionState.IN_PROGRESS;
+    if (savedInstanceState != null) {
+      Long savedStartTimeMillis = savedInstanceState.getLong(STAT_TIME_MILLIS_KEY, -1);
+      if (savedStartTimeMillis != -1) {
+        startTimeMillis = savedStartTimeMillis;
+      }
+    }
+
+    if (startTimeMillis == -1) {
+      Intent intent = getIntent();
+      String action = intent.getAction();
+      if (action != null && action.equals(MainActivity.START_SESSION_ACTION)) {
+        startTimeMillis = System.currentTimeMillis();
+        appState.sessionInProgress = AppState.SessionState.IN_PROGRESS;
+      }
+      else {
+        SharedPreferences settings = getSharedPreferences(MainActivity.PREFS_NAME, 0);
+        startTimeMillis = settings.getLong(STAT_TIME_MILLIS_KEY, -1);
+      }
     }
 
     startSessionTimer();
@@ -53,17 +66,19 @@ public class MapActivity extends AppCompatActivity implements View.OnClickListen
   }
 
   @Override
-  protected void onResume() {
-    super.onResume();
-    if (startTimeMillis == 0) {
-      SharedPreferences settings = getSharedPreferences(MainActivity.PREFS_NAME, 0);
-      startTimeMillis = settings.getLong(STAT_TIME_MILLIS_KEY, -1);
-    }
+  protected void onSaveInstanceState(Bundle outState) {
+    outState.putLong(STAT_TIME_MILLIS_KEY, startTimeMillis);
+
+    super.onSaveInstanceState(outState);
   }
 
   @Override
-  protected void onPause() {
-    super.onPause();
+  protected void onStop() {
+    super.onStop();
+    saveTime();
+  }
+
+  private void saveTime() {
     SharedPreferences settings = getSharedPreferences(MainActivity.PREFS_NAME, 0);
     SharedPreferences.Editor editor = settings.edit();
     editor.putLong(STAT_TIME_MILLIS_KEY, startTimeMillis);
@@ -98,7 +113,7 @@ public class MapActivity extends AppCompatActivity implements View.OnClickListen
   @Override
   public void onWindowFocusChanged(boolean hasFocus) {
     super.onWindowFocusChanged(hasFocus);
-    if (hasFocus) {
+//    if (hasFocus) {
 
       // TODO: 7/9/17 this works, but the app bar shows up for a second which is bad 
 //      int flags = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -109,7 +124,7 @@ public class MapActivity extends AppCompatActivity implements View.OnClickListen
 //          | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
 //
 //      decor_view.setSystemUiVisibility(flags);
-    }
+//    }
   }
 
   @Override

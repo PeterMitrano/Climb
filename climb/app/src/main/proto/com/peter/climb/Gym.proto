@@ -29,13 +29,14 @@ message Wall {
 message Polygon {
   // points should be in the unit METERS
   repeated Point2D points = 1;
-  string color_code = 2;
+  string color = 2;
 }
 
 message Route {
   string name = 1;
   Point2D position = 2;
   int32 grade = 3;
+  string color = 4;
 }
 
 message Point2D {

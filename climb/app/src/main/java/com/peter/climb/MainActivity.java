@@ -327,15 +327,15 @@ public class MainActivity extends AppCompatActivity
                         Msgs.Point2D.newBuilder().setX(10).setY(10)
                     ).addPoints(
                         Msgs.Point2D.newBuilder().setX(0).setY(14)
-                    ).setColorCode("#FFC107")
+                    ).setColor("#FFC107")
                 ).addRoutes(
                     Msgs.Route.newBuilder().setName("Lappnor Project").setPosition(
                         Msgs.Point2D.newBuilder().setX(1).setY(1)
-                    ).setGrade(17)
+                    ).setGrade(17).setColor("#FFFF00")
                 ).addRoutes(
                     Msgs.Route.newBuilder().setName("La Dura Dura").setPosition(
-                        Msgs.Point2D.newBuilder().setX(13).setY(35)
-                    ).setGrade(16)
+                        Msgs.Point2D.newBuilder().setX(13).setY(25)
+                    ).setGrade(16).setColor("#FFFFFF")
                 ).setName("The Dawn Wall")
             ).addWalls(
                 Msgs.Wall.newBuilder().setPolygon(
@@ -349,15 +349,15 @@ public class MainActivity extends AppCompatActivity
                         Msgs.Point2D.newBuilder().setX(4).setY(60)
                     ).addPoints(
                         Msgs.Point2D.newBuilder().setX(0).setY(67)
-                    ).setColorCode("#9C27B0")
+                    ).setColor("#9C27B0")
                 ).addRoutes(
                     Msgs.Route.newBuilder().setName("Pikachu").setPosition(
                         Msgs.Point2D.newBuilder().setX(5).setY(32)
-                    ).setGrade(7)
+                    ).setGrade(7).setColor("#ff0000")
                 ).addRoutes(
                     Msgs.Route.newBuilder().setName("Magikarp").setPosition(
                         Msgs.Point2D.newBuilder().setX(4).setY(38)
-                    ).setGrade(10)
+                    ).setGrade(10).setColor("#00ff00")
                 ).setName("Slab")
             ).setWidth(25).setHeight(70)
         ).setLargeIconUrl(

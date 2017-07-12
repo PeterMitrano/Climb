@@ -5,12 +5,12 @@ import static android.view.MotionEvent.INVALID_POINTER_ID;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.ViewGroup;
@@ -20,7 +20,7 @@ import java.util.List;
 
 public class GymMapView extends ViewGroup {
 
-  public static final float MAX_ZOOM_FACTOR = 2.0f;
+  public static final float MAX_ZOOM_FACTOR = 2.5f;
   public static final int GYM_FLOOR_OUTLINE_STROKE_WIDTH = 36;
   private static final int GYM_FLOOR_OUTLINE_COLOR = 0xff3d3d3d;
   private static final float MIN_ZOOM_FACTOR = 0.5f;
@@ -35,6 +35,7 @@ public class GymMapView extends ViewGroup {
   private float scaleFactor = 1f;
   private float lastTouchX;
   private float lastTouchY;
+
   private float posX;
   private float posY;
   private int activePointerId;
@@ -151,6 +152,13 @@ public class GymMapView extends ViewGroup {
     // Let the ScaleGestureDetector inspect all events.
     scaleGestureDetector.onTouchEvent(ev);
 
+    for (RouteLabelView routeLabelView : labelViews) {
+      float p[] = toLabelFrame(new float[]{ev.getX(), ev.getY()});
+      MotionEvent routeLabelEvent = MotionEvent.obtain(ev);
+      routeLabelEvent.setLocation(p[0], p[1]);
+      routeLabelView.handleMotionEvent(routeLabelEvent);
+    }
+
     final int action = ev.getAction();
     switch (action & MotionEvent.ACTION_MASK) {
       case MotionEvent.ACTION_DOWN: {
@@ -224,6 +232,20 @@ public class GymMapView extends ViewGroup {
     }
   }
 
+  private float[] toLabelFrame(float[] point){
+    if (point.length !=2) {
+      throw new IllegalArgumentException("point must have length 2, not " + point.length);
+    }
+
+    Matrix transform = new Matrix();
+    transform.postScale(1/scaleFactor, 1/scaleFactor, getWidth()/2, getHeight()/2);
+    transform.postTranslate(-posX, -posY);
+
+    float new_point[] = new float[2];
+    transform.mapPoints(new_point, point);
+    return new_point;
+  }
+
   private void updateFloorRect() {
     float w = gym.getFloors(floor).getWidth() * metersToPixels;
     float h = gym.getFloors(floor).getHeight() * metersToPixels;
@@ -251,6 +273,7 @@ public class GymMapView extends ViewGroup {
           labelView.setRouteGrade(route.getGrade());
           labelView.setRouteName(route.getName());
           labelView.setPosition(route.getPosition());
+          labelView.setRouteColor(route.getColor());
           labelViews.add(labelView);
           addView(labelView);
         }
@@ -284,6 +307,10 @@ public class GymMapView extends ViewGroup {
 
       // Don't let the object get too small or too large.
       scaleFactor = Math.max(MIN_ZOOM_FACTOR, Math.min(scaleFactor, MAX_ZOOM_FACTOR));
+
+      for (RouteLabelView labelView : labelViews) {
+        labelView.setScaleFactor(scaleFactor);
+      }
 
       invalidate();
       invalidateChildren();

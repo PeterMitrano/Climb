@@ -11,8 +11,6 @@ import com.peter.Climb.Msgs;
 
 public class WallView extends View {
 
-  public static final int WALL_OUTLINE_STROKE_WIDTH = 4;
-  private Paint wallOutlinePaint;
   private Paint wallPaint;
   private Msgs.Wall wall;
 
@@ -22,21 +20,18 @@ public class WallView extends View {
   public WallView(Context context) {
     super(context);
 
-    wallOutlinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    wallOutlinePaint.setStyle(Style.STROKE);
-    wallOutlinePaint.setColor(0x000000);
-
     wallPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     wallPaint.setStyle(Style.FILL);
 
     wallPath = new Path();
+
+    setElevation(1);
   }
 
   @Override
   public void onDraw(Canvas canvas) {
     super.onDraw(canvas);
 
-    Msgs.Polygon polygon = this.wall.getPolygon();
     for (Msgs.Point2D p : this.wall.getPolygon().getPointsList()) {
       float px = metersToPixels * p.getX();
       float py = metersToPixels * p.getY();
@@ -48,7 +43,6 @@ public class WallView extends View {
     }
 
     canvas.drawPath(wallPath, wallPaint);
-    canvas.drawPath(wallPath, wallOutlinePaint);
   }
 
   public void setWall(Msgs.Wall wall) {
@@ -61,7 +55,7 @@ public class WallView extends View {
   private void onDataChanged() {
     if (wall != null) {
       Msgs.Polygon polygon = wall.getPolygon();
-      String wallColorStr = polygon.getColorCode();
+      String wallColorStr = polygon.getColor();
 
       try {
         int wallColor = Color.parseColor(wallColorStr);
@@ -69,9 +63,6 @@ public class WallView extends View {
       } catch (IllegalArgumentException | StringIndexOutOfBoundsException e) {
         wallPaint.setColor(Color.GRAY);
       }
-
-      wallOutlinePaint.setColor(Color.BLACK);
-      wallOutlinePaint.setStrokeWidth(WALL_OUTLINE_STROKE_WIDTH);
     }
   }
 
