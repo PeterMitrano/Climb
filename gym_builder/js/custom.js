@@ -1,5 +1,5 @@
-proto = require('google-protobuf');
-msgs = require('./Gym_pb.js');
+const proto = require('google-protobuf');
+const msgs = require('./Gym_pb.js');
 
 let gym = new msgs.Gym();
 let new_wall;

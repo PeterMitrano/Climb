@@ -1,3 +1,2 @@
-.idea
-*.pyc
-*.swp
+node_modules/
+static/js/gen
