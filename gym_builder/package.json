@@ -12,5 +12,8 @@
     "gulp-rename": "^1.2.2"
   },
   "author": "Peter Mitrano",
-  "license": "WTFPL"
+  "license": "WTFPL",
+  "devDependencies": {
+    "gulp-shell": "^0.6.3"
+  }
 }
