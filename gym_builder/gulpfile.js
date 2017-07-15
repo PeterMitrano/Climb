@@ -4,10 +4,10 @@ const rename = require('gulp-rename');
 const shell = require('gulp-shell');
 
 gulp.task('default', function() {
-  gulp.src(['./js/custom.js']).
+  gulp.src(['./public/js/custom.js']).
       pipe(browserify()).
       pipe(rename('bundle.js')).
-      pipe(gulp.dest('./js'));
+      pipe(gulp.dest('./public/js'));
 });
 
 gulp.task('protoc', () => {
