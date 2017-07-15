@@ -268,20 +268,14 @@ let auth2;
  * Initializes the Sign-In client.
  */
 let initClient = function() {
-  gapi.load('auth2', function(){
+  gapi.load('auth2', function() {
     /**
      * Retrieve the singleton for the GoogleAuth library and set up the
      * client.
      */
     auth2 = gapi.auth2.init({
-      client_id: "41352784373-92ucj15fdse277kre1458uorhd0vlacl.apps.googleusercontent.com"
+      client_id: '41352784373-92ucj15fdse277kre1458uorhd0vlacl.apps.googleusercontent.com',
     });
-
-    // Attach the click handler to the sign-in button
-    auth2.attachClickHandler('sign-in-out-button', {}, onSuccess, onFailure);
-
-    // Listen for sign-in state changes.
-    auth2.isSignedIn.listen(signinChanged);
 
     // Listen for changes to current user.
     auth2.currentUser.listen(userChanged);
@@ -299,17 +293,16 @@ let onSuccess = function(user) {
  * Handle sign-in failures.
  */
 let onFailure = function(error) {
-  console.log("error " + error);
+  console.log(error);
 };
 
 function userChanged(user) {
-  console.log("user " + user);
-}
-function signinChanged(is_signed_in) {
-  if (is_signed_in) {
+  // refresh info related to the user
+  console.log(auth2.isSignedIn.get());
+  if (auth2.isSignedIn.get()) {
     sign_in_out_button.innerHTML = "Sign Out";
   }
-  else  {
+  else {
     sign_in_out_button.innerHTML = "Sign In";
   }
 }
@@ -319,6 +312,6 @@ function signInOut() {
     auth2.signOut();
   }
   else {
-    auth2.signIn();
+    auth2.signIn().then(onSuccess, onFailure);
   }
 }
