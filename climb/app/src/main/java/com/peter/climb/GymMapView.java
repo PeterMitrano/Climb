@@ -9,23 +9,26 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.ViewGroup;
 import com.peter.Climb.Msgs;
+import com.peter.climb.RouteLabelView.RouteClickedListener;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GymMapView extends ViewGroup {
+public class GymMapView extends ViewGroup implements RouteClickedListener {
 
-  public static final float MAX_ZOOM_FACTOR = 2.5f;
+  public static final float MAX_ZOOM_FACTOR = 3.0f;
   public static final int GYM_FLOOR_OUTLINE_STROKE_WIDTH = 36;
   private static final int GYM_FLOOR_OUTLINE_COLOR = 0xff3d3d3d;
   private static final float MIN_ZOOM_FACTOR = 0.5f;
   private List<WallView> wallViews;
-  private List<RouteLabelView> labelViews;
+
+  private List<RouteLabelView> routeLabelViews;
   private Msgs.Gym gym;
   private ScaleGestureDetector scaleGestureDetector;
   private Paint gymFloorPaint;
@@ -50,6 +53,7 @@ public class GymMapView extends ViewGroup {
   public GymMapView(Context context, @Nullable AttributeSet attrs) {
     super(context, attrs);
     TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.GymMapView, 0, 0);
+
     try {
       floorColor = a.getColor(R.styleable.GymMapView_floor_color, 0xff000000);
     } finally {
@@ -75,6 +79,14 @@ public class GymMapView extends ViewGroup {
     onDataChanged();
     invalidate();
     invalidateChildren();
+  }
+
+  public WallView getWallView(int index) {
+    return wallViews.get(index);
+  }
+
+  public RouteLabelView getRouteLabelView(int index) {
+    return routeLabelViews.get(index);
   }
 
   @Override
@@ -105,7 +117,7 @@ public class GymMapView extends ViewGroup {
         wallView.setMetersToPixels(metersToPixels);
       }
 
-      for (RouteLabelView labelView : labelViews) {
+      for (RouteLabelView labelView : routeLabelViews) {
         labelView.setMetersToPixels(metersToPixels);
       }
 
@@ -113,7 +125,7 @@ public class GymMapView extends ViewGroup {
         wallView.layout(0, 0, w, h);
       }
 
-      for (RouteLabelView labelView : labelViews) {
+      for (RouteLabelView labelView : routeLabelViews) {
         labelView.layout(0, 0, w, h);
       }
     }
@@ -152,11 +164,16 @@ public class GymMapView extends ViewGroup {
     // Let the ScaleGestureDetector inspect all events.
     scaleGestureDetector.onTouchEvent(ev);
 
-    for (RouteLabelView routeLabelView : labelViews) {
+    for (RouteLabelView routeLabelView : routeLabelViews) {
       float p[] = toLabelFrame(new float[]{ev.getX(), ev.getY()});
       MotionEvent routeLabelEvent = MotionEvent.obtain(ev);
       routeLabelEvent.setLocation(p[0], p[1]);
-      routeLabelView.handleMotionEvent(routeLabelEvent);
+      boolean handled = routeLabelView.handleMotionEvent(routeLabelEvent);
+
+      if (handled) {
+        Log.e(this.getClass().toString(), "handled by route");
+        return true;
+      }
     }
 
     final int action = ev.getAction();
@@ -227,18 +244,18 @@ public class GymMapView extends ViewGroup {
       wallView.invalidate();
     }
 
-    for (RouteLabelView routeLabelView : labelViews) {
+    for (RouteLabelView routeLabelView : routeLabelViews) {
       routeLabelView.invalidate();
     }
   }
 
-  private float[] toLabelFrame(float[] point){
-    if (point.length !=2) {
+  private float[] toLabelFrame(float[] point) {
+    if (point.length != 2) {
       throw new IllegalArgumentException("point must have length 2, not " + point.length);
     }
 
     Matrix transform = new Matrix();
-    transform.postScale(1/scaleFactor, 1/scaleFactor, getWidth()/2, getHeight()/2);
+    transform.postScale(1 / scaleFactor, 1 / scaleFactor, getWidth() / 2, getHeight() / 2);
     transform.postTranslate(-posX, -posY);
 
     float new_point[] = new float[2];
@@ -269,13 +286,14 @@ public class GymMapView extends ViewGroup {
       // then add the routes on top
       for (Msgs.Wall wall : gym.getFloors(floor).getWallsList()) {
         for (Msgs.Route route : wall.getRoutesList()) {
-          RouteLabelView labelView = new RouteLabelView(getContext());
-          labelView.setRouteGrade(route.getGrade());
-          labelView.setRouteName(route.getName());
-          labelView.setPosition(route.getPosition());
-          labelView.setRouteColor(route.getColor());
-          labelViews.add(labelView);
-          addView(labelView);
+          RouteLabelView routeLabelView = new RouteLabelView(getContext());
+          routeLabelView.setRouteGrade(route.getGrade());
+          routeLabelView.setRouteName(route.getName());
+          routeLabelView.setPosition(route.getPosition());
+          routeLabelView.setRouteColor(route.getColor());
+          routeLabelView.addRouteClickedListener(this);
+          routeLabelViews.add(routeLabelView);
+          addView(routeLabelView);
         }
       }
     }
@@ -294,9 +312,16 @@ public class GymMapView extends ViewGroup {
     gymFloorOutlinePaint.setColor(GYM_FLOOR_OUTLINE_COLOR);
 
     wallViews = new ArrayList<>();
-    labelViews = new ArrayList<>();
+    routeLabelViews = new ArrayList<>();
 
     scaleGestureDetector = new ScaleGestureDetector(getContext(), new MapScaleGestureListener());
+  }
+
+  @Override
+  public void onRouteClicked(RouteLabelView view) {
+    // indicate the route has been added
+    Snackbar.make(this, "Route added!", Snackbar.LENGTH_SHORT).show();
+    int index = routeLabelViews.indexOf(view);
   }
 
   private class MapScaleGestureListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
@@ -308,7 +333,7 @@ public class GymMapView extends ViewGroup {
       // Don't let the object get too small or too large.
       scaleFactor = Math.max(MIN_ZOOM_FACTOR, Math.min(scaleFactor, MAX_ZOOM_FACTOR));
 
-      for (RouteLabelView labelView : labelViews) {
+      for (RouteLabelView labelView : routeLabelViews) {
         labelView.setScaleFactor(scaleFactor);
       }
 

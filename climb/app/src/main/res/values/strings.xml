@@ -15,4 +15,5 @@
     <string name="no_gym_selected_subtitle">Use the search box above to add your gym.</string>
     <string name="permission_rationale">This Permission Isn\'t Actually Necessary</string>
     <string name="ok">OK</string>
+    <string name="drawer_icon">drawer icon</string>
 </resources>

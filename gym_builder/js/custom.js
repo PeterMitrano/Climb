@@ -7,14 +7,14 @@ let canvas, stage;
 let background;
 let down;
 let points = [];
-let color = '#ff0000';
 let gym_name_input;
 let icon_url_input;
 let floors_chart;
 let floors_chart_height;
 let floors;
 let floor_number;
-let floor_add;
+let adding_wall = false;
+let adding_route = false;
 
 window.onload = function init() {
   floor_number = 0;
@@ -33,6 +33,12 @@ window.onload = function init() {
 
   upload_button.onclick = handleUpload;
   download_button.onclick = handleDownload;
+  new_wall_fab.onclick = function() {
+    adding_wall = true;
+  };
+  new_route_fab.onclick = function() {
+    adding_route = true;
+  };
 
   // set the canvas size dynamically
   canvas.width = window.innerWidth - sidebar.clientWidth - 148;
@@ -46,6 +52,7 @@ window.onload = function init() {
   createjs.Touch.enable(stage);
   createjs.Ticker.framerate = 24;
   background = new createjs.Shape();
+  new_wall = new createjs.Shape();
 
   stage.addEventListener('stagemousedown', handleMouseDown);
   stage.addEventListener('stagemouseup', handleMouseUp);
@@ -105,6 +112,7 @@ window.onload = function init() {
       'https://www.ascendpgh.com/sites/all/themes/ascend_foundation/images/header-images/02-Header-Visiting-Ascend.jpg');
 
   stage.addChild(background);
+  stage.addChild(new_wall);
   stage.update();
 
   drawGym();
@@ -145,43 +153,47 @@ function handleMouseMove(event) {
   }
   let current_p = new createjs.Point(stage.mouseX, stage.mouseY);
 
-  if (points.length > 0) {
-    let g = background.graphics;
-    g.clear();
-    g.setStrokeStyle(4, 'round', 'round').
-        beginStroke('black').
-        moveTo(points[0].x, points[0].y);
-    for (let i = 0; i < points.length; i++) {
-      let p = points[i];
-      g.lineTo(p.x, p.y);
-    }
-    g.lineTo(current_p.x, current_p.y);
+  if (adding_wall) {
+    // if (points.length > 0) {
+    //   new_wall.autoClear = true;
+    //   let g = new_wall.graphics;
+    //   g.setStrokeStyle(4, 'round', 'round').
+    //       beginStroke('black').
+    //       moveTo(points[0].x, points[0].y);
+    //   for (let i = 0; i < points.length; i++) {
+    //     let p = points[i];
+    //     g.lineTo(p.x, p.y);
+    //   }
+    //   g.lineTo(current_p.x, current_p.y);
+    // }
   }
   stage.update();
-
 }
 
 function handleMouseClick(event, pt) {
   if (!event.primary) {
     return;
   }
-  points.push(pt);
   let PT_SIZE = 4;
-  let g = background.graphics;
+  let g = new_wall.graphics;
 
-  if (points.length > 1) {
-    g.setStrokeStyle(4, 'round', 'round').
-        beginStroke('black').
-        moveTo(points[0].x, points[0].y);
-    for (let i = 0; i < points.length; i++) {
-      let p = points[i];
-      g.lineTo(p.x, p.y);
-      g.beginFill('black');
-      g.drawCircle(p.x, p.y, PT_SIZE);
+  if (adding_wall) {
+    points.push(pt);
+
+    if (points.length > 1) {
+      g.setStrokeStyle(4, 'round', 'round').
+          beginStroke('black').
+          moveTo(points[0].x, points[0].y);
+      for (let i = 0; i < points.length; i++) {
+        let p = points[i];
+        g.lineTo(p.x, p.y);
+        g.beginFill('black');
+        g.drawCircle(p.x, p.y, PT_SIZE);
+      }
     }
-  }
-  else {
-    g.beginFill('black').drawCircle(pt.x, pt.y, PT_SIZE);
+    else {
+      g.beginFill('black').drawCircle(pt.x, pt.y, PT_SIZE);
+    }
   }
 
   stage.update();

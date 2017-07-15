@@ -330,7 +330,7 @@ public class MainActivity extends AppCompatActivity
                     ).setColor("#FFC107")
                 ).addRoutes(
                     Msgs.Route.newBuilder().setName("Lappnor Project").setPosition(
-                        Msgs.Point2D.newBuilder().setX(1).setY(1)
+                        Msgs.Point2D.newBuilder().setX(2).setY(2)
                     ).setGrade(17).setColor("#FFFF00")
                 ).addRoutes(
                     Msgs.Route.newBuilder().setName("La Dura Dura").setPosition(
