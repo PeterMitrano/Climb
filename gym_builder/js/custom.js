@@ -15,14 +15,18 @@ let floors;
 let floor_number;
 let adding_wall = false;
 let adding_route = false;
+let sign_in_out_button;
 
 window.onload = function init() {
+  initClient();
+
   floor_number = 0;
   canvas = document.getElementById('map-canvas');
   gym_name_input = document.getElementById('gym-name');
   icon_url_input = document.getElementById('large-icon-url');
   floors = document.getElementById('floors');
   floors_chart = document.getElementById('floors-chart');
+  sign_in_out_button = document.getElementById('sign-in-out-button');
   let sidebar = document.getElementById('sidebar');
   let upload_button = document.getElementById('upload-file-button');
   let download_button = document.getElementById('download-file-button');
@@ -33,6 +37,7 @@ window.onload = function init() {
 
   upload_button.onclick = handleUpload;
   download_button.onclick = handleDownload;
+  sign_in_out_button.onclick = signInOut;
   new_wall_fab.onclick = function() {
     adding_wall = true;
   };
@@ -251,4 +256,69 @@ let floor_divs = document.getElementsByClassName('floor-n');
 for (let i = 0; i < floor_divs.length; i++) {
   let floor = floor_divs[i];
   floor.onclick = showFloor;
+}
+
+// SIGN IN WITH GOOGLE
+/**
+ * The Sign-In client object.
+ */
+let auth2;
+
+/**
+ * Initializes the Sign-In client.
+ */
+let initClient = function() {
+  gapi.load('auth2', function(){
+    /**
+     * Retrieve the singleton for the GoogleAuth library and set up the
+     * client.
+     */
+    auth2 = gapi.auth2.init({
+      client_id: "41352784373-92ucj15fdse277kre1458uorhd0vlacl.apps.googleusercontent.com"
+    });
+
+    // Attach the click handler to the sign-in button
+    auth2.attachClickHandler('sign-in-out-button', {}, onSuccess, onFailure);
+
+    // Listen for sign-in state changes.
+    auth2.isSignedIn.listen(signinChanged);
+
+    // Listen for changes to current user.
+    auth2.currentUser.listen(userChanged);
+  });
+};
+
+/**
+ * Handle successful sign-ins.
+ */
+let onSuccess = function(user) {
+  console.log('Signed in as ' + user.getBasicProfile().getName());
+};
+
+/**
+ * Handle sign-in failures.
+ */
+let onFailure = function(error) {
+  console.log("error " + error);
+};
+
+function userChanged(user) {
+  console.log("user " + user);
+}
+function signinChanged(is_signed_in) {
+  if (is_signed_in) {
+    sign_in_out_button.innerHTML = "Sign Out";
+  }
+  else  {
+    sign_in_out_button.innerHTML = "Sign In";
+  }
+}
+
+function signInOut() {
+  if (auth2.isSignedIn.get()) {
+    auth2.signOut();
+  }
+  else {
+    auth2.signIn();
+  }
 }

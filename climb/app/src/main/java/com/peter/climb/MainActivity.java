@@ -20,6 +20,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -38,7 +39,6 @@ import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.fitness.Fitness;
-import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.peter.Climb.Msgs;
 
@@ -124,19 +124,20 @@ public class MainActivity extends AppCompatActivity
 
   private void fetchGymData() {
     // TODO: use real server
-    String url = "http://www.google.com";
+    String url = "http://192.168.0.11:3000/gyms";
     StringRequest gymDataRequest = new StringRequest(url,
         new Response.Listener<String>() {
           @Override
           public void onResponse(String response) {
             try {
               // TODO: actually use this
-              Msgs.Gyms gyms = Msgs.Gyms.parseFrom(ByteString.copyFromUtf8(response));
+              byte[] data = Base64.decode(response, Base64.DEFAULT);
+              Msgs.Gyms gyms = Msgs.Gyms.parseFrom(data);
               onGymDataSuccess(gyms);
             } catch (InvalidProtocolBufferException e) {
               // could not parse message.
               // mock of what the server would return
-              Msgs.Gyms gyms = fakeGymData();
+              Msgs.Gyms gyms = MockGymData.fakeGymData();
               onGymDataSuccess(gyms);
             }
           }
@@ -310,60 +311,6 @@ public class MainActivity extends AppCompatActivity
       startSessionIntent.setAction(START_SESSION_ACTION);
       startActivity(startSessionIntent);
     }
-  }
-
-  private Msgs.Gyms fakeGymData() {
-    return Msgs.Gyms.newBuilder().addGyms(
-        Msgs.Gym.newBuilder().setName("Ascend PGH").addFloors(
-            Msgs.Floor.newBuilder().addWalls(
-                Msgs.Wall.newBuilder().setPolygon(
-                    Msgs.Polygon.newBuilder().addPoints(
-                        Msgs.Point2D.newBuilder().setX(0).setY(0)
-                    ).addPoints(
-                        Msgs.Point2D.newBuilder().setX(10).setY(0)
-                    ).addPoints(
-                        Msgs.Point2D.newBuilder().setX(15).setY(5)
-                    ).addPoints(
-                        Msgs.Point2D.newBuilder().setX(10).setY(10)
-                    ).addPoints(
-                        Msgs.Point2D.newBuilder().setX(0).setY(14)
-                    ).setColor("#FFC107")
-                ).addRoutes(
-                    Msgs.Route.newBuilder().setName("Lappnor Project").setPosition(
-                        Msgs.Point2D.newBuilder().setX(2).setY(2)
-                    ).setGrade(17).setColor("#FFFF00")
-                ).addRoutes(
-                    Msgs.Route.newBuilder().setName("La Dura Dura").setPosition(
-                        Msgs.Point2D.newBuilder().setX(13).setY(25)
-                    ).setGrade(16).setColor("#FFFFFF")
-                ).setName("The Dawn Wall")
-            ).addWalls(
-                Msgs.Wall.newBuilder().setPolygon(
-                    Msgs.Polygon.newBuilder().addPoints(
-                        Msgs.Point2D.newBuilder().setX(0).setY(30)
-                    ).addPoints(
-                        Msgs.Point2D.newBuilder().setX(5).setY(30)
-                    ).addPoints(
-                        Msgs.Point2D.newBuilder().setX(6).setY(35)
-                    ).addPoints(
-                        Msgs.Point2D.newBuilder().setX(4).setY(60)
-                    ).addPoints(
-                        Msgs.Point2D.newBuilder().setX(0).setY(67)
-                    ).setColor("#9C27B0")
-                ).addRoutes(
-                    Msgs.Route.newBuilder().setName("Pikachu").setPosition(
-                        Msgs.Point2D.newBuilder().setX(5).setY(32)
-                    ).setGrade(7).setColor("#ff0000")
-                ).addRoutes(
-                    Msgs.Route.newBuilder().setName("Magikarp").setPosition(
-                        Msgs.Point2D.newBuilder().setX(4).setY(38)
-                    ).setGrade(10).setColor("#00ff00")
-                ).setName("Slab")
-            ).setWidth(25).setHeight(70)
-        ).setLargeIconUrl(
-            "https://www.ascendpgh.com/sites/all/themes/ascend_foundation/images/Ascend-Mobile-Logo.png"
-        )
-    ).build();
   }
 
   @Override
