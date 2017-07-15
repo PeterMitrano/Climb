@@ -1,5 +1,5 @@
 const express = require('express');
-const msgs = require('./js/Gym_pb.js');
+const msgs = require('./js/proto/Gym_pb.js');
 const fs = require('fs');
 const app = express();
 const port = 3000;

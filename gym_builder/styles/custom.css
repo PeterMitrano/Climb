@@ -1,53 +1,112 @@
-.material-icons.md-18 { font-size: 18px; }
-.material-icons.md-24 { font-size: 24px; }
-.material-icons.md-36 { font-size: 36px; }
-.material-icons.md-48 { font-size: 48px; }
+body {
+    font-family: 'Roboto', sans-serif;
+}
+
+.material-icons.md-18 {
+    font-size: 18px;
+}
+
+.material-icons.md-24 {
+    font-size: 24px;
+}
+
+.material-icons.md-36 {
+    font-size: 36px;
+}
+
+.material-icons.md-48 {
+    font-size: 48px;
+}
 
 nav#sidebar {
-  padding: 10%;
+    padding: 10%;
 }
 
 div#floors {
-  position: absolute;
-  width: 48px;
-  top: 32px;
-  right: 32px;
-  border: solid;
+    position: absolute;
+    width: 48px;
+    top: 32px;
+    right: 32px;
+}
+
+div.floor {
+    position: absolute;
+    display: flex;
+    left: 8px;
+    background: rgb(232, 66, 119);
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    justify-content: center; /* align horizontal */
+    align-items: center; /* align vertical */
+    border-radius: 50%;
+}
+
+div.floor:hover {
+    cursor: pointer;
+    position: absolute;
+    display: flex;
+    left: 8px;
+    background: #eee;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    justify-content: center; /* align horizontal */
+    align-items: center; /* align vertical */
+    border-radius: 50%;
+    opacity: 0.95;
+}
+
+div.floor-0 {
+    top: 32px;
+}
+
+div.floor-1 {
+    top: 80px;
+}
+
+div.floor-2 {
+    top: 128px;
+}
+
+div.floor-3 {
+    top: 176px;
 }
 
 div#floors-chart {
-  position: absolute;
-  left: 16px;
-  background: #ff0000;
-  width: 16px;
-  height: 48px;
+    position: absolute;
+    left: 20px;
+    top: 48px;
+    background: #FF4081;
+    width: 8px;
+    height: 96px;
 }
 
 p#floors-label {
-  text-align: center;
-  font-size: 12sp;
+    text-align: center;
+    font-size: 12 sp;
 }
 
 canvas#map-canvas {
-  margin: 18px;
+    margin: 18px;
 }
 
 button#download-file-button {
-  margin: 18px;
+    margin: 18px;
 }
 
 button#upload-file-button {
-  margin: 18px;
+    margin: 18px;
 }
 
 button#add-route-fab {
-  position: absolute;
-  right: 18px;
-  bottom: 92px;
+    position: absolute;
+    right: 18px;
+    bottom: 92px;
 }
 
 button#add-wall-fab {
-  position: absolute;
-  right: 18px;
-  bottom: 18px;
+    position: absolute;
+    right: 18px;
+    bottom: 18px;
 }
