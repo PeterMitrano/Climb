@@ -103,7 +103,7 @@ function fakeGyms() {
 
     let floor = new msgs.Floor();
     floor.setWallsList([wall]);
-    floor.setWidth(50);
+    floor.setWidth(20);
     floor.setHeight(10);
     floor.setPolygon(floor_polygon);
 

@@ -22,10 +22,10 @@ import java.util.List;
 
 public class GymMapView extends ViewGroup implements RouteClickedListener {
 
-  public static final float MAX_ZOOM_FACTOR = 3.0f;
-  public static final int GYM_FLOOR_OUTLINE_STROKE_WIDTH = 36;
+  public static final float MAX_ZOOM_FACTOR = 4.0f;
+  public static final int GYM_FLOOR_OUTLINE_STROKE_WIDTH = 24;
   private static final int GYM_FLOOR_OUTLINE_COLOR = 0xff3d3d3d;
-  private static final float MIN_ZOOM_FACTOR = 0.5f;
+  private static final float MIN_ZOOM_FACTOR = 0.85f;
   private List<WallView> wallViews;
 
   private List<RouteLabelView> routeLabelViews;
@@ -103,7 +103,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
       float gymAspectRatio = gym.getFloors(floor).getHeight() / gym.getFloors(floor).getWidth();
       float screenAspectRatio = (float) getHeight() / getWidth();
 
-      if (gymAspectRatio > screenAspectRatio) {
+      if (gymAspectRatio < screenAspectRatio) {
         // gym fills width
         metersToPixels = getWidth() / gym.getFloors(floor).getWidth();
       } else {
@@ -171,7 +171,6 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
       boolean handled = routeLabelView.handleMotionEvent(routeLabelEvent);
 
       if (handled) {
-        Log.e(this.getClass().toString(), "handled by route");
         return true;
       }
     }

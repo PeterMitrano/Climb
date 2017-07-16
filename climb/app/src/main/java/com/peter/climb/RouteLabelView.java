@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import com.peter.Climb.Msgs;
@@ -13,13 +14,13 @@ import java.util.List;
 
 public class RouteLabelView extends View {
 
-  public static final int GRADE_FONT_SIZE = 12;
-  public static final int NAME_FONT_SIZE = 8;
+  public static final int GRADE_FONT_SIZE = 10;
+  public static final int NAME_FONT_SIZE = 6;
   private static final float SHOW_GRADE_SCALE = 1.6f;
   private static final float SHOW_NAME_SCALE = 2.6f;
   public static final float MIN_SIZE = 10f;
-  private static final float PADDING = 12;
-  private static final float GRADE_NAME_PADDING = 4;
+  private static final float PADDING = 10;
+  private static final float GRADE_NAME_PADDING = 2;
   private final Rect nameRect;
   private int routeGrade;
   private Msgs.Point2D position;
@@ -88,7 +89,7 @@ public class RouteLabelView extends View {
     if (scaleFactor > SHOW_NAME_SCALE) {
       canvas.drawText(gradeString, cx - gradeRect.exactCenterX(),
           y1 + PADDING / 2 + gradeRect.height(), gradePaint);
-      canvas.drawText(routeName, cx - nameRect.exactCenterX(), y2 - PADDING/2,
+      canvas.drawText(routeName, cx - nameRect.exactCenterX(), y2 - PADDING / 2,
           namePaint);
     } else if (scaleFactor > SHOW_GRADE_SCALE) {
       canvas.drawText(gradeString, cx - gradeRect.exactCenterX(), cy - gradeRect.exactCenterY(),
@@ -120,6 +121,8 @@ public class RouteLabelView extends View {
       routeColor = Color.parseColor(color);
       markerPaint.setColor(routeColor);
     } catch (IllegalArgumentException | StringIndexOutOfBoundsException e) {
+      Log.e(this.getClass().toString(), color);
+      routeColor = Color.LTGRAY;
       markerPaint.setColor(Color.LTGRAY);
     }
 
