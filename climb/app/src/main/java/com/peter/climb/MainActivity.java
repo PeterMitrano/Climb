@@ -7,20 +7,22 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -29,10 +31,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.SearchView;
 import android.widget.TextView;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
-import com.android.volley.toolbox.StringRequest;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.Scopes;
@@ -44,12 +43,14 @@ import com.peter.Climb.Msgs;
 
 public class MainActivity extends AppCompatActivity
     implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener,
-    GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+    GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
+    SwipeRefreshLayout.OnRefreshListener {
 
   public static final String PREFS_NAME = "MyPrefsFile";
   public static final String START_SESSION_ACTION = "start_session_action";
   private static final String GYM_ID_PREF_KEY = "gym_id_pref_key";
   public static final int SESSION_NOTIFICATION_ID = 1;
+  private static final int START_SESSION_REQUEST_CODE = 1;
   private AppState appState;
   private GoogleApiClient mClient = null;
 
@@ -58,6 +59,7 @@ public class MainActivity extends AppCompatActivity
   private TextView noGymSelectedSubtitle;
   private ImageView noGymSelectedImage;
   private FloatingActionButton startSessionButton;
+  private SwipeRefreshLayout swipeRefreshLayout;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -68,11 +70,14 @@ public class MainActivity extends AppCompatActivity
 
     appState = ((MyApplication) getApplicationContext()).getState();
 
+    swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swiperefresh);
     largeIconImageView = (ImageView) findViewById(R.id.large_icon_image_view);
     noGymSelectedTitle = (TextView) findViewById(R.id.no_gym_selected_title);
     noGymSelectedSubtitle = (TextView) findViewById(R.id.no_gym_selected_subtitle);
     noGymSelectedImage = (ImageView) findViewById(R.id.no_gym_selected_image);
     startSessionButton = (FloatingActionButton) findViewById(R.id.start_session_button);
+
+    swipeRefreshLayout.setOnRefreshListener(this);
     startSessionButton.setEnabled(false);
     startSessionButton.setOnClickListener(this);
 
@@ -85,15 +90,13 @@ public class MainActivity extends AppCompatActivity
     NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
     navigationView.setNavigationItemSelectedListener(this);
 
+    // kickoff HTTP request to server for all the gym data
+    fetchGymData();
   }
 
   @Override
   protected void onResume() {
     super.onResume();
-
-    // kickoff HTTP request to server for all the gym data
-    fetchGymData();
-
 //        buildFitnessClient();
   }
 
@@ -123,92 +126,104 @@ public class MainActivity extends AppCompatActivity
   }
 
   private void fetchGymData() {
-    // TODO: use real server
-    String url = "http://192.168.0.11:3000/gyms";
-    StringRequest gymDataRequest = new StringRequest(url,
-        new Response.Listener<String>() {
-          @Override
-          public void onResponse(String response) {
-            try {
-              // TODO: actually use this
-              byte[] data = Base64.decode(response, Base64.DEFAULT);
-              Msgs.Gyms gyms = Msgs.Gyms.parseFrom(data);
-              onGymDataSuccess(gyms);
-            } catch (InvalidProtocolBufferException e) {
-              // could not parse message.
-              // mock of what the server would return
-              Msgs.Gyms gyms = MockGymData.fakeGymData();
-              onGymDataSuccess(gyms);
-            }
-          }
-        },
-        new Response.ErrorListener() {
-          @Override
-          public void onErrorResponse(VolleyError error) {
-            Log.e(this.getClass().toString(), "error: " + error.getMessage());
-          }
-        });
-    RequestorSingleton.getInstance(this).addToRequestQueue(gymDataRequest);
+    // this provider request makes an network request, so it must be run async
+    Cursor cursor = getContentResolver()
+        .query(GymSuggestionProvider.CONTENT_URI, GymSuggestionProvider.PROJECTION, null, null,
+            null);
+
+    Msgs.Gyms.Builder gyms_builder = Msgs.Gyms.newBuilder();
+    if (null == cursor) {
+      Log.e(this.getClass().toString(), "null curser");
+    } else {
+      Log.e(this.getClass().toString(), "got results!");
+      try {
+        // iterate over the rows
+        while (cursor.moveToNext()) {
+          // Gets the protobuf blob from the column.
+          byte data[] = cursor.getBlob(GymSuggestionProvider.PROTOBUF_BLOB_COLUMN);
+          Msgs.Gym gym = Msgs.Gym.parseFrom(data);
+          gyms_builder.addGyms(gym);
+          cursor.close();
+        }
+      } catch (InvalidProtocolBufferException ignored) {
+        Log.e(this.getClass().toString(), ignored.getLocalizedMessage());
+      }
+    }
+
+    if (gyms_builder.getGymsCount() > 0) {
+      // on success
+      onGymDataSuccess(gyms_builder.build());
+      swipeRefreshLayout.setRefreshing(false);
+    } else {
+      // on fail
+      Snackbar.make(swipeRefreshLayout, "No gyms found.", Snackbar.LENGTH_LONG);
+      swipeRefreshLayout.setRefreshing(false);
+    }
   }
 
   private void onGymDataSuccess(Msgs.Gyms gyms) {
     appState.gyms = gyms;
 
-    // load up the gym
+    // First check if this request came from a search for a specific gym
     Intent intent = getIntent();
+    boolean has_current_gym = false;
     if (intent.getAction().equals(Intent.ACTION_VIEW)) {
       Uri uri = getIntent().getData();
       try {
         int gymId = Integer.parseInt(uri.getLastPathSegment().toLowerCase());
         appState.setCurrentGym(gymId);
+        has_current_gym = true;
       } catch (NumberFormatException e) {
         e.printStackTrace();
+        // failure case 1, invalid search result
+        Snackbar.make(swipeRefreshLayout, "Invalid search result", Snackbar.LENGTH_SHORT).show();
       }
     } else {
       // try to look up the currently selected gym from preferences
       SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
       int gymId = settings.getInt(GYM_ID_PREF_KEY, -1);
-      if (gymId == -1) {
-        // TODO: proper error handling
-        appState.setCurrentGym(0);
-      } else {
+      if (gymId != -1) {
         appState.setCurrentGym(gymId);
+        has_current_gym = true;
       }
-
-      // TODO: remove this.
-      appState.setCurrentGym(0);
-      startSessionButton.setEnabled(true);
     }
 
-    // set the Icon for the current gym (if there is one)
-    displayCurrentGym();
+    if (has_current_gym) {
+      // set the Icon for the current gym
+      displayCurrentGym();
+
+      // allow the user to start the session
+      startSessionButton.setEnabled(true);
+    } else {
+      displayNoCurrentGym();
+    }
+  }
+
+  private void displayNoCurrentGym() {
+    // they have no gym selected, so tell them how to add one
+    noGymSelectedTitle.setVisibility(View.VISIBLE);
+    noGymSelectedSubtitle.setVisibility(View.VISIBLE);
+    noGymSelectedImage.setVisibility(View.VISIBLE);
+    largeIconImageView.setVisibility(View.GONE);
   }
 
   private void displayCurrentGym() {
-    if (appState.getCurrentGymId() == -1) {
-      // they have no gym selected, so tell them how to add one
-      noGymSelectedTitle.setVisibility(View.VISIBLE);
-      noGymSelectedSubtitle.setVisibility(View.VISIBLE);
-      noGymSelectedImage.setVisibility(View.VISIBLE);
-      largeIconImageView.setVisibility(View.GONE);
-    } else {
-      // get the gym
-      Msgs.Gym gym = appState.getCurrentGym();
+    // get the gym
+    Msgs.Gym gym = appState.getCurrentGym();
 
-      // set the logo
-      String url = gym.getLargeIconUrl();
-      ImageLoader.ImageListener listener = ImageLoader.getImageListener(
-          largeIconImageView,
-          0,
-          R.drawable.ic_error_black_24dp);
-      RequestorSingleton.getInstance(
-          getApplicationContext()).getImageLoader().get(url, listener);
+    // set the logo
+    String url = gym.getLargeIconUrl();
+    ImageLoader.ImageListener listener = ImageLoader.getImageListener(
+        largeIconImageView,
+        0,
+        R.drawable.ic_error_black_24dp);
+    RequestorSingleton.getInstance(
+        getApplicationContext()).getImageLoader().get(url, listener);
 
-      noGymSelectedTitle.setVisibility(View.GONE);
-      noGymSelectedSubtitle.setVisibility(View.GONE);
-      noGymSelectedImage.setVisibility(View.GONE);
-      largeIconImageView.setVisibility(View.VISIBLE);
-    }
+    noGymSelectedTitle.setVisibility(View.GONE);
+    noGymSelectedSubtitle.setVisibility(View.GONE);
+    noGymSelectedImage.setVisibility(View.GONE);
+    largeIconImageView.setVisibility(View.VISIBLE);
   }
 
   @Override
@@ -309,7 +324,7 @@ public class MainActivity extends AppCompatActivity
 
       Intent startSessionIntent = new Intent(this, MapActivity.class);
       startSessionIntent.setAction(START_SESSION_ACTION);
-      startActivity(startSessionIntent);
+      startActivityForResult(startSessionIntent, START_SESSION_REQUEST_CODE);
     }
   }
 
@@ -336,5 +351,10 @@ public class MainActivity extends AppCompatActivity
   public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
     Log.e(this.getClass().toString(), "Google Play services connection failed. Cause: "
         + connectionResult.toString());
+  }
+
+  @Override
+  public void onRefresh() {
+    fetchGymData();
   }
 }

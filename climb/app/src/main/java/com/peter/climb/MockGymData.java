@@ -67,8 +67,7 @@ public class MockGymData {
                 ).setName("Slab")
             ).setWidth(25).setHeight(70)
         ).setLargeIconUrl(
-            "https://www.ascendpgh.com/sites/all/themes/ascend_foundation/images/Ascend-Mobile-Logo.png"
-        )
+            "https://www.ascendpgh.com/sites/all/themes/ascend_foundation/images/header-images/02-Header-Visiting-Ascend.jpg")
     ).build();
   }
 

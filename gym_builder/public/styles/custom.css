@@ -44,7 +44,7 @@ div.floor {
     position: absolute;
     display: flex;
     left: 8px;
-    background: rgb(232, 66, 119);
+    background: #FFAB40;
     width: 32px;
     height: 32px;
     line-height: 32px;
@@ -88,7 +88,7 @@ div#floors-chart {
     position: absolute;
     left: 20px;
     top: 48px;
-    background: #FF4081;
+    background: #f28500;
     width: 8px;
     height: 96px;
 }

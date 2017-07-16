@@ -6,6 +6,8 @@ import android.util.LruCache;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.ImageLoader;
+import com.android.volley.toolbox.RequestFuture;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
 class RequestorSingleton {
@@ -36,14 +38,14 @@ class RequestorSingleton {
         });
   }
 
-  public static synchronized RequestorSingleton getInstance(Context context) {
+  static synchronized RequestorSingleton getInstance(Context context) {
     if (mInstance == null) {
       mInstance = new RequestorSingleton(context);
     }
     return mInstance;
   }
 
-  public RequestQueue getRequestQueue() {
+  RequestQueue getRequestQueue() {
     if (mRequestQueue == null) {
       // getApplicationContext() is key, it keeps you from leaking the
       // Activity or BroadcastReceiver if someone passes one in.
@@ -52,11 +54,11 @@ class RequestorSingleton {
     return mRequestQueue;
   }
 
-  public <T> void addToRequestQueue(Request<T> req) {
+  <T> void addToRequestQueue(Request<T> req) {
     getRequestQueue().add(req);
   }
 
-  public ImageLoader getImageLoader() {
+  ImageLoader getImageLoader() {
     return mImageLoader;
   }
 }

@@ -2,6 +2,7 @@ const proto = require('google-protobuf');
 const msgs = require('./proto/Gym_pb.js');
 
 let gyms = new msgs.Gyms();
+let current_gym;
 let new_wall;
 let canvas, stage;
 let background;
@@ -196,17 +197,42 @@ function fetchGymData() {
   xhr.onload = function() {
     try {
       gyms = msgs.Gyms.deserializeBinary(xhr.responseText);
-      gyms.getGymsList().forEach(function(gym) {
-        let gym_drawer_element = document.createElement('a');
-        gym_drawer_element.classList.add('mdl-navigation__link');
-        gym_drawer_element.href = "";
-        gym_drawer_element.innerHTML = gym.getName();
-        drawer.appendChild(gym_drawer_element);
-      })
+      current_gym = gyms[0];
+      refreshDrawer();
     } catch (err) {
-      console.log("Failed to deserialize " + err);
+      console.log('Failed to deserialize ' + err);
     }
   };
+}
+
+function refreshDrawer() {
+  while (drawer.firstChild) {
+    drawer.removeChild(drawer.firstChild);
+  }
+
+  gyms.getGymsList().forEach(function(gym) {
+    let gym_drawer_element = document.createElement('a');
+    gym_drawer_element.classList.add('mdl-navigation__link');
+    gym_drawer_element.href = '';
+    gym_drawer_element.innerHTML = gym.getName();
+    drawer.appendChild(gym_drawer_element);
+  });
+
+  let add_gym_drawer_element = document.createElement('a');
+  add_gym_drawer_element.classList.add('mdl-navigation__link');
+  add_gym_drawer_element.href = '';
+  add_gym_drawer_element.innerHTML = 'Add New Gym';
+  add_gym_drawer_element.onclick = addNewGym;
+  drawer.appendChild(add_gym_drawer_element);
+}
+
+function addNewGym() {
+  current_gym = gyms.length + 1;
+  let new_gym = new msgs.Gym();
+  new_gym.setName("New Gym 1");
+  gyms.getGymsList().push(new_gym);
+
+  refreshDrawer();
 }
 
 // SIGN IN WITH GOOGLE

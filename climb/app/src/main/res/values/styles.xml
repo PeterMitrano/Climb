@@ -15,4 +15,8 @@
 
   <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
+  <style name="PrimaryActionButton" parent="AppTheme">
+    <item name="android:backgroundTint">@drawable/fab_color_button_normal</item>
+  </style>
+
 </resources>
