@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -127,38 +128,7 @@ public class MainActivity extends AppCompatActivity
 
   private void fetchGymData() {
     // this provider request makes an network request, so it must be run async
-    Cursor cursor = getContentResolver()
-        .query(GymSuggestionProvider.CONTENT_URI, GymSuggestionProvider.PROJECTION, null, null,
-            null);
-
-    Msgs.Gyms.Builder gyms_builder = Msgs.Gyms.newBuilder();
-    if (null == cursor) {
-      Log.e(this.getClass().toString(), "null curser");
-    } else {
-      Log.e(this.getClass().toString(), "got results!");
-      try {
-        // iterate over the rows
-        while (cursor.moveToNext()) {
-          // Gets the protobuf blob from the column.
-          byte data[] = cursor.getBlob(GymSuggestionProvider.PROTOBUF_BLOB_COLUMN);
-          Msgs.Gym gym = Msgs.Gym.parseFrom(data);
-          gyms_builder.addGyms(gym);
-          cursor.close();
-        }
-      } catch (InvalidProtocolBufferException ignored) {
-        Log.e(this.getClass().toString(), ignored.getLocalizedMessage());
-      }
-    }
-
-    if (gyms_builder.getGymsCount() > 0) {
-      // on success
-      onGymDataSuccess(gyms_builder.build());
-      swipeRefreshLayout.setRefreshing(false);
-    } else {
-      // on fail
-      Snackbar.make(swipeRefreshLayout, "No gyms found.", Snackbar.LENGTH_LONG);
-      swipeRefreshLayout.setRefreshing(false);
-    }
+    new FetchGymDataTask().execute();
   }
 
   private void onGymDataSuccess(Msgs.Gyms gyms) {
@@ -356,5 +326,48 @@ public class MainActivity extends AppCompatActivity
   @Override
   public void onRefresh() {
     fetchGymData();
+  }
+
+  private class FetchGymDataTask extends AsyncTask<Void, Integer, Msgs.Gyms> {
+
+    @Override
+    protected Msgs.Gyms doInBackground(Void... params) {
+      Cursor cursor = getContentResolver()
+          .query(GymSuggestionProvider.CONTENT_URI, GymSuggestionProvider.PROJECTION, null, null,
+              null);
+
+      Msgs.Gyms.Builder gyms_builder = Msgs.Gyms.newBuilder();
+      if (null == cursor) {
+        Log.e(this.getClass().toString(), "null curser");
+      } else {
+        Log.e(this.getClass().toString(), "got results!");
+        try {
+          // iterate over the rows
+          while (cursor.moveToNext()) {
+            // Gets the protobuf blob from the column.
+            byte data[] = cursor.getBlob(GymSuggestionProvider.PROTOBUF_BLOB_COLUMN);
+            Msgs.Gym gym = Msgs.Gym.parseFrom(data);
+            gyms_builder.addGyms(gym);
+            cursor.close();
+          }
+        } catch (InvalidProtocolBufferException ignored) {
+          Log.e(this.getClass().toString(), ignored.getLocalizedMessage());
+        }
+      }
+
+      return gyms_builder.build();
+    }
+
+    protected void onPostExecute(Msgs.Gyms gyms) {
+      if (gyms.getGymsCount() > 0) {
+        // on success
+        onGymDataSuccess(gyms);
+        swipeRefreshLayout.setRefreshing(false);
+      } else {
+        // on fail
+        Snackbar.make(swipeRefreshLayout, "No gyms found.", Snackbar.LENGTH_LONG);
+        swipeRefreshLayout.setRefreshing(false);
+      }
+    }
   }
 }

@@ -15,6 +15,10 @@ import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.StringRequest;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.peter.Climb.Msgs;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -30,8 +34,8 @@ public class GymSuggestionProvider extends ContentProvider {
   public static final Uri CONTENT_URI =
       Uri.parse("content://" + AUTHORITY + "/gyms");
 
-  public static final int PROTOBUF_BLOB_COLUMN = 4;
-  private static final int SEARCH_DISTANCE_THRESHOLD = 15;
+  public static final int PROTOBUF_BLOB_COLUMN = 3;
+  private static final int MAX_RESULTS = 5;
 
   public GymSuggestionProvider() {
   }
@@ -83,19 +87,28 @@ public class GymSuggestionProvider extends ContentProvider {
 
   private Cursor searchResultsCursor(Msgs.Gyms gyms, String search_text) {
     MatrixCursor matrixCursor = new MatrixCursor(PROJECTION);
+    TreeMap<Integer, Object[]> sorted_rows = new TreeMap<>();
+
     int i = 0;
     for (Msgs.Gym gym : gyms.getGymsList()) {
       if (search_text.isEmpty()) {
-        matrixCursor.addRow(new Object[]{i, gym.getName(), i, gym});
+        sorted_rows.put(i, new Object[]{i, gym.getName(), i, gym.toByteArray()});
       } else {
         int distance = LevenshteinDistance.getDefaultInstance()
             .apply(search_text, gym.getName());
         Log.e(this.getClass().toString(), "DIST: " + distance);
-        if (distance < SEARCH_DISTANCE_THRESHOLD) {
-          matrixCursor.addRow(new Object[]{i, gym.getName(), i, gym});
-        }
+        sorted_rows.put(distance, new Object[]{i, gym.getName(), i, gym.toByteArray()});
       }
       i++;
+    }
+
+    i = 0;
+    for (Object row[]: sorted_rows.values()) {
+      matrixCursor.addRow(row);
+      i++;
+      if (i == MAX_RESULTS) {
+        break;
+      }
     }
 
     return matrixCursor;
