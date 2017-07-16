@@ -18,6 +18,17 @@ body {
     font-size: 48px;
 }
 
+.map_header {
+}
+
+#gym-name {
+    margin: 8px;
+}
+
+#large-icon-url {
+    margin: 8px;
+}
+
 nav#sidebar {
     padding: 10%;
 }
@@ -84,19 +95,11 @@ div#floors-chart {
 
 p#floors-label {
     text-align: center;
-    font-size: 12 sp;
+    font-size: 12sp;
 }
 
 canvas#map-canvas {
-    margin: 18px;
-}
-
-button#download-file-button {
-    margin: 18px;
-}
-
-button#upload-file-button {
-    margin: 18px;
+    margin: 12px;
 }
 
 button#add-route-fab {

@@ -1,7 +1,7 @@
 const proto = require('google-protobuf');
 const msgs = require('./proto/Gym_pb.js');
 
-let gym = new msgs.Gym();
+let gyms = new msgs.Gyms();
 let new_wall;
 let canvas, stage;
 let background;
@@ -17,6 +17,7 @@ let adding_wall = false;
 let adding_route = false;
 let sign_in_out_button;
 let google_user;
+let drawer;
 
 window.onload = function init() {
   initClient();
@@ -28,16 +29,14 @@ window.onload = function init() {
   floors = document.getElementById('floors');
   floors_chart = document.getElementById('floors-chart');
   sign_in_out_button = document.getElementById('sign-in-out-button');
+  drawer = document.getElementById('drawer');
+
   let sidebar = document.getElementById('sidebar');
-  let upload_button = document.getElementById('upload-file-button');
-  let download_button = document.getElementById('download-file-button');
   let new_wall_fab = document.getElementById('add-wall-fab');
   let new_route_fab = document.getElementById('add-route-fab');
 
   floors_chart_height = parseInt(window.getComputedStyle(floors_chart).height);
 
-  upload_button.onclick = handleUpload;
-  download_button.onclick = handleDownload;
   sign_in_out_button.onclick = signInOut;
   new_wall_fab.onclick = function() {
     adding_wall = true;
@@ -47,8 +46,8 @@ window.onload = function init() {
   };
 
   // set the canvas size dynamically
-  canvas.width = window.innerWidth - sidebar.clientWidth - 148;
-  canvas.height = window.innerHeight - 130;
+  canvas.width = window.innerWidth - 150;
+  canvas.height = window.innerHeight - 150;
 
   stage = new createjs.Stage('map-canvas');
   canvas.style.backgroundColor = '#d2d2d2';
@@ -173,29 +172,6 @@ function handleMouseUp(event) {
   }
 }
 
-function handleDownload(event) {
-  gym.setName(gym_name_input.value);
-  gym.setLargeIconUrl(icon_url_input.value);
-
-  let writer = new proto.BinaryWriter();
-  gym.serializeBinaryToWriter(writer);
-  let contents = writer.getResultBase64String();
-
-  let element = document.createElement('a');
-  element.setAttribute('href', 'data:,' + contents);
-  element.setAttribute('download', 'my_gym.map');
-
-  element.style.display = 'none';
-  document.body.appendChild(element);
-
-  element.click();
-
-  document.body.removeChild(element);
-}
-
-function handleUpload(event) {
-}
-
 function showFloor(event) {
   console.log(event);
 }
@@ -208,6 +184,9 @@ for (let i = 0; i < floor_divs.length; i++) {
 
 // DATABASE FUNCTIONS
 
+// Make a http POST request to the backend server.
+// The id token will be authenticated,
+// and the gym for that user will be returned
 function fetchGymData() {
   let id_token = google_user.getAuthResponse().id_token;
   let xhr = new XMLHttpRequest();
@@ -215,9 +194,19 @@ function fetchGymData() {
   xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
   xhr.send('idtoken=' + id_token);
   xhr.onload = function() {
-    gym = msgs.Gym.deserializeBinary(xhr.responseText);
+    try {
+      gyms = msgs.Gyms.deserializeBinary(xhr.responseText);
+      gyms.getGymsList().forEach(function(gym) {
+        let gym_drawer_element = document.createElement('a');
+        gym_drawer_element.classList.add('mdl-navigation__link');
+        gym_drawer_element.href = "";
+        gym_drawer_element.innerHTML = gym.getName();
+        drawer.appendChild(gym_drawer_element);
+      })
+    } catch (err) {
+      console.log("Failed to deserialize " + err);
+    }
   };
-
 }
 
 // SIGN IN WITH GOOGLE

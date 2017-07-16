@@ -14,55 +14,42 @@
   <script defer src="js/bundle.js"></script>
 </head>
 <body>
-<!-- Always shows a header, even in smaller screens. -->
-<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--fixed-drawer">
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
 
   <header class="mdl-layout__header">
     <div class="mdl-layout__header-row">
       <!-- Title -->
       <span class="mdl-layout-title">Map Builder</span>
       <div class="mdl-layout-spacer"></div>
-      <button id="sign-in-out-button" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised mdl-button--accent">
+      <button id="sign-in-out-button"
+              class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--raised mdl-button--accent">
         Sign In
     </div>
   </header>
 
-  <div id="drawer" class="mdl-layout__drawer">
-        <span class="mdl-layout-title">
-          Climb
-        </span>
+  <div class="mdl-layout__drawer">
+    <span class="mdl-layout-title">Your Gyms</span>
     <nav id="sidebar" class="mdl-navigation">
-      <form action="#">
-        <!-- gym name -->
-        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-          <input class="mdl-textfield__input" type="text" id="gym-name">
-          <label class="mdl-textfield__label" for="gym-name">Gym Name</label>
-        </div>
-
-        <!-- gym icon url -->
-        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-          <input class="mdl-textfield__input" type="text" id="large-icon-url">
-          <label class="mdl-textfield__label" for="large_icon_url">URL for Large Icon</label>
-        </div>
-
-        <!-- load file button-->
-        <button id="upload-file-button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
-                disabled>
-          <i class="material-icons">file_upload</i> Upload Existing Map
-        </button>
-
-        <!-- download file button -->
-        <button id="download-file-button"
-                class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
-          Download Map File
-        </button>
-
-      </form>
+      <nav id="drawer" class="mdl-navigation">
+      </nav>
     </nav>
   </div>
 
   <main class="mdl-layout__content">
     <div class="page-content">
+      <div class="map_header">
+        <!-- gym name -->
+        <div id="gym-name" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+          <input class="mdl-textfield__input" type="text" id="gym-name-input">
+          <label class="mdl-textfield__label" for="gym-name-input">Gym Name</label>
+        </div>
+
+        <!-- gym icon url -->
+        <div id="large-icon-url" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+          <input class="mdl-textfield__input" type="text" id="large-icon-url-input">
+          <label class="mdl-textfield__label" for="large-icon-url-input">URL for Large Icon</label>
+        </div>
+      </div>
 
       <canvas id="map-canvas" width=800px height=500px></canvas>
 
