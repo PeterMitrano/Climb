@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -27,6 +28,7 @@ public class MapActivity extends AppCompatActivity implements View.OnClickListen
     setContentView(R.layout.activity_map);
 
     appState = ((MyApplication) getApplicationContext()).getState();
+    Log.e(getClass().toString(), "Map: " + String.valueOf(appState.mClient.isConnected()) + " " + appState.mClient.toString());
 
     View decor_view = getWindow().getDecorView();
 
@@ -125,7 +127,7 @@ public class MapActivity extends AppCompatActivity implements View.OnClickListen
   @Override
   public void onClick(View v) {
     if (v.getId() == R.id.end_session_button) {
-      appState.endSession();
+//      appState.endSession();
       NotificationManager notificationManager = (NotificationManager) getSystemService(
           Context.NOTIFICATION_SERVICE);
       notificationManager.cancel(MainActivity.SESSION_NOTIFICATION_ID);

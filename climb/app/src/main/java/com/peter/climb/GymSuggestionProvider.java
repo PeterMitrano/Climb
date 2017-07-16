@@ -10,14 +10,10 @@ import android.provider.BaseColumns;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Base64;
-import android.util.Log;
 import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.StringRequest;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.peter.Climb.Msgs;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -96,14 +92,13 @@ public class GymSuggestionProvider extends ContentProvider {
       } else {
         int distance = LevenshteinDistance.getDefaultInstance()
             .apply(search_text, gym.getName());
-        Log.e(this.getClass().toString(), "DIST: " + distance);
         sorted_rows.put(distance, new Object[]{i, gym.getName(), i, gym.toByteArray()});
       }
       i++;
     }
 
     i = 0;
-    for (Object row[]: sorted_rows.values()) {
+    for (Object row[] : sorted_rows.values()) {
       matrixCursor.addRow(row);
       i++;
       if (i == MAX_RESULTS) {

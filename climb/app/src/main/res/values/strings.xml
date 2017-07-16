@@ -16,4 +16,6 @@
     <string name="permission_rationale">This Permission Isn\'t Actually Necessary</string>
     <string name="ok">OK</string>
     <string name="drawer_icon">drawer icon</string>
+  <string name="no_fit_permission_msg">We store your data in Google Fit, but we need your permission!</string>
+    <string name="ask_again">ASK AGAIN</string>
 </resources>

@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentSender.SendIntentException;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
@@ -36,6 +37,7 @@ import android.widget.TextView;
 import com.android.volley.toolbox.ImageLoader;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
@@ -55,8 +57,9 @@ public class MainActivity extends AppCompatActivity
   public static final String START_SESSION_ACTION = "start_session_action";
   private static final String GYM_ID_PREF_KEY = "gym_id_pref_key";
   public static final int SESSION_NOTIFICATION_ID = 1;
+  private static final int REQUEST_RESOLVE_ERROR = 1001;
   private AppState appState;
-  private GoogleApiClient mClient = null;
+  private boolean mResolvingError = false;
 
   private ImageView largeIconImageView;
   private TextView noGymSelectedTitle;
@@ -96,40 +99,55 @@ public class MainActivity extends AppCompatActivity
 
     // kickoff HTTP request to server for all the gym data
     fetchGymData();
-  }
 
-  @Override
-  protected void onResume() {
-    super.onResume();
-
+    // connect to google fit API
     Intent intent = getIntent();
     if (intent.getAction().equals(Intent.ACTION_MAIN)) {
       buildFitnessClient();
     }
   }
 
-  /**
-   * Build a {@link GoogleApiClient} that will authenticate the user and allow the application
-   * to connect to Fitness APIs. The scopes included should match the scopes your app needs
-   * (see documentation for details). Authentication will occasionally fail intentionally,
-   * and in those cases, there will be a known resolution, which the OnConnectionFailedListener()
-   * can address. Examples of this include the user never having signed in before, or having
-   * multiple accounts on the device and needing to specify which account to use, etc.
-   */
+  @Override
+  protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    if (requestCode == REQUEST_RESOLVE_ERROR) {
+      mResolvingError = false;
+      if (resultCode == RESULT_OK) {
+        // Make sure the app is not already connected or attempting to connect
+        if (!appState.mClient.isConnecting() &&
+            !appState.mClient.isConnected()) {
+          appState.mClient.connect();
+        }
+      } else {
+        Snackbar snack = Snackbar
+            .make(swipeRefreshLayout, R.string.no_fit_permission_msg, Snackbar.LENGTH_INDEFINITE);
+        snack.setAction(R.string.ask_again, new View.OnClickListener() {
+          @Override
+          public void onClick(View v) {
+            appState.mClient.reconnect();
+            mResolvingError = false;
+          }
+        });
+        snack.show();
+      }
+    }
+  }
+
   private void buildFitnessClient() {
-    if (mClient == null) {
+    if (appState.mClient == null) {
       GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
           .requestEmail()
           .requestScopes(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE),
               new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
           .build();
 
-      mClient = new GoogleApiClient.Builder(this)
-          .addApi(Fitness.SENSORS_API)
+      appState.mClient = new GoogleApiClient.Builder(this)
+          .addApi(Fitness.SESSIONS_API)
           .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
           .addConnectionCallbacks(this)
-          .enableAutoManage(this, 0, this)
+          .addOnConnectionFailedListener(this)
           .build();
+
+      appState.mClient.connect();
     }
   }
 
@@ -145,13 +163,11 @@ public class MainActivity extends AppCompatActivity
 
     // First check if this request came from a search for a specific gym
     Intent intent = getIntent();
-    boolean has_current_gym = false;
     if (intent.getAction().equals(Intent.ACTION_VIEW)) {
       Uri uri = getIntent().getData();
       try {
         int gymId = Integer.parseInt(uri.getLastPathSegment().toLowerCase());
         appState.setCurrentGym(gymId);
-        has_current_gym = true;
       } catch (NumberFormatException e) {
         e.printStackTrace();
         // failure case 1, invalid search result
@@ -160,19 +176,18 @@ public class MainActivity extends AppCompatActivity
     } else {
       // try to look up the currently selected gym from preferences
       SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-      int gymId = settings.getInt(GYM_ID_PREF_KEY, -1);
-      if (gymId != -1) {
-        appState.setCurrentGym(gymId);
-        has_current_gym = true;
-      }
+      int gymId = settings.getInt(GYM_ID_PREF_KEY, AppState.NO_GYM_ID);
+      appState.setCurrentGym(gymId);
     }
 
-    if (has_current_gym) {
+    if (appState.hasCurrentGym()) {
       // set the Icon for the current gym
       displayCurrentGym();
 
       // allow the user to start the session
-      startSessionButton.setEnabled(true);
+      if (appState.mClient != null && appState.mClient.isConnected()) {
+        startSessionButton.setEnabled(true);
+      }
     } else {
       displayNoCurrentGym();
     }
@@ -309,10 +324,10 @@ public class MainActivity extends AppCompatActivity
 
   @Override
   public void onConnected(@Nullable Bundle bundle) {
-    Log.e(this.getClass().toString(), "Connected!!!");
-    // Now you can make calls to the Fitness APIs.
-
-    appState.setGoogleApiClient(mClient);
+    Log.e(getClass().toString(), "Connected!!!");
+    if (appState.hasCurrentGym()) {
+      startSessionButton.setEnabled(true);
+    }
   }
 
   @Override
@@ -320,18 +335,31 @@ public class MainActivity extends AppCompatActivity
     // If your connection to the sensor gets lost at some point,
     // you'll be able to determine the reason and react to it here.
     if (i == GoogleApiClient.ConnectionCallbacks.CAUSE_NETWORK_LOST) {
-      Log.e(this.getClass().toString(), "Connection lost.  Cause: Network Lost.");
+      Log.e(getClass().toString(), "Connection lost.  Cause: Network Lost.");
     } else if (i
         == GoogleApiClient.ConnectionCallbacks.CAUSE_SERVICE_DISCONNECTED) {
-      Log.e(this.getClass().toString(),
+      Log.e(getClass().toString(),
           "Connection lost.  Reason: Service Disconnected");
+    } else {
+      Log.e(getClass().toString(), "Connection lost??? " + i);
     }
   }
 
   @Override
-  public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-    Log.e(this.getClass().toString(), "Google Play services connection failed. Cause: "
-        + connectionResult.toString());
+  public void onConnectionFailed(@NonNull ConnectionResult result) {
+    if (!mResolvingError && result.hasResolution()) {
+      try {
+        mResolvingError = true;
+        result.startResolutionForResult(this, REQUEST_RESOLVE_ERROR);
+      } catch (SendIntentException e) {
+        // There was an error with the resolution intent. Try again.
+        appState.mClient.connect();
+      }
+    } else {
+      GoogleApiAvailability.getInstance()
+          .showErrorDialogFragment(this, result.getErrorCode(), REQUEST_RESOLVE_ERROR);
+      mResolvingError = true;
+    }
   }
 
   @Override

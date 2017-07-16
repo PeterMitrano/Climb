@@ -4,12 +4,17 @@ import android.app.Application;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.fitness.Fitness;
+import com.google.android.gms.fitness.FitnessActivities;
 import com.google.android.gms.fitness.FitnessStatusCodes;
 import com.google.android.gms.fitness.data.DataType;
+import com.google.android.gms.fitness.data.Session;
+import com.google.android.gms.fitness.result.SessionStopResult;
 import com.peter.Climb.Msgs;
+import java.util.concurrent.TimeUnit;
 
 public class MyApplication extends Application {
 
@@ -22,15 +27,13 @@ public class MyApplication extends Application {
 
 class AppState {
 
+  public static final int NO_GYM_ID = -1;
   Msgs.Gyms gyms;
 
-  private GoogleApiClient mClient = null;
+  GoogleApiClient mClient = null;
   private Msgs.Gym currentGym;
   private int currentGymId;
-
-  void setGoogleApiClient(GoogleApiClient mClient) {
-    this.mClient = mClient;
-  }
+  private Session session;
 
   int getCurrentGymId() {
     return currentGymId;
@@ -42,40 +45,73 @@ class AppState {
 
   void setCurrentGym(int current_gym_id) {
     this.currentGymId = current_gym_id;
-    this.currentGym = gyms.getGyms(current_gym_id);
+    if (current_gym_id != NO_GYM_ID) {
+      this.currentGym = gyms.getGyms(current_gym_id);
+    }
   }
 
   void startSession() {
-    Fitness.RecordingApi.subscribe(mClient, DataType.TYPE_ACTIVITY_SAMPLES)
-        .setResultCallback(new ResultCallback<Status>() {
-          @Override
-          public void onResult(@NonNull Status status) {
-            if (status.isSuccess()) {
-              if (status.getStatusCode()
-                  == FitnessStatusCodes.SUCCESS_ALREADY_SUBSCRIBED) {
-                Log.i(getClass().toString(), "Existing subscription for activity detected.");
-              } else {
-                Log.i(getClass().toString(), "Successfully subscribed!");
-              }
-            } else {
-              Log.i(getClass().toString(), "There was a problem subscribing.");
-            }
-          }
-        });
+//    Fitness.RecordingApi.subscribe(mClient, DataType.TYPE_ACTIVITY_SAMPLES)
+//        .setResultCallback(new ResultCallback<Status>() {
+//          @Override
+//          public void onResult(@NonNull Status status) {
+//            if (status.isSuccess()) {
+//              if (status.getStatusCode()
+//                  == FitnessStatusCodes.SUCCESS_ALREADY_SUBSCRIBED) {
+//                Log.i(getClass().toString(), "Existing subscription for activity detected.");
+//              } else {
+//                Log.i(getClass().toString(), "Successfully subscribed!");
+//              }
+//            } else {
+//              Log.i(getClass().toString(), "There was a problem subscribing.");
+//            }
+//          }
+//        });
+    session = new Session.Builder()
+        .setName("Session Name 1")
+        .setIdentifier("Session Identifier 1")
+        .setDescription("Climbing Session")
+        .setStartTime(System.currentTimeMillis() - 10, TimeUnit.MILLISECONDS)
+        .setActivity(FitnessActivities.ROCK_CLIMBING)
+        .build();
+
+    PendingResult<Status> pendingResult =
+        Fitness.SessionsApi.startSession(mClient, session);
+    pendingResult.setResultCallback(new ResultCallback<Status>() {
+      @Override
+      public void onResult(@NonNull Status status) {
+        Log.e(getClass().toString(), status.toString());
+      }
+    });
   }
 
   void endSession() {
-    Fitness.RecordingApi.unsubscribe(mClient, DataType.TYPE_ACTIVITY_SAMPLES)
-        .setResultCallback(new ResultCallback<Status>() {
-          @Override
-          public void onResult(@NonNull Status status) {
-            if (status.isSuccess()) {
-              Log.i(getClass().toString(), "Successfully unsubscribed");
-            } else {
-              // Subscription not removed
-              Log.i(getClass().toString(), "Failed to unsubscribe");
-            }
-          }
-        });
+    Log.e(getClass().toString(), String.valueOf(mClient.isConnected()) + " " + mClient.toString());
+    PendingResult<SessionStopResult> pendingResult =
+        Fitness.SessionsApi.stopSession(mClient, session.getIdentifier());
+    pendingResult.setResultCallback(new ResultCallback<SessionStopResult>() {
+      @Override
+      public void onResult(@NonNull SessionStopResult sessionStopResult) {
+        Log.e(getClass().toString(), sessionStopResult.toString());
+      }
+    });
+
+//    Fitness.RecordingApi.unsubscribe(mClient, DataType.TYPE_ACTIVITY_SAMPLES)
+//        .setResultCallback(new ResultCallback<Status>() {
+//          @Override
+//          public void onResult(@NonNull Status status) {
+//            if (status.isSuccess()) {
+//              Log.i(getClass().toString(), "Successfully unsubscribed");
+//            } else {
+//              // Subscription not removed
+//              Log.i(getClass().toString(), "Failed to unsubscribe");
+//            }
+//          }
+//        });
+
+  }
+
+  public boolean hasCurrentGym() {
+    return currentGymId != NO_GYM_ID;
   }
 }
