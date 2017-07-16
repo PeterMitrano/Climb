@@ -7,20 +7,20 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.NavigationView.OnNavigationItemSelectedListener;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -29,6 +29,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.ImageView;
 import android.widget.SearchView;
 import android.widget.TextView;
@@ -37,21 +38,23 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
+import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.fitness.Fitness;
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.peter.Climb.Msgs;
+import com.peter.Climb.Msgs.Gyms;
+import com.peter.climb.FetchGymDataTask.FetchGymDataListener;
 
 public class MainActivity extends AppCompatActivity
-    implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener,
-    GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener,
-    SwipeRefreshLayout.OnRefreshListener {
+    implements OnNavigationItemSelectedListener, OnClickListener,
+    ConnectionCallbacks, OnConnectionFailedListener,
+    OnRefreshListener, FetchGymDataListener {
 
   public static final String PREFS_NAME = "MyPrefsFile";
   public static final String START_SESSION_ACTION = "start_session_action";
   private static final String GYM_ID_PREF_KEY = "gym_id_pref_key";
   public static final int SESSION_NOTIFICATION_ID = 1;
-  private static final int START_SESSION_REQUEST_CODE = 1;
   private AppState appState;
   private GoogleApiClient mClient = null;
 
@@ -98,7 +101,11 @@ public class MainActivity extends AppCompatActivity
   @Override
   protected void onResume() {
     super.onResume();
-//        buildFitnessClient();
+
+    Intent intent = getIntent();
+    if (intent.getAction().equals(Intent.ACTION_MAIN)) {
+      buildFitnessClient();
+    }
   }
 
   /**
@@ -128,7 +135,9 @@ public class MainActivity extends AppCompatActivity
 
   private void fetchGymData() {
     // this provider request makes an network request, so it must be run async
-    new FetchGymDataTask().execute();
+    FetchGymDataTask gymsAsyncTask = new FetchGymDataTask(getContentResolver());
+    gymsAsyncTask.addFetchGymDataListener(this);
+    gymsAsyncTask.execute();
   }
 
   private void onGymDataSuccess(Msgs.Gyms gyms) {
@@ -260,6 +269,8 @@ public class MainActivity extends AppCompatActivity
   @Override
   public void onClick(View v) {
     if (v.getId() == R.id.start_session_button) {
+      appState.startSession();
+
       NotificationCompat.Builder mBuilder =
           new NotificationCompat.Builder(this)
               .setSmallIcon(R.drawable.ic_terrain_black_24dp)
@@ -269,10 +280,8 @@ public class MainActivity extends AppCompatActivity
       // Creates an explicit intent for an Activity in your app
       Intent resultIntent = new Intent(this, MapActivity.class);
 
-      // The stack builder object will contain an artificial back stack for the
-      // started Activity.
-      // This ensures that navigating backward from the Activity leads out of
-      // your application to the Home screen.
+      // The stack builder object will contain an artificial back stack for the started Activity.
+      // This ensures that navigating backward from the Activity leads to the Home screen.
       TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
       // Adds the back stack for the Intent (but not the Intent itself)
       stackBuilder.addParentStack(MapActivity.class);
@@ -294,7 +303,7 @@ public class MainActivity extends AppCompatActivity
 
       Intent startSessionIntent = new Intent(this, MapActivity.class);
       startSessionIntent.setAction(START_SESSION_ACTION);
-      startActivityForResult(startSessionIntent, START_SESSION_REQUEST_CODE);
+      startActivity(startSessionIntent);
     }
   }
 
@@ -302,6 +311,8 @@ public class MainActivity extends AppCompatActivity
   public void onConnected(@Nullable Bundle bundle) {
     Log.e(this.getClass().toString(), "Connected!!!");
     // Now you can make calls to the Fitness APIs.
+
+    appState.setGoogleApiClient(mClient);
   }
 
   @Override
@@ -328,46 +339,15 @@ public class MainActivity extends AppCompatActivity
     fetchGymData();
   }
 
-  private class FetchGymDataTask extends AsyncTask<Void, Integer, Msgs.Gyms> {
+  @Override
+  public void onGymsFound(Gyms gyms) {
+    onGymDataSuccess(gyms);
+    swipeRefreshLayout.setRefreshing(false);
+  }
 
-    @Override
-    protected Msgs.Gyms doInBackground(Void... params) {
-      Cursor cursor = getContentResolver()
-          .query(GymSuggestionProvider.CONTENT_URI, GymSuggestionProvider.PROJECTION, null, null,
-              null);
-
-      Msgs.Gyms.Builder gyms_builder = Msgs.Gyms.newBuilder();
-      if (null == cursor) {
-        Log.e(this.getClass().toString(), "null curser");
-      } else {
-        Log.e(this.getClass().toString(), "got results!");
-        try {
-          // iterate over the rows
-          while (cursor.moveToNext()) {
-            // Gets the protobuf blob from the column.
-            byte data[] = cursor.getBlob(GymSuggestionProvider.PROTOBUF_BLOB_COLUMN);
-            Msgs.Gym gym = Msgs.Gym.parseFrom(data);
-            gyms_builder.addGyms(gym);
-            cursor.close();
-          }
-        } catch (InvalidProtocolBufferException ignored) {
-          Log.e(this.getClass().toString(), ignored.getLocalizedMessage());
-        }
-      }
-
-      return gyms_builder.build();
-    }
-
-    protected void onPostExecute(Msgs.Gyms gyms) {
-      if (gyms.getGymsCount() > 0) {
-        // on success
-        onGymDataSuccess(gyms);
-        swipeRefreshLayout.setRefreshing(false);
-      } else {
-        // on fail
-        Snackbar.make(swipeRefreshLayout, "No gyms found.", Snackbar.LENGTH_LONG);
-        swipeRefreshLayout.setRefreshing(false);
-      }
-    }
+  @Override
+  public void onNoGymsFound() {
+    Snackbar.make(swipeRefreshLayout, "No gyms found.", Snackbar.LENGTH_LONG);
+    swipeRefreshLayout.setRefreshing(false);
   }
 }

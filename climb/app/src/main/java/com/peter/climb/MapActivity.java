@@ -50,7 +50,6 @@ public class MapActivity extends AppCompatActivity implements View.OnClickListen
       String action = intent.getAction();
       if (action != null && action.equals(MainActivity.START_SESSION_ACTION)) {
         startTimeMillis = System.currentTimeMillis();
-        appState.sessionInProgress = AppState.SessionState.IN_PROGRESS;
       } else {
         SharedPreferences settings = getSharedPreferences(MainActivity.PREFS_NAME, 0);
         startTimeMillis = settings.getLong(STAT_TIME_MILLIS_KEY, -1);
@@ -126,7 +125,7 @@ public class MapActivity extends AppCompatActivity implements View.OnClickListen
   @Override
   public void onClick(View v) {
     if (v.getId() == R.id.end_session_button) {
-      appState.sessionInProgress = AppState.SessionState.NOT_IN_PROGRESS;
+      appState.endSession();
       NotificationManager notificationManager = (NotificationManager) getSystemService(
           Context.NOTIFICATION_SERVICE);
       notificationManager.cancel(MainActivity.SESSION_NOTIFICATION_ID);
