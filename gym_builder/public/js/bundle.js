@@ -1762,7 +1762,6 @@ window.onload = function init() {
   stage.addEventListener('stagemouseup', handleMouseUp);
   stage.addEventListener('stagemousemove', handleMouseMove);
 
-
   stage.addChild(background);
   stage.addChild(new_wall);
   stage.update();
@@ -1910,65 +1909,13 @@ for (let i = 0; i < floor_divs.length; i++) {
 function fetchGymData() {
   let id_token = google_user.getAuthResponse().id_token;
   let xhr = new XMLHttpRequest();
-  xhr.open('POST', 'localhost:3000/gyms');
+  xhr.open('POST', 'http://localhost:3000/gyms');
   xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-  xhr.onload = function() {
-    console.log('Signed in as: ' + xhr.responseText);
-  };
   xhr.send('idtoken=' + id_token);
+  xhr.onload = function() {
+    gym = msgs.Gym.deserializeBinary(xhr.responseText);
+  };
 
-  let p0 = new msgs.Point2D();
-  p0.setX(0);
-  p0.setY(0);
-
-  let p1 = new msgs.Point2D();
-  p1.setX(0);
-  p1.setY(10);
-
-  let p2 = new msgs.Point2D();
-  p2.setX(10);
-  p2.setY(10);
-
-  let p3 = new msgs.Point2D();
-  p3.setX(10);
-  p3.setY(0);
-
-  let p4 = new msgs.Point2D();
-  p4.setX(5);
-  p4.setY(0);
-
-  let p5 = new msgs.Point2D();
-  p5.setX(5);
-  p5.setY(0);
-
-  let polygon = new msgs.Polygon();
-  polygon.setColor('#ff00ff');
-  polygon.setPointsList([p0, p4, p5]);
-
-  let route0 = new msgs.Route();
-  route0.setName('Lappnor Project');
-  route0.setPosition(p0);
-  route0.setGrade(17);
-
-  let wall = new msgs.Wall();
-  wall.setName('The Dawn Wall');
-  wall.setPolygon(polygon);
-  wall.setRoutesList([route0]);
-
-  let floor_polygon = new msgs.Polygon();
-  floor_polygon.setColor('#ff00ff');
-  floor_polygon.setPointsList([p0, p1, p2, p3]);
-
-  let floor = new msgs.Floor();
-  floor.setWallsList([wall]);
-  floor.setWidth(100);
-  floor.setHeight(100);
-  floor.setPolygon(floor_polygon);
-
-  gym.setFloorsList([floor]);
-  gym.setName('Ascend PGH');
-  gym.setLargeIconUrl(
-      'https://www.ascendpgh.com/sites/all/themes/ascend_foundation/images/header-images/02-Header-Visiting-Ascend.jpg');
 }
 
 // SIGN IN WITH GOOGLE
@@ -1999,7 +1946,7 @@ let initClient = function() {
  * Handle successful sign-ins.
  */
 let onSuccess = function(user) {
-  console.log('Signed in as ' + user.getBasicProfile().getName());
+  console.log('success ' + user.getBasicProfile().getName());
 };
 
 /**
@@ -2015,10 +1962,10 @@ function userChanged(user) {
   console.log(auth2.isSignedIn.get());
   if (auth2.isSignedIn.get()) {
     fetchGymData();
-    sign_in_out_button.innerHTML = "Sign Out";
+    sign_in_out_button.innerHTML = 'Sign Out';
   }
   else {
-    sign_in_out_button.innerHTML = "Sign In";
+    sign_in_out_button.innerHTML = 'Sign In';
   }
 }
 

@@ -4,8 +4,10 @@
   "description": "gym builder web app",
   "main": "index.js",
   "dependencies": {
+    "body-parser": "^1.17.2",
     "express": "^4.15.3",
     "express-handlebars": "^3.0.0",
+    "google-auth-library": "^0.10.0",
     "google-protobuf": "^3.3.0",
     "gulp": "^3.9.1",
     "gulp-browserify": "^0.5.1",
