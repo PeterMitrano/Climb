@@ -34,6 +34,7 @@ import android.view.View.OnClickListener;
 import android.widget.ImageView;
 import android.widget.SearchView;
 import android.widget.TextView;
+import android.widget.Toast;
 import com.android.volley.toolbox.ImageLoader;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
@@ -67,6 +68,7 @@ public class MainActivity extends AppCompatActivity
   private ImageView noGymSelectedImage;
   private FloatingActionButton startSessionButton;
   private SwipeRefreshLayout swipeRefreshLayout;
+  private MenuItem changeAccountsItem;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +85,8 @@ public class MainActivity extends AppCompatActivity
     noGymSelectedSubtitle = (TextView) findViewById(R.id.no_gym_selected_subtitle);
     noGymSelectedImage = (ImageView) findViewById(R.id.no_gym_selected_image);
     startSessionButton = (FloatingActionButton) findViewById(R.id.start_session_button);
+    NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+    changeAccountsItem = navigationView.getMenu().findItem(R.id.change_accounts);
 
     swipeRefreshLayout.setOnRefreshListener(this);
     startSessionButton.setEnabled(false);
@@ -94,7 +98,6 @@ public class MainActivity extends AppCompatActivity
     drawer.addDrawerListener(toggle);
     toggle.syncState();
 
-    NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
     navigationView.setNavigationItemSelectedListener(this);
 
     // kickoff HTTP request to server for all the gym data
@@ -105,6 +108,60 @@ public class MainActivity extends AppCompatActivity
     if (intent.getAction().equals(Intent.ACTION_MAIN)) {
       buildFitnessClient();
     }
+  }
+
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    MenuInflater inflater = getMenuInflater();
+    inflater.inflate(R.menu.toolbar_menu, menu);
+
+    // Get the SearchView and set the searchable configuration
+    SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+    SearchView searchView = (SearchView) menu.findItem(R.id.gym_search_view).getActionView();
+
+    // Assumes current activity is the searchable activity
+    searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+    searchView.setFocusable(true);
+    searchView.setIconified(false);
+
+    // Override the onQueryTextListener just to return true on Submit,
+    // so it doesn't reload the activity
+    searchView.setOnQueryTextListener(
+        new SearchView.OnQueryTextListener() {
+          @Override
+          public boolean onQueryTextSubmit(String query) {
+            return true;
+          }
+
+          @Override
+          public boolean onQueryTextChange(String newText) {
+            return false;
+          }
+        }
+    );
+
+    return true;
+  }
+
+  @Override
+  public boolean onNavigationItemSelected(MenuItem item) {
+    // Handle navigation view item clicks here.
+    switch (item.getItemId()) {
+      case R.id.app_settings: {
+        break;
+      }
+      case R.id.change_accounts: {
+        // they probably want to change accounts if they clicked here
+        if (appState.mClient.isConnected()) {
+          appState.mClient.clearDefaultAccountAndReconnect();
+        }
+        break;
+      }
+    }
+
+    DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+    drawer.closeDrawer(GravityCompat.START);
+    return true;
   }
 
   @Override
@@ -132,17 +189,136 @@ public class MainActivity extends AppCompatActivity
     }
   }
 
+  @Override
+  public void onBackPressed() {
+    DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+    if (drawer.isDrawerOpen(GravityCompat.START)) {
+      drawer.closeDrawer(GravityCompat.START);
+    } else {
+      super.onBackPressed();
+    }
+  }
+
+  @Override
+  protected void onStop() {
+    super.onStop();
+
+    SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+    SharedPreferences.Editor editor = settings.edit();
+    editor.putInt(GYM_ID_PREF_KEY, appState.getCurrentGymId());
+    editor.apply();
+  }
+
+  @Override
+  public void onClick(View v) {
+    if (v.getId() == R.id.start_session_button) {
+      appState.startSession();
+
+      NotificationCompat.Builder mBuilder =
+          new NotificationCompat.Builder(this)
+              .setSmallIcon(R.drawable.ic_terrain_black_24dp)
+              .setContentTitle("Climb")
+              .setContentText("Session In Progress");
+
+      // Creates an explicit intent for an Activity in your app
+      Intent resultIntent = new Intent(this, MapActivity.class);
+
+      // The stack builder object will contain an artificial back stack for the started Activity.
+      // This ensures that navigating backward from the Activity leads to the Home screen.
+      TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+      // Adds the back stack for the Intent (but not the Intent itself)
+      stackBuilder.addParentStack(MapActivity.class);
+      // Adds the Intent that starts the Activity to the top of the stack
+      stackBuilder.addNextIntent(resultIntent);
+      PendingIntent resultPendingIntent =
+          stackBuilder.getPendingIntent(
+              0,
+              PendingIntent.FLAG_UPDATE_CURRENT
+          );
+      mBuilder.setContentIntent(resultPendingIntent);
+      NotificationManager mNotificationManager =
+          (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+      // mId allows you to update the notification later on.
+      Notification notification = mBuilder.build();
+      notification.flags = Notification.FLAG_ONGOING_EVENT;
+      mNotificationManager.notify(SESSION_NOTIFICATION_ID, notification);
+
+      Intent startSessionIntent = new Intent(this, MapActivity.class);
+      startSessionIntent.setAction(START_SESSION_ACTION);
+      startActivity(startSessionIntent);
+    }
+  }
+
+  @Override
+  public void onConnected(@Nullable Bundle bundle) {
+    Toast.makeText(getApplicationContext(), "Sign In Successful", Toast.LENGTH_SHORT).show();
+    if (appState.hasCurrentGym()) {
+      startSessionButton.setEnabled(true);
+      changeAccountsItem.setTitle(R.string.change_accounts);
+    }
+  }
+
+  @Override
+  public void onConnectionSuspended(int i) {
+    // If your connection to the sensor gets lost at some point,
+    // you'll be able to determine the reason and react to it here.
+    if (i == GoogleApiClient.ConnectionCallbacks.CAUSE_NETWORK_LOST) {
+      Log.e(getClass().toString(), "Connection lost.  Cause: Network Lost.");
+    } else if (i
+        == GoogleApiClient.ConnectionCallbacks.CAUSE_SERVICE_DISCONNECTED) {
+      Log.e(getClass().toString(),
+          "Connection lost.  Reason: Service Disconnected");
+    } else {
+      Log.e(getClass().toString(), "Connection lost??? " + i);
+    }
+  }
+
+  @Override
+  public void onConnectionFailed(@NonNull ConnectionResult result) {
+    if (!mResolvingError && result.hasResolution()) {
+      try {
+        mResolvingError = true;
+        result.startResolutionForResult(this, REQUEST_RESOLVE_ERROR);
+      } catch (SendIntentException e) {
+        // There was an error with the resolution intent. Try again.
+        appState.mClient.connect();
+      }
+    } else {
+      GoogleApiAvailability.getInstance()
+          .showErrorDialogFragment(this, result.getErrorCode(), REQUEST_RESOLVE_ERROR);
+      mResolvingError = true;
+    }
+  }
+
+  @Override
+  public void onRefresh() {
+    fetchGymData();
+  }
+
+  @Override
+  public void onGymsFound(Gyms gyms) {
+    onGymDataSuccess(gyms);
+    swipeRefreshLayout.setRefreshing(false);
+  }
+
+  @Override
+  public void onNoGymsFound() {
+    Snackbar.make(swipeRefreshLayout, "No gyms found.", Snackbar.LENGTH_LONG);
+    swipeRefreshLayout.setRefreshing(false);
+  }
+
   private void buildFitnessClient() {
     if (appState.mClient == null) {
       GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
           .requestEmail()
-          .requestScopes(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE),
-              new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
+          .requestScopes(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
           .build();
 
       appState.mClient = new GoogleApiClient.Builder(this)
           .addApi(Fitness.SESSIONS_API)
           .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
+          .addScope(new Scope(Scopes.PROFILE))
           .addConnectionCallbacks(this)
           .addOnConnectionFailedListener(this)
           .build();
@@ -218,164 +394,5 @@ public class MainActivity extends AppCompatActivity
     noGymSelectedSubtitle.setVisibility(View.GONE);
     noGymSelectedImage.setVisibility(View.GONE);
     largeIconImageView.setVisibility(View.VISIBLE);
-  }
-
-  @Override
-  public boolean onCreateOptionsMenu(Menu menu) {
-    MenuInflater inflater = getMenuInflater();
-    inflater.inflate(R.menu.toolbar_menu, menu);
-
-    // Get the SearchView and set the searchable configuration
-    SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-    SearchView searchView = (SearchView) menu.findItem(R.id.gym_search_view).getActionView();
-
-    // Assumes current activity is the searchable activity
-    searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
-    searchView.setFocusable(true);
-    searchView.setIconified(false);
-
-    // Override the onQueryTextListener just to return true on Submit,
-    // so it doesn't reload the activity
-    searchView.setOnQueryTextListener(
-        new SearchView.OnQueryTextListener() {
-          @Override
-          public boolean onQueryTextSubmit(String query) {
-            return true;
-          }
-
-          @Override
-          public boolean onQueryTextChange(String newText) {
-            return false;
-          }
-        }
-    );
-
-    return true;
-  }
-
-  @Override
-  public void onBackPressed() {
-    DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-    if (drawer.isDrawerOpen(GravityCompat.START)) {
-      drawer.closeDrawer(GravityCompat.START);
-    } else {
-      super.onBackPressed();
-    }
-  }
-
-  @Override
-  protected void onStop() {
-    super.onStop();
-
-    SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-    SharedPreferences.Editor editor = settings.edit();
-    editor.putInt(GYM_ID_PREF_KEY, appState.getCurrentGymId());
-    editor.apply();
-  }
-
-  @Override
-  public boolean onNavigationItemSelected(MenuItem item) {
-    // Handle navigation view item clicks here.
-    DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-    drawer.closeDrawer(GravityCompat.START);
-    return true;
-  }
-
-  @Override
-  public void onClick(View v) {
-    if (v.getId() == R.id.start_session_button) {
-      appState.startSession();
-
-      NotificationCompat.Builder mBuilder =
-          new NotificationCompat.Builder(this)
-              .setSmallIcon(R.drawable.ic_terrain_black_24dp)
-              .setContentTitle("Climb")
-              .setContentText("Session In Progress");
-
-      // Creates an explicit intent for an Activity in your app
-      Intent resultIntent = new Intent(this, MapActivity.class);
-
-      // The stack builder object will contain an artificial back stack for the started Activity.
-      // This ensures that navigating backward from the Activity leads to the Home screen.
-      TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-      // Adds the back stack for the Intent (but not the Intent itself)
-      stackBuilder.addParentStack(MapActivity.class);
-      // Adds the Intent that starts the Activity to the top of the stack
-      stackBuilder.addNextIntent(resultIntent);
-      PendingIntent resultPendingIntent =
-          stackBuilder.getPendingIntent(
-              0,
-              PendingIntent.FLAG_UPDATE_CURRENT
-          );
-      mBuilder.setContentIntent(resultPendingIntent);
-      NotificationManager mNotificationManager =
-          (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-      // mId allows you to update the notification later on.
-      Notification notification = mBuilder.build();
-      notification.flags = Notification.FLAG_ONGOING_EVENT;
-      mNotificationManager.notify(SESSION_NOTIFICATION_ID, notification);
-
-      Intent startSessionIntent = new Intent(this, MapActivity.class);
-      startSessionIntent.setAction(START_SESSION_ACTION);
-      startActivity(startSessionIntent);
-    }
-  }
-
-  @Override
-  public void onConnected(@Nullable Bundle bundle) {
-    Log.e(getClass().toString(), "Connected!!!");
-    if (appState.hasCurrentGym()) {
-      startSessionButton.setEnabled(true);
-    }
-  }
-
-  @Override
-  public void onConnectionSuspended(int i) {
-    // If your connection to the sensor gets lost at some point,
-    // you'll be able to determine the reason and react to it here.
-    if (i == GoogleApiClient.ConnectionCallbacks.CAUSE_NETWORK_LOST) {
-      Log.e(getClass().toString(), "Connection lost.  Cause: Network Lost.");
-    } else if (i
-        == GoogleApiClient.ConnectionCallbacks.CAUSE_SERVICE_DISCONNECTED) {
-      Log.e(getClass().toString(),
-          "Connection lost.  Reason: Service Disconnected");
-    } else {
-      Log.e(getClass().toString(), "Connection lost??? " + i);
-    }
-  }
-
-  @Override
-  public void onConnectionFailed(@NonNull ConnectionResult result) {
-    if (!mResolvingError && result.hasResolution()) {
-      try {
-        mResolvingError = true;
-        result.startResolutionForResult(this, REQUEST_RESOLVE_ERROR);
-      } catch (SendIntentException e) {
-        // There was an error with the resolution intent. Try again.
-        appState.mClient.connect();
-      }
-    } else {
-      GoogleApiAvailability.getInstance()
-          .showErrorDialogFragment(this, result.getErrorCode(), REQUEST_RESOLVE_ERROR);
-      mResolvingError = true;
-    }
-  }
-
-  @Override
-  public void onRefresh() {
-    fetchGymData();
-  }
-
-  @Override
-  public void onGymsFound(Gyms gyms) {
-    onGymDataSuccess(gyms);
-    swipeRefreshLayout.setRefreshing(false);
-  }
-
-  @Override
-  public void onNoGymsFound() {
-    Snackbar.make(swipeRefreshLayout, "No gyms found.", Snackbar.LENGTH_LONG);
-    swipeRefreshLayout.setRefreshing(false);
   }
 }

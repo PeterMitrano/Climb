@@ -18,4 +18,5 @@
     <string name="drawer_icon">drawer icon</string>
   <string name="no_fit_permission_msg">We store your data in Google Fit, but we need your permission!</string>
     <string name="ask_again">ASK AGAIN</string>
+    <string name="change_accounts">Change Accounts</string>
 </resources>

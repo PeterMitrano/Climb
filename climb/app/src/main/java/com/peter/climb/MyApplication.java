@@ -27,7 +27,7 @@ public class MyApplication extends Application {
 
 class AppState {
 
-  public static final int NO_GYM_ID = -1;
+  static final int NO_GYM_ID = -1;
   Msgs.Gyms gyms;
 
   GoogleApiClient mClient = null;
