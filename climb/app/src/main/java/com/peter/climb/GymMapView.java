@@ -11,11 +11,12 @@ import android.graphics.RectF;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.ViewGroup;
-import com.peter.Climb.Msgs;
+import com.peter.Climb.Msgs.Gym;
+import com.peter.Climb.Msgs.Route;
+import com.peter.Climb.Msgs.Wall;
 import com.peter.climb.RouteLabelView.RouteClickedListener;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
   private List<WallView> wallViews;
 
   private List<RouteLabelView> routeLabelViews;
-  private Msgs.Gym gym;
+  private Gym gym;
   private ScaleGestureDetector scaleGestureDetector;
   private Paint gymFloorPaint;
   private Paint gymFloorOutlinePaint;
@@ -44,6 +45,12 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
   private int activePointerId;
   private int floorColor;
   private int floor = 0;
+  private List<Route> routes;
+  private List<AddRouteListener> addRouteListeners;
+
+  public interface AddRouteListener {
+    void onAddRoute(Route route);
+  }
 
   public GymMapView(Context context) {
     super(context);
@@ -73,7 +80,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     invalidate();
   }
 
-  public void setGym(Msgs.Gym gym) {
+  public void setGym(Gym gym) {
     this.gym = gym;
 
     onDataChanged();
@@ -274,7 +281,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
       updateFloorRect();
 
       // add all the walls first
-      for (Msgs.Wall wall : gym.getFloors(floor).getWallsList()) {
+      for (Wall wall : gym.getFloors(floor).getWallsList()) {
         WallView wallView = new WallView(getContext());
         wallView.setWall(wall);
 
@@ -283,8 +290,10 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
       }
 
       // then add the routes on top
-      for (Msgs.Wall wall : gym.getFloors(floor).getWallsList()) {
-        for (Msgs.Route route : wall.getRoutesList()) {
+      routeLabelViews.clear();
+      routes.clear();
+      for (Wall wall : gym.getFloors(floor).getWallsList()) {
+        for (Route route : wall.getRoutesList()) {
           RouteLabelView routeLabelView = new RouteLabelView(getContext());
           routeLabelView.setRouteGrade(route.getGrade());
           routeLabelView.setRouteName(route.getName());
@@ -292,6 +301,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
           routeLabelView.setRouteColor(route.getColor());
           routeLabelView.addRouteClickedListener(this);
           routeLabelViews.add(routeLabelView);
+          routes.add(route);
           addView(routeLabelView);
         }
       }
@@ -312,8 +322,14 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
 
     wallViews = new ArrayList<>();
     routeLabelViews = new ArrayList<>();
+    routes = new ArrayList<>();
+    addRouteListeners = new ArrayList<>();
 
     scaleGestureDetector = new ScaleGestureDetector(getContext(), new MapScaleGestureListener());
+  }
+
+  public void addAddRouteListener(AddRouteListener listener) {
+    addRouteListeners.add(listener);
   }
 
   @Override
@@ -321,6 +337,11 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     // indicate the route has been added
     Snackbar.make(this, "Route added!", Snackbar.LENGTH_SHORT).show();
     int index = routeLabelViews.indexOf(view);
+    Route route = routes.get(index);
+
+    for (AddRouteListener listener : addRouteListeners) {
+      listener.onAddRoute(route);
+    }
   }
 
   private class MapScaleGestureListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {

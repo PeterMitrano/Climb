@@ -36,7 +36,10 @@ import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.android.volley.toolbox.ImageLoader;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.Scopes;
@@ -74,6 +77,7 @@ public class MainActivity extends AppCompatActivity
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
+
     Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
 
@@ -216,7 +220,7 @@ public class MainActivity extends AppCompatActivity
   @Override
   public void onClick(View v) {
     if (v.getId() == R.id.start_session_button) {
-      appState.startSession();
+      appState.startSession(getApplicationContext());
 
       NotificationCompat.Builder mBuilder =
           new NotificationCompat.Builder(this)
@@ -256,7 +260,13 @@ public class MainActivity extends AppCompatActivity
 
   @Override
   public void onConnected(@Nullable Bundle bundle) {
-    Toast.makeText(getApplicationContext(), "Sign In Successful", Toast.LENGTH_SHORT).show();
+    String message = "Sign in Successful";
+    Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+
+    // set up the custom data type.
+    // not sure when/how often I have to do this
+    appState.createDataType(getPackageName());
+
     if (appState.hasCurrentGym()) {
       startSessionButton.setEnabled(true);
       changeAccountsItem.setTitle(R.string.change_accounts);
@@ -314,13 +324,9 @@ public class MainActivity extends AppCompatActivity
 
   private void buildFitnessClient() {
     if (appState.mClient == null) {
-      GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-          .requestEmail()
-          .requestScopes(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
-          .build();
-
       appState.mClient = new GoogleApiClient.Builder(this)
           .addApi(Fitness.SESSIONS_API)
+          .addApi(Fitness.CONFIG_API)
           .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
           .addScope(new Scope(Scopes.PROFILE))
           .addConnectionCallbacks(this)

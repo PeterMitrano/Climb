@@ -6,16 +6,18 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
+import com.peter.Climb.Msgs.Route;
+import com.peter.climb.GymMapView.AddRouteListener;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
-public class MapActivity extends AppCompatActivity implements View.OnClickListener {
+public class MapActivity extends AppCompatActivity implements OnClickListener, AddRouteListener {
 
   private static final String STAT_TIME_MILLIS_KEY = "start_time_millis_key";
   private AppState appState;
@@ -28,7 +30,6 @@ public class MapActivity extends AppCompatActivity implements View.OnClickListen
     setContentView(R.layout.activity_map);
 
     appState = ((MyApplication) getApplicationContext()).getState();
-    Log.e(getClass().toString(), "Map: " + String.valueOf(appState.mClient.isConnected()) + " " + appState.mClient.toString());
 
     View decor_view = getWindow().getDecorView();
 
@@ -39,6 +40,7 @@ public class MapActivity extends AppCompatActivity implements View.OnClickListen
 
     GymMapView gymMapView = (GymMapView) findViewById(R.id.map_view);
     gymMapView.setGym(appState.getCurrentGym());
+    gymMapView.addAddRouteListener(this);
 
     if (savedInstanceState != null) {
       Long savedStartTimeMillis = savedInstanceState.getLong(STAT_TIME_MILLIS_KEY, -1);
@@ -134,5 +136,10 @@ public class MapActivity extends AppCompatActivity implements View.OnClickListen
 
       finish();
     }
+  }
+
+  @Override
+  public void onAddRoute(Route route) {
+    appState.addRouteIntoSession(route);
   }
 }
