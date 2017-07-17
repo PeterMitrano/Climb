@@ -127,7 +127,7 @@ public class MapActivity extends AppCompatActivity implements View.OnClickListen
   @Override
   public void onClick(View v) {
     if (v.getId() == R.id.end_session_button) {
-//      appState.endSession();
+      appState.endSession();
       NotificationManager notificationManager = (NotificationManager) getSystemService(
           Context.NOTIFICATION_SERVICE);
       notificationManager.cancel(MainActivity.SESSION_NOTIFICATION_ID);

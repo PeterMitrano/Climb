@@ -153,7 +153,11 @@ public class MainActivity extends AppCompatActivity
       case R.id.change_accounts: {
         // they probably want to change accounts if they clicked here
         if (appState.mClient.isConnected()) {
+          startSessionButton.setEnabled(false);
           appState.mClient.clearDefaultAccountAndReconnect();
+        }
+        else {
+          appState.mClient.connect();
         }
         break;
       }

@@ -9,8 +9,6 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.fitness.Fitness;
 import com.google.android.gms.fitness.FitnessActivities;
-import com.google.android.gms.fitness.FitnessStatusCodes;
-import com.google.android.gms.fitness.data.DataType;
 import com.google.android.gms.fitness.data.Session;
 import com.google.android.gms.fitness.result.SessionStopResult;
 import com.peter.Climb.Msgs;
@@ -51,22 +49,6 @@ class AppState {
   }
 
   void startSession() {
-//    Fitness.RecordingApi.subscribe(mClient, DataType.TYPE_ACTIVITY_SAMPLES)
-//        .setResultCallback(new ResultCallback<Status>() {
-//          @Override
-//          public void onResult(@NonNull Status status) {
-//            if (status.isSuccess()) {
-//              if (status.getStatusCode()
-//                  == FitnessStatusCodes.SUCCESS_ALREADY_SUBSCRIBED) {
-//                Log.i(getClass().toString(), "Existing subscription for activity detected.");
-//              } else {
-//                Log.i(getClass().toString(), "Successfully subscribed!");
-//              }
-//            } else {
-//              Log.i(getClass().toString(), "There was a problem subscribing.");
-//            }
-//          }
-//        });
     session = new Session.Builder()
         .setName("Session Name 1")
         .setIdentifier("Session Identifier 1")
@@ -95,20 +77,6 @@ class AppState {
         Log.e(getClass().toString(), sessionStopResult.toString());
       }
     });
-
-//    Fitness.RecordingApi.unsubscribe(mClient, DataType.TYPE_ACTIVITY_SAMPLES)
-//        .setResultCallback(new ResultCallback<Status>() {
-//          @Override
-//          public void onResult(@NonNull Status status) {
-//            if (status.isSuccess()) {
-//              Log.i(getClass().toString(), "Successfully unsubscribed");
-//            } else {
-//              // Subscription not removed
-//              Log.i(getClass().toString(), "Failed to unsubscribe");
-//            }
-//          }
-//        });
-
   }
 
   public boolean hasCurrentGym() {
