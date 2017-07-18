@@ -18,7 +18,6 @@ app.use('/', express.static(__dirname + '/public'));
 app.use('/gyms', function(request, response) {
   if (request.method === 'POST') {
     token = request.body.idtoken;
-    console.log(token);
     if (token === undefined) {
       response.status(401).send("missing token");
     }

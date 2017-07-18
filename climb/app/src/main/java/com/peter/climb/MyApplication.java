@@ -3,7 +3,6 @@ package com.peter.climb;
 import static com.google.android.gms.fitness.data.DataSource.TYPE_DERIVED;
 
 import android.app.Application;
-import android.content.Context;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -50,14 +49,15 @@ class AppState {
   private int currentGymId;
   private Session session;
   private DataType routeDataType;
-  private List<Route> routesCompleted;
+  private List<Send> sends;
   private Field gradeField;
   private Field nameField;
   private Field wallField;
   private Field colorField;
+  private long startTimeMillis;
 
   AppState() {
-    routesCompleted = new ArrayList<>();
+    sends = new ArrayList<>();
   }
 
   void createDataType(String package_name) {
@@ -108,40 +108,41 @@ class AppState {
   }
 
   void addRouteIntoSession(Route route) {
-    routesCompleted.add(route);
+    sends.add(new Send(route, System.currentTimeMillis()));
   }
 
-  void startSession(Context context) {
+  void startSession() {
+    startTimeMillis = System.currentTimeMillis();
+  }
+
+  void endSession() {
+    if (sends.isEmpty()) {
+      return;
+    }
+
+    long endTime = System.currentTimeMillis();
     session = new Session.Builder()
         .setName("Climbing Session")
         .setIdentifier(UUID.randomUUID().toString())
         .setDescription("Climbing Session")
-        .setStartTime(System.currentTimeMillis() - FUDGE_FACTOR, TimeUnit.MILLISECONDS)
+        .setStartTime(startTimeMillis, TimeUnit.MILLISECONDS)
         .setActivity(FitnessActivities.ROCK_CLIMBING)
+        .setEndTime(endTime, TimeUnit.MILLISECONDS)
         .build();
 
-  }
-
-  void endSession() {
-    if (routesCompleted.isEmpty()) {
-      return;
-    }
-
-    DataSource dataSource = new Builder()
-        .setDataType(routeDataType)
-        .setType(TYPE_DERIVED)
-        .build();
+    DataSource dataSource = new Builder().setDataType(routeDataType).setType(TYPE_DERIVED).build();
+    DataSet dataset = DataSet.create(dataSource);
 
     // iterate over the save route information and create all the datapoints
-    for (Route route : routesCompleted) {
-      DataPoint pt = DataPoint.create(dataSource);
-      pt.setTimestamp(System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+    for (Send route : sends) {
+      DataPoint pt = dataset.createDataPoint();
+      pt.setTimestamp(route.getTimeMillis(), TimeUnit.MILLISECONDS);
       pt.getValue(gradeField).setString("V" + route.getGrade());
       pt.getValue(nameField).setString(route.getName());
       pt.getValue(colorField).setString(route.getColor());
+      dataset.add(pt);
     }
 
-    DataSet dataset = DataSet.create(dataSource);
     SessionInsertRequest insertRequest = new SessionInsertRequest.Builder()
         .setSession(session)
         .addDataSet(dataset)
@@ -162,5 +163,9 @@ class AppState {
 
   boolean hasCurrentGym() {
     return currentGymId != NO_GYM_ID;
+  }
+
+  long getSessionLength() {
+    return System.currentTimeMillis() - startTimeMillis;
   }
 }

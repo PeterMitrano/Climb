@@ -19,10 +19,8 @@ import java.util.concurrent.TimeUnit;
 
 public class MapActivity extends AppCompatActivity implements OnClickListener, AddRouteListener {
 
-  private static final String STAT_TIME_MILLIS_KEY = "start_time_millis_key";
   private AppState appState;
   private TextView timerView;
-  private long startTimeMillis = -1;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -42,46 +40,8 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
     gymMapView.setGym(appState.getCurrentGym());
     gymMapView.addAddRouteListener(this);
 
-    if (savedInstanceState != null) {
-      Long savedStartTimeMillis = savedInstanceState.getLong(STAT_TIME_MILLIS_KEY, -1);
-      if (savedStartTimeMillis != -1) {
-        startTimeMillis = savedStartTimeMillis;
-      }
-    }
-
-    if (startTimeMillis == -1) {
-      Intent intent = getIntent();
-      String action = intent.getAction();
-      if (action != null && action.equals(MainActivity.START_SESSION_ACTION)) {
-        startTimeMillis = System.currentTimeMillis();
-      } else {
-        SharedPreferences settings = getSharedPreferences(MainActivity.PREFS_NAME, 0);
-        startTimeMillis = settings.getLong(STAT_TIME_MILLIS_KEY, -1);
-      }
-    }
-
     startSessionTimer();
     loadMap();
-  }
-
-  @Override
-  protected void onSaveInstanceState(Bundle outState) {
-    outState.putLong(STAT_TIME_MILLIS_KEY, startTimeMillis);
-
-    super.onSaveInstanceState(outState);
-  }
-
-  @Override
-  protected void onStop() {
-    super.onStop();
-    saveTime();
-  }
-
-  private void saveTime() {
-    SharedPreferences settings = getSharedPreferences(MainActivity.PREFS_NAME, 0);
-    SharedPreferences.Editor editor = settings.edit();
-    editor.putLong(STAT_TIME_MILLIS_KEY, startTimeMillis);
-    editor.apply();
   }
 
   private void startSessionTimer() {
@@ -92,7 +52,7 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
 
           @Override
           public void run() {
-            long millis = System.currentTimeMillis() - startTimeMillis;
+            long millis = appState.getSessionLength();
             String hms = String
                 .format(Locale.US, "%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(millis),
                     TimeUnit.MILLISECONDS.toMinutes(millis) % TimeUnit.HOURS.toMinutes(1),

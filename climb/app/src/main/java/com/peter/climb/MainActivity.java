@@ -220,7 +220,7 @@ public class MainActivity extends AppCompatActivity
   @Override
   public void onClick(View v) {
     if (v.getId() == R.id.start_session_button) {
-      appState.startSession(getApplicationContext());
+      appState.startSession();
 
       NotificationCompat.Builder mBuilder =
           new NotificationCompat.Builder(this)
