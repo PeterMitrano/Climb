@@ -18,18 +18,25 @@ app.use('/', express.static(__dirname + '/public'));
 app.use('/gyms', function(request, response) {
   if (request.method === 'POST') {
     token = request.body.idtoken;
-    client.verifyIdToken(token, client_id, function(e, login) {
-      if (e) {
-        console.log('invalid token ' + e);
-        response.status(401).send('invalid token ' + e);
-      }
-      else {
-        let payload = login.getPayload();
-        let userid = payload['sub'];
+    console.log(token);
+    if (token === undefined) {
+      response.status(401).send("missing token");
+    }
+    else {
+      client.verifyIdToken(token, client_id, function(e, login) {
+        if (e) {
+          console.log('invalid token ' + e);
+          response.status(401).send('invalid token ' + e);
+        }
+        else {
+          let payload = login.getPayload();
+          let userid = payload['sub'];
 
-        // look up the gym(s) corresponding to the userid
-      }
-    });
+          // look up the gym(s) corresponding to the userid
+          response.status(204).send("Unimplemented");
+        }
+      });
+    }
   }
   else if (request.method === 'GET') {
     let gyms = fakeGyms();

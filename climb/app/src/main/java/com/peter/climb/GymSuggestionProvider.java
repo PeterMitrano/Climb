@@ -47,7 +47,7 @@ public class GymSuggestionProvider extends ContentProvider {
       @Nullable String[] selectionArgs, @Nullable String sortOrder) {
     String query = uri.getLastPathSegment().toLowerCase();
 
-    String url = "http://192.168.0.11:3000/gyms";
+    String url = "http://gym-server-dev.us-east-1.elasticbeanstalk.com/gyms";
     RequestFuture<String> future = RequestFuture.newFuture();
     StringRequest gymDataRequest = new StringRequest(url, future, future);
     RequestorSingleton.getInstance(getContext()).addToRequestQueue(gymDataRequest);
