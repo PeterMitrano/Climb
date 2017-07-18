@@ -17,5 +17,8 @@
   "license": "WTFPL",
   "devDependencies": {
     "gulp-shell": "^0.6.3"
+  },
+  "scripts": {
+    "start": "node app.js"
   }
 }
