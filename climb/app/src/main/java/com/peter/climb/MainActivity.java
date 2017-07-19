@@ -1,5 +1,8 @@
 package com.peter.climb;
 
+import static com.peter.climb.AppState.RESUME_FROM_NOTIFICATION_ACTION;
+import static com.peter.climb.AppState.SESSION_START_TIME_EXTRA;
+
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -36,12 +39,7 @@ import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.android.volley.toolbox.ImageLoader;
-import com.google.android.gms.auth.api.Auth;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
@@ -60,8 +58,10 @@ public class MainActivity extends AppCompatActivity
   public static final String PREFS_NAME = "MyPrefsFile";
   public static final String START_SESSION_ACTION = "start_session_action";
   private static final String GYM_ID_PREF_KEY = "gym_id_pref_key";
-  public static final int SESSION_NOTIFICATION_ID = 1;
-  private static final int REQUEST_RESOLVE_ERROR = 1001;
+  public static final int SESSION_NOTIFICATION_ID = 1001;
+  static final int REQUEST_RESOLVE_ERROR = 1002;
+  static final String DIALOG_ERROR = "GOOGLE_API_ERROR";
+  private static final int NOTIFICATION_REQUEST_CODE = 1003;
   private AppState appState;
   private boolean mResolvingError = false;
 
@@ -159,8 +159,7 @@ public class MainActivity extends AppCompatActivity
         if (appState.mClient.isConnected()) {
           startSessionButton.setEnabled(false);
           appState.mClient.clearDefaultAccountAndReconnect();
-        }
-        else {
+        } else {
           appState.mClient.connect();
         }
         break;
@@ -222,27 +221,22 @@ public class MainActivity extends AppCompatActivity
     if (v.getId() == R.id.start_session_button) {
       appState.startSession();
 
+      // Handle the notification & back stack navigation
+
+      Intent resultIntent = new Intent(this, MapActivity.class);
+      resultIntent.putExtra(SESSION_START_TIME_EXTRA, appState.startTimeMillis);
+      resultIntent.setAction(RESUME_FROM_NOTIFICATION_ACTION);
+      TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+      stackBuilder.addParentStack(MapActivity.class);
+      stackBuilder.addNextIntent(resultIntent);
+      PendingIntent resultPendingIntent =
+          stackBuilder.getPendingIntent(NOTIFICATION_REQUEST_CODE, PendingIntent.FLAG_UPDATE_CURRENT);
+
       NotificationCompat.Builder mBuilder =
           new NotificationCompat.Builder(this)
               .setSmallIcon(R.drawable.ic_terrain_black_24dp)
               .setContentTitle("Climb")
               .setContentText("Session In Progress");
-
-      // Creates an explicit intent for an Activity in your app
-      Intent resultIntent = new Intent(this, MapActivity.class);
-
-      // The stack builder object will contain an artificial back stack for the started Activity.
-      // This ensures that navigating backward from the Activity leads to the Home screen.
-      TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-      // Adds the back stack for the Intent (but not the Intent itself)
-      stackBuilder.addParentStack(MapActivity.class);
-      // Adds the Intent that starts the Activity to the top of the stack
-      stackBuilder.addNextIntent(resultIntent);
-      PendingIntent resultPendingIntent =
-          stackBuilder.getPendingIntent(
-              0,
-              PendingIntent.FLAG_UPDATE_CURRENT
-          );
       mBuilder.setContentIntent(resultPendingIntent);
       NotificationManager mNotificationManager =
           (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -299,9 +293,8 @@ public class MainActivity extends AppCompatActivity
         appState.mClient.connect();
       }
     } else {
-      GoogleApiAvailability.getInstance()
-          .showErrorDialogFragment(this, result.getErrorCode(), REQUEST_RESOLVE_ERROR);
-      mResolvingError = true;
+      Log.e(getClass().toString(), result.getErrorCode() + ", " + result.getErrorMessage());
+      showErrorDialog(result.getErrorCode());
     }
   }
 
@@ -404,5 +397,21 @@ public class MainActivity extends AppCompatActivity
     noGymSelectedSubtitle.setVisibility(View.GONE);
     noGymSelectedImage.setVisibility(View.GONE);
     largeIconImageView.setVisibility(View.VISIBLE);
+  }
+
+  /* Creates a dialog for an error message */
+  private void showErrorDialog(int errorCode) {
+    // Create a fragment for the error dialog
+    ErrorDialogFragment dialogFragment = new ErrorDialogFragment();
+    // Pass the error that should be displayed
+    Bundle args = new Bundle();
+    args.putInt(DIALOG_ERROR, errorCode);
+    dialogFragment.setArguments(args);
+    dialogFragment.show(getSupportFragmentManager(), getClass().toString());
+  }
+
+  /* Called from ErrorDialogFragment when the dialog is dismissed. */
+  public void onDialogDismissed() {
+    mResolvingError = false;
   }
 }

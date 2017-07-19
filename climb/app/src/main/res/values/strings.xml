@@ -19,4 +19,8 @@
   <string name="no_fit_permission_msg">We store your data in Google Fit, but we need your permission!</string>
     <string name="ask_again">ASK AGAIN</string>
     <string name="change_accounts">Change Accounts</string>
+  <string name="ignore_end_session_error">End Anyways</string>
+  <string name="empty_session_message">You didn\'t add any routes to this session</string>
+  <string name="cancel">Cancel</string>
+  <string name="end_empty_session">End Session Anyways</string>
 </resources>

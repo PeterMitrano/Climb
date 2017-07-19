@@ -4,7 +4,7 @@ import static com.google.android.gms.fitness.data.DataSource.TYPE_DERIVED;
 
 import android.app.Application;
 import android.support.annotation.NonNull;
-import android.util.Log;
+import android.support.annotation.Nullable;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
@@ -40,24 +40,31 @@ public class MyApplication extends Application {
 
 class AppState {
 
+  static final String SESSION_START_TIME_EXTRA = "session_start_time_extra";
+  static final String RESUME_FROM_NOTIFICATION_ACTION = "resume_from_notification_action";
   static final int NO_GYM_ID = -1;
-  private static final long FUDGE_FACTOR = 10;
+  static final long NO_START_TIME = -1;
   Gyms gyms;
 
   GoogleApiClient mClient = null;
+
+  // part of global app state
   private Gym currentGym;
   private int currentGymId;
-  private Session session;
+
   private DataType routeDataType;
-  private List<Send> sends;
   private Field gradeField;
   private Field nameField;
   private Field wallField;
   private Field colorField;
-  private long startTimeMillis;
+  private List<Send> sends;
+  long startTimeMillis;
+  boolean inProgress;
 
   AppState() {
     sends = new ArrayList<>();
+    inProgress = false;
+    startTimeMillis = NO_START_TIME;
   }
 
   void createDataType(String package_name) {
@@ -112,16 +119,21 @@ class AppState {
   }
 
   void startSession() {
-    startTimeMillis = System.currentTimeMillis();
+    if (!inProgress) {
+      startTimeMillis = System.currentTimeMillis();
+      inProgress = true;
+    }
   }
 
-  void endSession() {
+  @Nullable
+  PendingResult<Status> endSession() {
     if (sends.isEmpty()) {
-      return;
+      return null;
     }
 
+    // Create the session to insert
     long endTime = System.currentTimeMillis();
-    session = new Session.Builder()
+    Session session = new Session.Builder()
         .setName("Climbing Session")
         .setIdentifier(UUID.randomUUID().toString())
         .setDescription("Climbing Session")
@@ -148,17 +160,8 @@ class AppState {
         .addDataSet(dataset)
         .build();
 
-    PendingResult<Status> result = Fitness.SessionsApi.insertSession(mClient, insertRequest);
-
-    result.setResultCallback(new ResultCallback<Status>() {
-      @Override
-      public void onResult(@NonNull Status status) {
-        if (!status.isSuccess()) {
-          Log.i(getClass().toString(), "There was a problem inserting the session: " +
-              status.getStatusMessage());
-        }
-      }
-    });
+    // attempt to insert the session into the user's google fit
+    return Fitness.SessionsApi.insertSession(mClient, insertRequest);
   }
 
   boolean hasCurrentGym() {
