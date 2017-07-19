@@ -1,8 +1,6 @@
 package com.peter.climb;
 
-import static com.peter.climb.AppState.NO_START_TIME;
 import static com.peter.climb.AppState.RESUME_FROM_NOTIFICATION_ACTION;
-import static com.peter.climb.AppState.SESSION_START_TIME_EXTRA;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent.CanceledException;
@@ -14,6 +12,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -23,6 +22,7 @@ import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.peter.Climb.Msgs.Route;
+import com.peter.climb.AppState.SetCurrentGymListener;
 import com.peter.climb.GymMapView.AddRouteListener;
 import java.util.Locale;
 import java.util.Timer;
@@ -30,27 +30,19 @@ import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 public class MapActivity extends AppCompatActivity implements OnClickListener, AddRouteListener,
-    ResultCallback<Status> {
+    ResultCallback<Status>,SetCurrentGymListener {
 
   private AppState appState;
   private TextView timerView;
   private View decor_view;
+  private GymMapView gymMapView;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_map);
 
-    appState = ((MyApplication) getApplicationContext()).getState();
-
-    Intent intent = getIntent();
-    if (intent.getAction().equals(RESUME_FROM_NOTIFICATION_ACTION)) {
-      long startTimeMillis = intent.getLongExtra(SESSION_START_TIME_EXTRA, -1);
-      if (startTimeMillis != -1 && appState.startTimeMillis == NO_START_TIME) {
-        appState.startTimeMillis = startTimeMillis;
-      }
-    }
-
+    appState = ((MyApplication) getApplicationContext()).getState(getApplicationContext());
     decor_view = getWindow().getDecorView();
 
     Button endSessionButton = (Button) findViewById(R.id.end_session_button);
@@ -58,12 +50,18 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
 
     timerView = (TextView) findViewById(R.id.time);
 
-    GymMapView gymMapView = (GymMapView) findViewById(R.id.map_view);
-    gymMapView.setGym(appState.getCurrentGym());
-    gymMapView.addAddRouteListener(this);
+    gymMapView = (GymMapView) findViewById(R.id.map_view);
 
-    startSessionTimer();
-    loadMap();
+    Intent intent = getIntent();
+    if (intent.getAction().equals(RESUME_FROM_NOTIFICATION_ACTION)) {
+      appState.restoreFromIntent(intent, this);
+    }
+    else {
+      // require app state to be set up, which may require HTTP request if coming from notification
+      gymMapView.setGym(appState.getCurrentGym());
+      gymMapView.addAddRouteListener(this);
+      startSessionTimer();
+    }
   }
 
   private void startSessionTimer() {
@@ -86,9 +84,6 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
       }
 
     }, 0, 1000);
-  }
-
-  private void loadMap() {
   }
 
   @Override
@@ -169,5 +164,17 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
 
     // close the activity
     finish();
+  }
+
+  @Override
+  public void onSetCurrentGymSuccess() {
+    gymMapView.setGym(appState.getCurrentGym());
+    gymMapView.addAddRouteListener(this);
+    startSessionTimer();
+  }
+
+  @Override
+  public void onSetCurrentGymFail() {
+    Log.e(getClass().toString(), "well fuck...");
   }
 }

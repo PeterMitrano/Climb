@@ -1,6 +1,6 @@
 package com.peter.climb;
 
-import android.content.ContentResolver;
+import android.content.Context;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -12,7 +12,7 @@ import java.util.List;
 
 class FetchGymDataTask extends AsyncTask<Void, Integer, Gyms> {
 
-  private final ContentResolver contentResolver;
+  private final Context applicationContext;
   private List<FetchGymDataListener> listeners = new ArrayList<>();
 
   interface FetchGymDataListener {
@@ -22,13 +22,13 @@ class FetchGymDataTask extends AsyncTask<Void, Integer, Gyms> {
     void onNoGymsFound();
   }
 
-  FetchGymDataTask(ContentResolver contentResolver) {
-    this.contentResolver = contentResolver;
+  FetchGymDataTask(Context applicationContenxt) {
+    this.applicationContext = applicationContenxt;
   }
 
   @Override
   protected Msgs.Gyms doInBackground(Void... params) {
-    Cursor cursor = contentResolver
+    Cursor cursor = applicationContext.getContentResolver()
         .query(GymSuggestionProvider.CONTENT_URI, GymSuggestionProvider.PROJECTION, null, null,
             null);
 
@@ -44,12 +44,13 @@ class FetchGymDataTask extends AsyncTask<Void, Integer, Gyms> {
           byte data[] = cursor.getBlob(GymSuggestionProvider.PROTOBUF_BLOB_COLUMN);
           Msgs.Gym gym = Msgs.Gym.parseFrom(data);
           gyms_builder.addGyms(gym);
-          cursor.close();
         }
-
+        cursor.close();
         return gyms_builder.build();
+
       } catch (InvalidProtocolBufferException ignored) {
         Log.e(this.getClass().toString(), ignored.getLocalizedMessage());
+        cursor.close();
         return null;
       }
     }
