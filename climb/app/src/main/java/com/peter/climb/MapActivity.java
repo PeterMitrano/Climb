@@ -1,6 +1,6 @@
 package com.peter.climb;
 
-import static com.peter.climb.AppState.RESUME_FROM_NOTIFICATION_ACTION;
+import static com.peter.climb.MyApplication.AppState.RESUME_FROM_NOTIFICATION_ACTION;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent.CanceledException;
@@ -21,16 +21,18 @@ import android.widget.Toast;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.peter.Climb.Msgs.Gyms;
 import com.peter.Climb.Msgs.Route;
-import com.peter.climb.AppState.SetCurrentGymListener;
+import com.peter.climb.FetchGymDataTask.FetchGymDataListener;
 import com.peter.climb.GymMapView.AddRouteListener;
+import com.peter.climb.MyApplication.AppState;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 public class MapActivity extends AppCompatActivity implements OnClickListener, AddRouteListener,
-    ResultCallback<Status>,SetCurrentGymListener {
+    ResultCallback<Status>, FetchGymDataListener {
 
   private AppState appState;
   private TextView timerView;
@@ -42,7 +44,7 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_map);
 
-    appState = ((MyApplication) getApplicationContext()).getState(getApplicationContext());
+    appState = ((MyApplication) getApplicationContext()).getState(getApplicationContext(), this);
     decor_view = getWindow().getDecorView();
 
     Button endSessionButton = (Button) findViewById(R.id.end_session_button);
@@ -52,16 +54,8 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
 
     gymMapView = (GymMapView) findViewById(R.id.map_view);
 
-    Intent intent = getIntent();
-    if (intent.getAction().equals(RESUME_FROM_NOTIFICATION_ACTION)) {
-      appState.restoreFromIntent(intent, this);
-    }
-    else {
-      // require app state to be set up, which may require HTTP request if coming from notification
-      gymMapView.setGym(appState.getCurrentGym());
-      gymMapView.addAddRouteListener(this);
-      startSessionTimer();
-    }
+    gymMapView.addAddRouteListener(this);
+    startSessionTimer();
   }
 
   private void startSessionTimer() {
@@ -166,15 +160,19 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
     finish();
   }
 
+
   @Override
-  public void onSetCurrentGymSuccess() {
+  public void onGymsFound(Gyms gyms) {
+    Intent intent = getIntent();
+    if (intent.getAction().equals(RESUME_FROM_NOTIFICATION_ACTION)) {
+      appState.restoreFromIntent(intent);
+    }
+
     gymMapView.setGym(appState.getCurrentGym());
-    gymMapView.addAddRouteListener(this);
-    startSessionTimer();
   }
 
   @Override
-  public void onSetCurrentGymFail() {
+  public void onNoGymsFound() {
     Log.e(getClass().toString(), "well fuck...");
   }
 }
