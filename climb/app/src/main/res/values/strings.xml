@@ -12,7 +12,7 @@
     <string name="default_gym_text">No Gym Selected</string>
     <string name="search_hint">Search Your Gym</string>
     <string name="no_gym_selected_title">No Gym Selected</string>
-    <string name="no_gym_selected_subtitle">Use the search box above to add your gym.</string>
+    <string name="no_gym_selected_subtitle">Use the search box above to add your gym</string>
     <string name="permission_rationale">This Permission Isn\'t Actually Necessary</string>
     <string name="ok">OK</string>
     <string name="drawer_icon">drawer icon</string>
@@ -23,4 +23,5 @@
   <string name="empty_session_message">You didn\'t add any routes to this session</string>
   <string name="cancel">Cancel</string>
   <string name="end_empty_session">End Session Anyways</string>
+  <string name="instructions">swipe left to view the gym map</string>
 </resources>

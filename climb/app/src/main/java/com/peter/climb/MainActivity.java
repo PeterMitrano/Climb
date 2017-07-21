@@ -12,6 +12,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender.SendIntentException;
 import android.content.SharedPreferences;
+import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -28,6 +29,9 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.RecyclerView.LayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -35,9 +39,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.Window;
 import android.widget.ImageView;
 import android.widget.SearchView;
-import android.widget.TextView;
 import android.widget.Toast;
 import com.android.volley.toolbox.ImageLoader;
 import com.google.android.gms.common.ConnectionResult;
@@ -67,14 +71,13 @@ public class MainActivity extends AppCompatActivity
   private boolean mResolvingError = false;
 
   private ImageView largeIconImageView;
-  private TextView noGymSelectedTitle;
-  private TextView noGymSelectedSubtitle;
-  private ImageView noGymSelectedImage;
+  private RecyclerView sessionsRecycler;
   private FloatingActionButton startSessionButton;
   private SwipeRefreshLayout swipeRefreshLayout;
   private MenuItem changeAccountsItem;
 
   private AppState appState;
+  private SessionsAdapter sessionsAdapter;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -88,13 +91,17 @@ public class MainActivity extends AppCompatActivity
     appState = ((MyApplication) getApplicationContext()).getState(getApplicationContext(), this);
 
     swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swiperefresh);
-    largeIconImageView = (ImageView) findViewById(R.id.large_icon_image_view);
-    noGymSelectedTitle = (TextView) findViewById(R.id.no_gym_selected_title);
-    noGymSelectedSubtitle = (TextView) findViewById(R.id.no_gym_selected_subtitle);
-    noGymSelectedImage = (ImageView) findViewById(R.id.no_gym_selected_image);
+    largeIconImageView = (ImageView) findViewById(R.id.gym_image);
+    sessionsRecycler = (RecyclerView) findViewById(R.id.sessions_recycler);
     startSessionButton = (FloatingActionButton) findViewById(R.id.start_session_button);
     NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
     changeAccountsItem = navigationView.getMenu().findItem(R.id.change_accounts);
+
+    LayoutManager layoutManager = new LinearLayoutManager(this);
+    sessionsRecycler.setLayoutManager(layoutManager);
+
+    sessionsAdapter = new SessionsAdapter(new String[]{"Session 1", "Session2", "Session 3"});
+    sessionsRecycler.setAdapter(sessionsAdapter);
 
     swipeRefreshLayout.setOnRefreshListener(this);
     startSessionButton.setEnabled(false);
@@ -113,6 +120,13 @@ public class MainActivity extends AppCompatActivity
     if (intent.getAction().equals(Intent.ACTION_MAIN)) {
       buildFitnessClient();
     }
+  }
+
+  @Override
+  public void onAttachedToWindow() {
+    super.onAttachedToWindow();
+    Window window = getWindow();
+    window.setFormat(PixelFormat.RGBA_8888);
   }
 
   @Override
@@ -363,10 +377,11 @@ public class MainActivity extends AppCompatActivity
 
   private void displayNoCurrentGym() {
     // they have no gym selected, so tell them how to add one
-    noGymSelectedTitle.setVisibility(View.VISIBLE);
-    noGymSelectedSubtitle.setVisibility(View.VISIBLE);
-    noGymSelectedImage.setVisibility(View.VISIBLE);
-    largeIconImageView.setVisibility(View.GONE);
+//    noGymSelectedTitle.setVisibility(View.VISIBLE);
+//    noGymSelectedSubtitle.setVisibility(View.VISIBLE);
+//    noGymSelectedImage.setVisibility(View.VISIBLE);
+//    instructionsText.setVisibility(View.GONE);
+      largeIconImageView.setBackgroundResource(R.drawable.ic_terrain_black_24dp);
   }
 
   private void displayCurrentGym() {
@@ -382,10 +397,10 @@ public class MainActivity extends AppCompatActivity
     RequestorSingleton.getInstance(
         getApplicationContext()).getImageLoader().get(url, listener);
 
-    noGymSelectedTitle.setVisibility(View.GONE);
-    noGymSelectedSubtitle.setVisibility(View.GONE);
-    noGymSelectedImage.setVisibility(View.GONE);
-    largeIconImageView.setVisibility(View.VISIBLE);
+//    noGymSelectedTitle.setVisibility(View.GONE);
+//    noGymSelectedSubtitle.setVisibility(View.GONE);
+//    noGymSelectedImage.setVisibility(View.GONE);
+//    instructionsText.setVisibility(View.VISIBLE);
   }
 
   /* Creates a dialog for an error message */
