@@ -25,13 +25,9 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerView.LayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -49,17 +45,22 @@ import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.fitness.Fitness;
+import com.google.android.gms.fitness.request.SessionReadRequest;
+import com.google.android.gms.fitness.result.SessionReadResult;
 import com.peter.Climb.Msgs;
 import com.peter.Climb.Msgs.Gyms;
 import com.peter.climb.FetchGymDataTask.FetchGymDataListener;
 import com.peter.climb.MyApplication.AppState;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
-public class MainActivity extends AppCompatActivity
-    implements OnNavigationItemSelectedListener, OnClickListener,
-    ConnectionCallbacks, OnConnectionFailedListener,
-    OnRefreshListener, FetchGymDataListener {
+public class MainActivity extends AppCompatActivity implements OnNavigationItemSelectedListener,
+    OnClickListener, ConnectionCallbacks, OnConnectionFailedListener, FetchGymDataListener {
 
   public static final String PREFS_NAME = "MyPrefsFile";
   public static final String START_SESSION_ACTION = "start_session_action";
@@ -73,7 +74,6 @@ public class MainActivity extends AppCompatActivity
   private ImageView largeIconImageView;
   private RecyclerView sessionsRecycler;
   private FloatingActionButton startSessionButton;
-  private SwipeRefreshLayout swipeRefreshLayout;
   private MenuItem changeAccountsItem;
 
   private AppState appState;
@@ -90,20 +90,15 @@ public class MainActivity extends AppCompatActivity
     // calling this function ensures that gym data is fetched if need be
     appState = ((MyApplication) getApplicationContext()).getState(getApplicationContext(), this);
 
-    swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swiperefresh);
     largeIconImageView = (ImageView) findViewById(R.id.gym_image);
     sessionsRecycler = (RecyclerView) findViewById(R.id.sessions_recycler);
     startSessionButton = (FloatingActionButton) findViewById(R.id.start_session_button);
     NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
     changeAccountsItem = navigationView.getMenu().findItem(R.id.change_accounts);
 
-    LayoutManager layoutManager = new LinearLayoutManager(this);
-    sessionsRecycler.setLayoutManager(layoutManager);
-
-    sessionsAdapter = new SessionsAdapter(new String[]{"Session 1", "Session2", "Session 3"});
+    sessionsAdapter = new SessionsAdapter();
     sessionsRecycler.setAdapter(sessionsAdapter);
 
-    swipeRefreshLayout.setOnRefreshListener(this);
     startSessionButton.setEnabled(false);
     startSessionButton.setOnClickListener(this);
 
@@ -198,7 +193,7 @@ public class MainActivity extends AppCompatActivity
         }
       } else {
         Snackbar snack = Snackbar
-            .make(swipeRefreshLayout, R.string.no_fit_permission_msg, Snackbar.LENGTH_INDEFINITE);
+            .make(sessionsRecycler, R.string.no_fit_permission_msg, Snackbar.LENGTH_INDEFINITE);
         snack.setAction(R.string.ask_again, new View.OnClickListener() {
           @Override
           public void onClick(View v) {
@@ -278,6 +273,27 @@ public class MainActivity extends AppCompatActivity
     // not sure when/how often I have to do this
     appState.createDataType(getPackageName());
 
+    // also request sessions to display
+    Calendar cal = Calendar.getInstance();
+    Date now = new Date();
+    cal.setTime(now);
+    long endTime = cal.getTimeInMillis();
+    cal.add(Calendar.MONTH, -1);
+    long startTime = cal.getTimeInMillis();
+
+    SessionReadRequest readRequest = new SessionReadRequest.Builder()
+        .setTimeInterval(startTime, endTime, TimeUnit.MILLISECONDS)
+        .build();
+
+    PendingResult<SessionReadResult> pendingResult = Fitness.SessionsApi
+        .readSession(appState.mClient, readRequest);
+    pendingResult.setResultCallback(new ResultCallback<SessionReadResult>() {
+      @Override
+      public void onResult(@NonNull SessionReadResult sessionReadResult) {
+        sessionsAdapter.setSessions(sessionReadResult);
+      }
+    });
+
     if (appState.hasCurrentGym()) {
       startSessionButton.setEnabled(true);
       changeAccountsItem.setTitle(R.string.change_accounts);
@@ -316,14 +332,7 @@ public class MainActivity extends AppCompatActivity
   }
 
   @Override
-  public void onRefresh() {
-    appState.refresh(this);
-  }
-
-  @Override
   public void onGymsFound(Gyms gyms) {
-    swipeRefreshLayout.setRefreshing(false);
-
     // First check if this request came from a search for a specific gym
     Intent intent = getIntent();
     if (intent.getAction().equals(Intent.ACTION_VIEW)) {
@@ -334,7 +343,7 @@ public class MainActivity extends AppCompatActivity
       } catch (NumberFormatException e) {
         e.printStackTrace();
         // failure case 1, invalid search result
-        Snackbar.make(swipeRefreshLayout, "Invalid search result", Snackbar.LENGTH_SHORT).show();
+        Snackbar.make(sessionsRecycler, "Invalid search result", Snackbar.LENGTH_SHORT).show();
       }
     } else {
       // try to look up the currently selected gym from preferences
@@ -355,9 +364,7 @@ public class MainActivity extends AppCompatActivity
 
   @Override
   public void onNoGymsFound() {
-    swipeRefreshLayout.setRefreshing(false);
-
-    Snackbar.make(swipeRefreshLayout, "No gyms found.", Snackbar.LENGTH_LONG).show();
+    Snackbar.make(sessionsRecycler, "No gyms found.", Snackbar.LENGTH_LONG).show();
   }
 
   private void buildFitnessClient() {
@@ -381,7 +388,7 @@ public class MainActivity extends AppCompatActivity
 //    noGymSelectedSubtitle.setVisibility(View.VISIBLE);
 //    noGymSelectedImage.setVisibility(View.VISIBLE);
 //    instructionsText.setVisibility(View.GONE);
-      largeIconImageView.setBackgroundResource(R.drawable.ic_terrain_black_24dp);
+    largeIconImageView.setBackgroundResource(R.drawable.ic_terrain_black_24dp);
   }
 
   private void displayCurrentGym() {

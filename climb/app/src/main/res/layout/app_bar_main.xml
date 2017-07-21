@@ -29,24 +29,12 @@
         android:scaleType="centerCrop"
         app:layout_collapseMode="parallax"/>
 
-      <View
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:layout_gravity="top"
-        android:background="@drawable/scrim_topdown"
-        android:fitsSystemWindows="true"/>
-
-      <View
-        android:layout_width="match_parent"
-        android:layout_height="160dp"
-        android:layout_gravity="bottom"
-        android:background="@drawable/scrim"/>
-
       <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:actionViewClass="android.support.v7.widget.SearchView"
+        android:background="@color/scrim"
         app:layout_collapseMode="pin"
         android:elevation="4dp" />
 

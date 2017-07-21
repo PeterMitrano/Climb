@@ -66,10 +66,10 @@ public class MyApplication extends Application {
     private int currentGymId;
 
     private DataType routeDataType;
-    private Field gradeField;
-    private Field nameField;
-    private Field wallField;
-    private Field colorField;
+    Field gradeField;
+    Field nameField;
+    Field wallField;
+    Field colorField;
     private List<Send> sends;
     long startTimeMillis;
     boolean inProgress;
