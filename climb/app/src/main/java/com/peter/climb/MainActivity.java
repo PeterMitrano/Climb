@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
   private static final int NOTIFICATION_REQUEST_CODE = 1003;
   private boolean mResolvingError = false;
 
-  private ImageView largeIconImageView;
+  private ImageView appBarImage;
   private RecyclerView sessionsRecycler;
   private FloatingActionButton startSessionButton;
   private MenuItem changeAccountsItem;
@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
     // calling this function ensures that gym data is fetched if need be
     appState = ((MyApplication) getApplicationContext()).getState(getApplicationContext(), this);
 
-    largeIconImageView = (ImageView) findViewById(R.id.gym_image);
+    appBarImage = (ImageView) findViewById(R.id.app_bar_image);
     sessionsRecycler = (RecyclerView) findViewById(R.id.sessions_recycler);
     startSessionButton = (FloatingActionButton) findViewById(R.id.start_session_button);
     NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -384,11 +384,7 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
 
   private void displayNoCurrentGym() {
     // they have no gym selected, so tell them how to add one
-//    noGymSelectedTitle.setVisibility(View.VISIBLE);
-//    noGymSelectedSubtitle.setVisibility(View.VISIBLE);
-//    noGymSelectedImage.setVisibility(View.VISIBLE);
-//    instructionsText.setVisibility(View.GONE);
-    largeIconImageView.setBackgroundResource(R.drawable.ic_terrain_black_24dp);
+    appBarImage.setBackgroundResource(R.mipmap.ic_launcher);
   }
 
   private void displayCurrentGym() {
@@ -398,16 +394,11 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
     // set the logo
     String url = gym.getLargeIconUrl();
     ImageLoader.ImageListener listener = ImageLoader.getImageListener(
-        largeIconImageView,
+        appBarImage,
         0,
         R.drawable.ic_error_black_24dp);
     RequestorSingleton.getInstance(
         getApplicationContext()).getImageLoader().get(url, listener);
-
-//    noGymSelectedTitle.setVisibility(View.GONE);
-//    noGymSelectedSubtitle.setVisibility(View.GONE);
-//    noGymSelectedImage.setVisibility(View.GONE);
-//    instructionsText.setVisibility(View.VISIBLE);
   }
 
   /* Creates a dialog for an error message */
