@@ -335,6 +335,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     routeLabelViews = new ArrayList<>();
     routes = new ArrayList<>();
     addRouteListeners = new ArrayList<>();
+    routeWallMap = new HashMap<>();
 
     scaleGestureDetector = new ScaleGestureDetector(getContext(), new MapScaleGestureListener());
   }
