@@ -12,7 +12,7 @@ import com.peter.climb.MyApplication.DeleteSessionListener;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-class SessionsAdapter extends RecyclerView.Adapter<ViewHolder> {
+class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
 
   private static final int NO_SESSIONS_CARD_TYPE = 1;
   private static final int SESSION_CARD_TYPE = 2;
@@ -24,7 +24,7 @@ class SessionsAdapter extends RecyclerView.Adapter<ViewHolder> {
   private boolean show_instructions = false;
   private boolean show_no_sessions = false;
 
-  SessionsAdapter() {
+  CardsAdapter() {
   }
 
   void setSessions(SessionReadResult sessionReadResult) {
@@ -90,10 +90,13 @@ class SessionsAdapter extends RecyclerView.Adapter<ViewHolder> {
         String activeTimeString = hours + " h " + minutes + " min";
 
         String title = numberOfSends + " Sends";
+        String toolbarTitle = session.getDescription();
+
         sessionViewHolder.sessionTitleText.setText(title);
         sessionViewHolder.dateTimeText.setText(activeTimeString);
         sessionViewHolder.session = session;
         sessionViewHolder.deleteSessionListener = this.deleteSessionListener;
+        sessionViewHolder.toolbar.setTitle(toolbarTitle);
         break;
 
       case NO_SESSIONS_CARD_TYPE:

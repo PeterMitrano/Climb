@@ -4,6 +4,6 @@
     android:hint="@string/search_hint"
     android:voiceSearchMode="showVoiceSearchButton|launchRecognizer"
     android:searchSuggestAuthority="com.peter.climb.GymSuggestionProvider"
-    android:searchSuggestIntentAction="android.intent.action.VIEW"
+    android:searchSuggestIntentAction="android.intent.action.SEARCH"
     android:searchSuggestSelection=" ?">
 </searchable>

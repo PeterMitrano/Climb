@@ -155,7 +155,7 @@ public class MyApplication extends Application {
       long endTime = System.currentTimeMillis();
       Session session = new Session.Builder()
           .setName("Climbing Session")
-          .setDescription("Climbing Session")
+          .setDescription("Session at " + currentGym.getName())
           .setIdentifier(UUID.randomUUID().toString())
           .setActivity(FitnessActivities.ROCK_CLIMBING)
           .setStartTime(startTimeMillis, TimeUnit.MILLISECONDS)

@@ -68,10 +68,11 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
   private FloatingActionButton startSessionButton;
   private ImageView appBarImage;
   private MenuItem changeAccountsItem;
-  private RecyclerView sessionsRecycler;
+  private RecyclerView cardsRecycler;
 
   private AppState appState;
-  private SessionsAdapter sessionsAdapter;
+  private CardsAdapter cardsAdapter;
+  private int searchedGymId;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -86,14 +87,14 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
         .fetchGymDataAndAppState(getApplicationContext(), this);
 
     appBarImage = (ImageView) findViewById(R.id.app_bar_image);
-    sessionsRecycler = (RecyclerView) findViewById(R.id.sessions_recycler);
+    cardsRecycler = (RecyclerView) findViewById(R.id.sessions_recycler);
     startSessionButton = (FloatingActionButton) findViewById(R.id.start_session_button);
     NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
     changeAccountsItem = navigationView.getMenu().findItem(R.id.change_accounts);
 
-    sessionsAdapter = new SessionsAdapter();
-    sessionsAdapter.setOnDeleteSessionListener(this);
-    sessionsRecycler.setAdapter(sessionsAdapter);
+    cardsAdapter = new CardsAdapter();
+    cardsAdapter.setOnDeleteSessionListener(this);
+    cardsRecycler.setAdapter(cardsAdapter);
 
     startSessionButton.setEnabled(false);
     startSessionButton.setOnClickListener(this);
@@ -106,10 +107,30 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
 
     navigationView.setNavigationItemSelectedListener(this);
 
-    // connect to google fit API
     Intent intent = getIntent();
-    if (intent.getAction().equals(Intent.ACTION_MAIN)) {
+    String action = intent.getAction();
+    searchedGymId = AppState.NO_GYM_ID;
+    if (action.equals(Intent.ACTION_MAIN)) {
+      // connect to google fit API
       buildFitnessClient();
+    } else if (action.equals(Intent.ACTION_SEARCH)) {
+      // check if this request came from a search for a specific gym
+      Uri uri = getIntent().getData();
+      try {
+        searchedGymId = Integer.parseInt(uri.getLastPathSegment().toLowerCase());
+
+        // save this search as the current setting
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putInt(GYM_ID_PREF_KEY, searchedGymId);
+        editor.apply();
+      } catch (NumberFormatException e) {
+        e.printStackTrace();
+        Snackbar.make(cardsRecycler, "Invalid search result", Snackbar.LENGTH_SHORT).show();
+      }
+
+      // update the recycler
+      updateSessionsRecycler();
     }
   }
 
@@ -189,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
         }
       } else {
         Snackbar snack = Snackbar
-            .make(sessionsRecycler, R.string.no_fit_permission_msg, Snackbar.LENGTH_INDEFINITE);
+            .make(cardsRecycler, R.string.no_fit_permission_msg, Snackbar.LENGTH_INDEFINITE);
         snack.setAction(R.string.ask_again, new View.OnClickListener() {
           @Override
           public void onClick(View v) {
@@ -214,16 +235,6 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
     } else {
       super.onBackPressed();
     }
-  }
-
-  @Override
-  protected void onStop() {
-    super.onStop();
-
-    SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-    SharedPreferences.Editor editor = settings.edit();
-    editor.putInt(GYM_ID_PREF_KEY, appState.getCurrentGymId());
-    editor.apply();
   }
 
   @Override
@@ -290,38 +301,33 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
       @Override
       public void onResult(@NonNull Status status) {
         // remove the item
-        sessionsAdapter.removeSession(session);
-        sessionsAdapter.notifyItemRemoved(index);
+        cardsAdapter.removeSession(session);
+        cardsAdapter.notifyItemRemoved(index);
       }
     });
   }
 
   @Override
   public void onGymsFound(Gyms gyms) {
-    // First check if this request came from a search for a specific gym
-    Intent intent = getIntent();
-    if (intent.getAction().equals(Intent.ACTION_VIEW)) {
-      Uri uri = getIntent().getData();
-      try {
-        int gymId = Integer.parseInt(uri.getLastPathSegment().toLowerCase());
-        appState.setCurrentGym(gymId);
-      } catch (NumberFormatException e) {
-        e.printStackTrace();
-        // failure case 1, invalid search result
-        Snackbar.make(sessionsRecycler, "Invalid search result", Snackbar.LENGTH_SHORT).show();
-      }
-    } else {
-      // try to look up the currently selected gym from preferences
-      SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-      int gymId = settings.getInt(GYM_ID_PREF_KEY, AppState.NO_GYM_ID);
-      appState.setCurrentGym(gymId);
-    }
+    // Two possible sources of current gym are search and settings
+    SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+    int prefGymId = settings.getInt(GYM_ID_PREF_KEY, AppState.NO_GYM_ID);
 
-    if (appState.hasCurrentGym()) {
+    // First check if this request came from a search for a specific gym
+    if (searchedGymId != AppState.NO_GYM_ID) {
+      appState.setCurrentGym(searchedGymId);
+      displayCurrentGym();
       if (appState.mClient.isConnected()) {
         startSessionButton.setEnabled(true);
       }
+
+    } else if (prefGymId != AppState.NO_GYM_ID) {
+      appState.setCurrentGym(prefGymId);
       displayCurrentGym();
+      if (appState.mClient.isConnected()) {
+        startSessionButton.setEnabled(true);
+      }
+
     } else {
       displayNoCurrentGym();
     }
@@ -329,7 +335,7 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
 
   @Override
   public void onNoGymsFound() {
-    Snackbar.make(sessionsRecycler, "No gyms found.", Snackbar.LENGTH_LONG).show();
+    Snackbar.make(cardsRecycler, "No gyms found.", Snackbar.LENGTH_LONG).show();
   }
 
   private void buildFitnessClient() {
@@ -360,10 +366,10 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
       @Override
       public void onResult(@NonNull SessionReadResult sessionReadResult) {
         if (sessionReadResult.getStatus().isSuccess()) {
-          sessionsAdapter.setSessions(sessionReadResult);
+          cardsAdapter.setSessions(sessionReadResult);
         } else {
           // indicate that there are no sessions
-          sessionsAdapter.showNoSessions();
+          cardsAdapter.showNoSessions();
         }
       }
     });
@@ -371,14 +377,14 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
 
   private void displayNoCurrentGym() {
     // they have no gym selected
-    sessionsAdapter.showSelectGymInstructions();
-    sessionsAdapter.notifyDataSetChanged();
+    cardsAdapter.showSelectGymInstructions();
+    cardsAdapter.notifyDataSetChanged();
   }
 
   private void displayCurrentGym() {
     // remove the instructions card
-    sessionsAdapter.hideSelectGymInstructions();
-    sessionsAdapter.notifyDataSetChanged();
+    cardsAdapter.hideSelectGymInstructions();
+    cardsAdapter.notifyDataSetChanged();
 
     // get the gym
     Msgs.Gym gym = appState.getCurrentGym();
