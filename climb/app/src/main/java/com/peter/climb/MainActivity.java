@@ -50,14 +50,11 @@ import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.fitness.Fitness;
 import com.google.android.gms.fitness.data.Session;
-import com.google.android.gms.fitness.result.SessionReadResult;
 import com.peter.Climb.Msgs;
 import com.peter.Climb.Msgs.Gyms;
 import com.peter.climb.FetchGymDataTask.FetchGymDataListener;
 import com.peter.climb.MyApplication.AppState;
 import com.peter.climb.MyApplication.DeleteSessionListener;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity implements OnNavigationItemSelectedListener,
@@ -272,28 +269,36 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
     String message = "Sign in Successful";
     Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
 
-    // set up the custom data type.
-    // not sure when/how often I have to do this
-    appState.createDataType(getPackageName());
+    InsertAndVerifySessionTask t = new InsertAndVerifySessionTask(appState.mClient, getPackageName());
+    t.execute();
 
-    // also request sessions to display
-    Calendar cal = Calendar.getInstance();
-    Date now = new Date();
-    cal.setTime(now);
-    long endTime = cal.getTimeInMillis();
-    cal.add(Calendar.MONTH, -1);
-    long startTime = cal.getTimeInMillis();
-    appState.getSesssionHistory(startTime, endTime, new ResultCallback<SessionReadResult>() {
-      @Override
-      public void onResult(@NonNull SessionReadResult sessionReadResult) {
-        sessionsAdapter.setSessions(sessionReadResult);
-      }
-    });
-
-    if (appState.hasCurrentGym()) {
-      startSessionButton.setEnabled(true);
-      changeAccountsItem.setTitle(R.string.change_accounts);
-    }
+//    // set up the custom data type.
+//    // not sure when/how often I have to do this
+//    appState.createDataType(getPackageName());
+//
+//    // also request sessions to display
+//    Calendar cal = Calendar.getInstance();
+//    Date now = new Date();
+//    cal.setTime(now);
+//    long endTime = cal.getTimeInMillis();
+//    cal.add(Calendar.MONTH, -1);
+//    long startTime = cal.getTimeInMillis();
+//    appState.getSesssionHistory(startTime, endTime, new ResultCallback<SessionReadResult>() {
+//      @Override
+//      public void onResult(@NonNull SessionReadResult sessionReadResult) {
+//        if (sessionReadResult.getStatus().isSuccess()) {
+//          sessionsAdapter.setSessions(sessionReadResult);
+//        }
+//        else {
+//          Log.e(getClass().toString(), "get session failed");
+//        }
+//      }
+//    });
+//
+//    if (appState.hasCurrentGym()) {
+//      startSessionButton.setEnabled(true);
+//      changeAccountsItem.setTitle(R.string.change_accounts);
+//    }
   }
 
   @Override
@@ -384,6 +389,7 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
           .addApi(Fitness.CONFIG_API)
           .addApi(Fitness.HISTORY_API)
           .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
+          .addScope(new Scope(Scopes.FITNESS_LOCATION_READ_WRITE))
           .addScope(new Scope(Scopes.PROFILE))
           .addConnectionCallbacks(this)
           .addOnConnectionFailedListener(this)

@@ -1,6 +1,7 @@
 package com.peter.climb;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -45,6 +46,8 @@ class SessionsAdapter extends RecyclerView.Adapter<SessionViewHolder> {
     Session session = sessions.get(position);
     List<DataSet> dataSets = sessionReadResult.getDataSet(session);
     int numberOfSends = 0;
+    Log.e(getClass().toString(), "datasets size : " + dataSets.size());
+
     for (DataSet dataSet : dataSets) {
       numberOfSends += dataSet.getDataPoints().size();
     }

@@ -19,6 +19,7 @@ import com.peter.Climb.Msgs.Route;
 import com.peter.Climb.Msgs.Wall;
 import com.peter.climb.RouteLabelView.RouteClickedListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class GymMapView extends ViewGroup implements RouteClickedListener {
@@ -47,10 +48,11 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
   private int floor = 0;
   private List<Route> routes;
   private List<AddRouteListener> addRouteListeners;
+  private HashMap<Route, Wall> routeWallMap;
 
   interface AddRouteListener {
 
-    void onAddRoute(Route route);
+    void onAddRoute(Route route, Wall wall);
   }
 
   public GymMapView(Context context) {
@@ -310,6 +312,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
           routeLabelView.addRouteClickedListener(this);
           routeLabelViews.add(routeLabelView);
           routes.add(route);
+          routeWallMap.put(route, wall);
           addView(routeLabelView);
         }
       }
@@ -348,7 +351,8 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     Route route = routes.get(index);
 
     for (AddRouteListener listener : addRouteListeners) {
-      listener.onAddRoute(route);
+      Wall wall = routeWallMap.get(route);
+      listener.onAddRoute(route, wall);
     }
   }
 

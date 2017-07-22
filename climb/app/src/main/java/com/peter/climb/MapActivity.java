@@ -22,6 +22,7 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.peter.Climb.Msgs.Gyms;
 import com.peter.Climb.Msgs.Route;
+import com.peter.Climb.Msgs.Wall;
 import com.peter.climb.FetchGymDataTask.FetchGymDataListener;
 import com.peter.climb.GymMapView.AddRouteListener;
 import com.peter.climb.MyApplication.AppState;
@@ -116,14 +117,14 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
   }
 
   @Override
-  public void onAddRoute(Route route) {
-    appState.addRouteIntoSession(route);
+  public void onAddRoute(Route route, Wall wall) {
+    appState.addRouteIntoSession(route, wall);
   }
 
   @Override
   public void onResult(@NonNull Status status) {
     if (status.isSuccess()) {
-      Toast.makeText(this, "Session Saved!", Toast.LENGTH_SHORT);
+      Toast.makeText(this, "Session Saved!", Toast.LENGTH_SHORT).show();
       dismissNotificationAndFinish();
       finish();
     } else if (status.hasResolution()) {

@@ -1,7 +1,5 @@
 package com.peter.climb;
 
-import static com.google.android.gms.fitness.data.DataSource.TYPE_DERIVED;
-
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
@@ -16,7 +14,6 @@ import com.google.android.gms.fitness.FitnessActivities;
 import com.google.android.gms.fitness.data.DataPoint;
 import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.DataSource;
-import com.google.android.gms.fitness.data.DataSource.Builder;
 import com.google.android.gms.fitness.data.DataType;
 import com.google.android.gms.fitness.data.Field;
 import com.google.android.gms.fitness.data.Session;
@@ -29,6 +26,7 @@ import com.google.android.gms.fitness.result.SessionReadResult;
 import com.peter.Climb.Msgs.Gym;
 import com.peter.Climb.Msgs.Gyms;
 import com.peter.Climb.Msgs.Route;
+import com.peter.Climb.Msgs.Wall;
 import com.peter.climb.FetchGymDataTask.FetchGymDataListener;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 public class MyApplication extends Application {
 
   interface DeleteSessionListener {
+
     void onDeleteSession(Session session, int index);
   }
 
@@ -135,8 +134,8 @@ public class MyApplication extends Application {
       }
     }
 
-    void addRouteIntoSession(Route route) {
-      sends.add(new Send(route, System.currentTimeMillis()));
+    void addRouteIntoSession(Route route, Wall wall) {
+      sends.add(new Send(route, wall, System.currentTimeMillis()));
     }
 
     boolean isSessionEmpty() {
@@ -151,30 +150,36 @@ public class MyApplication extends Application {
     }
 
     void endSession(ResultCallback<Status> resultCallback) {
-      // Create the session to insert
-      long endTime = System.currentTimeMillis();
-      Session session = new Session.Builder()
-          .setName("Climbing Session")
-          .setIdentifier(UUID.randomUUID().toString())
-          .setDescription("Climbing Session")
-          .setStartTime(startTimeMillis, TimeUnit.MILLISECONDS)
-          .setActivity(FitnessActivities.ROCK_CLIMBING)
-          .setEndTime(endTime, TimeUnit.MILLISECONDS)
-          .build();
-
-      DataSource dataSource = new Builder().setDataType(routeDataType).setType(TYPE_DERIVED)
+      DataSource dataSource = new DataSource.Builder()
+          .setAppPackageName(applicationContext)
+          .setDataType(routeDataType)
+          .setName("user_input")
+          .setType(DataSource.TYPE_RAW)
           .build();
       DataSet dataset = DataSet.create(dataSource);
 
       // iterate over the save route information and create all the datapoints
       for (Send route : sends) {
         DataPoint pt = dataset.createDataPoint();
+        pt.setTimeInterval(route.getTimeMillis(), route.getTimeMillis(), TimeUnit.MILLISECONDS);
         pt.setTimestamp(route.getTimeMillis(), TimeUnit.MILLISECONDS);
         pt.getValue(gradeField).setString("V" + route.getGrade());
         pt.getValue(nameField).setString(route.getName());
         pt.getValue(colorField).setString(route.getColor());
+        pt.getValue(wallField).setString(route.getWallName());
         dataset.add(pt);
       }
+
+      // Create the session to insert
+      long endTime = System.currentTimeMillis();
+      Session session = new Session.Builder()
+          .setName("Climbing Session")
+          .setDescription("Climbing Session")
+          .setIdentifier(UUID.randomUUID().toString())
+          .setActivity(FitnessActivities.ROCK_CLIMBING)
+          .setStartTime(startTimeMillis, TimeUnit.MILLISECONDS)
+          .setEndTime(endTime, TimeUnit.MILLISECONDS)
+          .build();
 
       SessionInsertRequest insertRequest = new SessionInsertRequest.Builder()
           .setSession(session)
@@ -240,7 +245,7 @@ public class MyApplication extends Application {
       this.gyms = null;
     }
 
-    public void getSesssionHistory(long startTime, long endTime,
+    void getSesssionHistory(long startTime, long endTime,
         ResultCallback<SessionReadResult> resultCallback) {
       SessionReadRequest readRequest = new SessionReadRequest.Builder()
           .setTimeInterval(startTime, endTime, TimeUnit.MILLISECONDS)
