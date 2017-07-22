@@ -3,7 +3,6 @@ package com.peter.climb;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.AsyncTask;
-import android.util.Log;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.peter.Climb.Msgs;
 import com.peter.Climb.Msgs.Gyms;
@@ -33,7 +32,6 @@ class FetchGymDataTask extends AsyncTask<Void, Integer, Gyms> {
             null);
 
     if (null == cursor) {
-      Log.e(this.getClass().toString(), "null curser");
       return null;
     } else {
       try {

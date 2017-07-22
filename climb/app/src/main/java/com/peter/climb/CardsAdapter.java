@@ -43,6 +43,9 @@ class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
 
   void removeSession(Session session) {
     sessions.remove(session);
+    if (!hasSessions()) {
+      showNoSessions();
+    }
   }
 
   @Override

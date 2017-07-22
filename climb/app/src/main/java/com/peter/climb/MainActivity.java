@@ -272,8 +272,7 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
       Log.e(getClass().toString(), "Connection lost.  Cause: Network Lost.");
     } else if (i
         == GoogleApiClient.ConnectionCallbacks.CAUSE_SERVICE_DISCONNECTED) {
-      Log.e(getClass().toString(),
-          "Connection lost.  Reason: Service Disconnected");
+      Log.e(getClass().toString(), "Connection lost.  Reason: Service Disconnected");
     }
   }
 

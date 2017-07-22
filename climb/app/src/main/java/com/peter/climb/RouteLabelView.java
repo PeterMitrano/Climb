@@ -5,7 +5,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import com.peter.Climb.Msgs;
@@ -121,7 +120,6 @@ public class RouteLabelView extends View {
       routeColor = Color.parseColor(color);
       markerPaint.setColor(routeColor);
     } catch (IllegalArgumentException | StringIndexOutOfBoundsException e) {
-      Log.e(this.getClass().toString(), color);
       routeColor = Color.LTGRAY;
       markerPaint.setColor(Color.LTGRAY);
     }

@@ -8,13 +8,14 @@ import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.Toolbar.OnMenuItemClickListener;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.google.android.gms.fitness.data.Session;
 import com.peter.climb.MyApplication.DeleteSessionListener;
 
 class SessionViewHolder extends RecyclerView.ViewHolder implements
-    OnMenuItemClickListener {
+    OnMenuItemClickListener, OnClickListener {
 
   LinearLayout layout;
   Toolbar toolbar;
@@ -35,6 +36,7 @@ class SessionViewHolder extends RecyclerView.ViewHolder implements
 
     toolbar.inflateMenu(R.menu.card_menu);
     toolbar.setOnMenuItemClickListener(this);
+    card.setOnClickListener(this);
   }
 
   @Override
@@ -52,6 +54,10 @@ class SessionViewHolder extends RecyclerView.ViewHolder implements
       builder.create().show();
     }
     return false;
+  }
+
+  @Override
+  public void onClick(View v) {
   }
 }
 
