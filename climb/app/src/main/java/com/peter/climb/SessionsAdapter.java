@@ -34,6 +34,9 @@ class SessionsAdapter extends RecyclerView.Adapter<ViewHolder> {
     if (this.sessions.isEmpty()) {
       showNoSessions();
     }
+    else {
+      hideNoSessions();
+    }
 
     notifyDataSetChanged();
   }

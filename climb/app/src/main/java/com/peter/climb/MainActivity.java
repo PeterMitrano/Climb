@@ -63,7 +63,6 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
   public static final String START_SESSION_ACTION = "start_session_action";
 
   private boolean mResolvingError = false;
-  private static final int NOTIFICATION_REQUEST_CODE = 1003;
   private static final String GYM_ID_PREF_KEY = "gym_id_pref_key";
 
   private FloatingActionButton startSessionButton;
@@ -234,32 +233,6 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
       // if not, start a new session
       appState.startSession();
 
-//      // Handle the notification & back stack navigation
-//      Intent resultIntent = new Intent(this, MapActivity.class);
-//      resultIntent.putExtra(SESSION_START_TIME_EXTRA, appState.startTimeMillis);
-//      resultIntent.putExtra(CURRENT_GYM_ID_EXTRA, appState.getCurrentGymId());
-//      resultIntent.setAction(RESUME_FROM_NOTIFICATION_ACTION);
-//      TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-//      stackBuilder.addParentStack(MapActivity.class);
-//      stackBuilder.addNextIntent(resultIntent);
-//      PendingIntent resultPendingIntent =
-//          stackBuilder
-//              .getPendingIntent(NOTIFICATION_REQUEST_CODE, PendingIntent.FLAG_UPDATE_CURRENT);
-//
-//      NotificationCompat.Builder mBuilder =
-//          new Builder(this)
-//              .setSmallIcon(R.drawable.ic_terrain_black_24dp)
-//              .setContentTitle(getString(R.string.notification_title))
-//              .setContentText(getString(R.string.notification_text));
-//      mBuilder.setContentIntent(resultPendingIntent);
-//
-//      Notification notification = mBuilder.build();
-//      notification.flags = Notification.FLAG_ONGOING_EVENT;
-//
-//      NotificationManager notificationManager = (NotificationManager) getSystemService(
-//          Context.NOTIFICATION_SERVICE);
-//      notificationManager.notify(SESSION_NOTIFICATION_ID, notification);
-
       Intent startSessionIntent = new Intent(this, MapActivity.class);
       startSessionIntent.setAction(START_SESSION_ACTION);
       startActivityForResult(startSessionIntent, START_SESSION_REQUEST_CODE);
@@ -387,7 +360,6 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
       @Override
       public void onResult(@NonNull SessionReadResult sessionReadResult) {
         if (sessionReadResult.getStatus().isSuccess()) {
-          sessionsAdapter.hideNoSessions();
           sessionsAdapter.setSessions(sessionReadResult);
         } else {
           // indicate that there are no sessions
