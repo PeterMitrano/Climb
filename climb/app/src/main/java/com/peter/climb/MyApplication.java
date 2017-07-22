@@ -29,9 +29,8 @@ import com.peter.Climb.Msgs.Route;
 import com.peter.Climb.Msgs.Wall;
 import com.peter.climb.FetchGymDataTask.FetchGymDataListener;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class MyApplication extends Application {
@@ -145,50 +144,50 @@ public class MyApplication extends Application {
     }
 
     void endSession(ResultCallback<Status> resultCallback) {
-      SessionInsertRequest insertRequest = insertFitnessSession();
-      Fitness.SessionsApi.insertSession(mClient, insertRequest)
-          .setResultCallback(resultCallback);
+//      SessionInsertRequest insertRequest = insertFitnessSession();
+//      Fitness.SessionsApi.insertSession(mClient, insertRequest)
+//          .setResultCallback(resultCallback);
 
-//      DataSource dataSource = new DataSource.Builder()
-//          .setAppPackageName(applicationContext)
-//          .setDataType(routeDataType)
-//          .setName("user_input")
-//          .setType(DataSource.TYPE_RAW)
-//          .build();
-//      DataSet dataset = DataSet.create(dataSource);
-//
-//      // iterate over the save route information and create all the datapoints
-//      for (Send route : sends) {
-//        DataPoint pt = dataset.createDataPoint();
-//        pt.setTimeInterval(route.getTimeMillis(), route.getTimeMillis(), TimeUnit.MILLISECONDS);
-//        pt.setTimestamp(route.getTimeMillis(), TimeUnit.MILLISECONDS);
-//        pt.getValue(gradeField).setString("V" + route.getGrade());
-//        pt.getValue(nameField).setString(route.getName());
-//        pt.getValue(colorField).setString(route.getColor());
-//        pt.getValue(wallField).setString(route.getWallName());
-//        dataset.add(pt);
-//      }
-//
-//      // Create the session to insert
-//      long endTime = System.currentTimeMillis();
-//      Session session = new Session.Builder()
-//          .setName("Climbing Session")
-//          .setDescription("Climbing Session")
-//          .setIdentifier(UUID.randomUUID().toString())
-//          .setActivity(FitnessActivities.ROCK_CLIMBING)
-//          .setStartTime(startTimeMillis, TimeUnit.MILLISECONDS)
-//          .setEndTime(endTime, TimeUnit.MILLISECONDS)
-//          .build();
-//
-//      SessionInsertRequest insertRequest = new SessionInsertRequest.Builder()
-//          .setSession(session)
-//          .addDataSet(dataset)
-//          .build();
-//
-//      // attempt to insert the session into the user's google fit
-//      PendingResult<Status> pendingResult = Fitness.SessionsApi
-//          .insertSession(mClient, insertRequest);
-//      pendingResult.setResultCallback(resultCallback);
+      DataSource dataSource = new DataSource.Builder()
+          .setAppPackageName(applicationContext)
+          .setDataType(routeDataType)
+          .setName("user_input")
+          .setType(DataSource.TYPE_RAW)
+          .build();
+      DataSet dataset = DataSet.create(dataSource);
+
+      // iterate over the save route information and create all the datapoints
+      for (Send route : sends) {
+        DataPoint pt = dataset.createDataPoint();
+        pt.setTimeInterval(route.getTimeMillis(), route.getTimeMillis(), TimeUnit.MILLISECONDS);
+        pt.setTimestamp(route.getTimeMillis(), TimeUnit.MILLISECONDS);
+        pt.getValue(gradeField).setString("V" + route.getGrade());
+        pt.getValue(nameField).setString(route.getName());
+        pt.getValue(colorField).setString(route.getColor());
+        pt.getValue(wallField).setString(route.getWallName());
+        dataset.add(pt);
+      }
+
+      // Create the session to insert
+      long endTime = System.currentTimeMillis();
+      Session session = new Session.Builder()
+          .setName("Climbing Session")
+          .setDescription("Climbing Session")
+          .setIdentifier(UUID.randomUUID().toString())
+          .setActivity(FitnessActivities.ROCK_CLIMBING)
+          .setStartTime(startTimeMillis, TimeUnit.MILLISECONDS)
+          .setEndTime(endTime, TimeUnit.MILLISECONDS)
+          .build();
+
+      SessionInsertRequest insertRequest = new SessionInsertRequest.Builder()
+          .setSession(session)
+          .addDataSet(dataset)
+          .build();
+
+      // attempt to insert the session into the user's google fit
+      PendingResult<Status> pendingResult = Fitness.SessionsApi
+          .insertSession(mClient, insertRequest);
+      pendingResult.setResultCallback(resultCallback);
     }
 
     void deleteSession(Session session, long startTime, long endTime,
@@ -258,10 +257,6 @@ public class MyApplication extends Application {
       } else {
         makeReadRequest(startTime, endTime, resultCallback);
       }
-//
-//      SessionReadRequest readRequest = readFitnessSession();
-//        Fitness.SessionsApi.readSession(mClient, readRequest)
-//              .setResultCallback(resultCallback);
     }
 
     void makeReadRequest(long startTime, long endTime,
@@ -275,64 +270,5 @@ public class MyApplication extends Application {
           .readSession(mClient, readRequest);
       pendingResult.setResultCallback(resultCallback);
     }
-  }
-
-  private SessionInsertRequest insertFitnessSession() {
-    Calendar cal = Calendar.getInstance();
-    Date now = new Date();
-    cal.setTime(now);
-    long endTime = cal.getTimeInMillis();
-    cal.add(Calendar.MINUTE, -10);
-    long startWalkTime = cal.getTimeInMillis();
-    cal.add(Calendar.MINUTE, -10);
-    long startTime = cal.getTimeInMillis();
-
-    DataSource speedDataSource = new DataSource.Builder()
-        .setAppPackageName(getPackageName())
-        .setDataType(DataType.TYPE_CALORIES_EXPENDED)
-        .setName("source name")
-        .setType(DataSource.TYPE_RAW)
-        .build();
-
-    float runSpeedMps = 10;
-    DataSet speedDataSet = DataSet.create(speedDataSource);
-
-    DataPoint firstRunSpeed = speedDataSet.createDataPoint()
-        .setTimeInterval(startTime, startWalkTime, TimeUnit.MILLISECONDS);
-    firstRunSpeed.getValue(Field.FIELD_CALORIES).setFloat(runSpeedMps);
-    speedDataSet.add(firstRunSpeed);
-
-    Session session = new Session.Builder()
-        .setName("POOP")
-        .setDescription("Long run around Shoreline Park")
-        .setIdentifier("UniqueIdentifierHere")
-        .setActivity(FitnessActivities.RUNNING)
-        .setStartTime(startTime, TimeUnit.MILLISECONDS)
-        .setEndTime(endTime, TimeUnit.MILLISECONDS)
-        .build();
-
-    SessionInsertRequest insertRequest = new SessionInsertRequest.Builder()
-        .setSession(session)
-        .addDataSet(speedDataSet)
-        .build();
-
-    return insertRequest;
-  }
-
-  private SessionReadRequest readFitnessSession() {
-    Calendar cal = Calendar.getInstance();
-    Date now = new Date();
-    cal.setTime(now);
-    long endTime = cal.getTimeInMillis();
-    cal.add(Calendar.WEEK_OF_YEAR, -1);
-    long startTime = cal.getTimeInMillis();
-
-    SessionReadRequest readRequest = new SessionReadRequest.Builder()
-        .setTimeInterval(startTime, endTime, TimeUnit.MILLISECONDS)
-        .read(DataType.TYPE_CALORIES_EXPENDED)
-        .setSessionName("POOP")
-        .build();
-
-    return readRequest;
   }
 }
