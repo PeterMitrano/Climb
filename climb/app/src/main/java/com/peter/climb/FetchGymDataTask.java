@@ -49,7 +49,6 @@ class FetchGymDataTask extends AsyncTask<Void, Integer, Gyms> {
         return gyms_builder.build();
 
       } catch (InvalidProtocolBufferException ignored) {
-        Log.e(this.getClass().toString(), ignored.getLocalizedMessage());
         cursor.close();
         return null;
       }

@@ -1,12 +1,5 @@
 package com.peter.climb;
 
-import static com.peter.climb.MyApplication.AppState.CURRENT_GYM_ID_EXTRA;
-import static com.peter.climb.MyApplication.AppState.RESUME_FROM_NOTIFICATION_ACTION;
-import static com.peter.climb.MyApplication.AppState.SESSION_START_TIME_EXTRA;
-
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
@@ -21,8 +14,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.NavigationView.OnNavigationItemSelectedListener;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -64,19 +55,21 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
     DeleteSessionListener, OnClickListener, ConnectionCallbacks, OnConnectionFailedListener,
     FetchGymDataListener {
 
+  public static final int REQUEST_RESOLVE_ERROR = 1001;
+  public static final int SESSION_NOTIFICATION_ID = 1002;
+  public static final int START_SESSION_REQUEST_CODE = 1004;
+  public static final String DIALOG_ERROR = "GOOGLE_API_ERROR";
   public static final String PREFS_NAME = "MyPrefsFile";
   public static final String START_SESSION_ACTION = "start_session_action";
-  private static final String GYM_ID_PREF_KEY = "gym_id_pref_key";
-  public static final int SESSION_NOTIFICATION_ID = 1001;
-  static final int REQUEST_RESOLVE_ERROR = 1002;
-  static final String DIALOG_ERROR = "GOOGLE_API_ERROR";
-  private static final int NOTIFICATION_REQUEST_CODE = 1003;
-  private boolean mResolvingError = false;
 
-  private ImageView appBarImage;
-  private RecyclerView sessionsRecycler;
+  private boolean mResolvingError = false;
+  private static final int NOTIFICATION_REQUEST_CODE = 1003;
+  private static final String GYM_ID_PREF_KEY = "gym_id_pref_key";
+
   private FloatingActionButton startSessionButton;
+  private ImageView appBarImage;
   private MenuItem changeAccountsItem;
+  private RecyclerView sessionsRecycler;
 
   private AppState appState;
   private SessionsAdapter sessionsAdapter;
@@ -90,7 +83,8 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
     setSupportActionBar(toolbar);
 
     // calling this function ensures that gym data is fetched if need be
-    appState = ((MyApplication) getApplicationContext()).getState(getApplicationContext(), this);
+    appState = ((MyApplication) getApplicationContext())
+        .fetchGymDataAndAppState(getApplicationContext(), this);
 
     appBarImage = (ImageView) findViewById(R.id.app_bar_image);
     sessionsRecycler = (RecyclerView) findViewById(R.id.sessions_recycler);
@@ -206,6 +200,10 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
         });
         snack.show();
       }
+    } else if (requestCode == START_SESSION_REQUEST_CODE) {
+      if (resultCode == RESULT_OK) {
+        updateSessionsRecycler();
+      }
     }
   }
 
@@ -232,38 +230,39 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
   @Override
   public void onClick(View v) {
     if (v.getId() == R.id.start_session_button) {
+
+      // if not, start a new session
       appState.startSession();
 
-      // Handle the notification & back stack navigation
-
-      Intent resultIntent = new Intent(this, MapActivity.class);
-      resultIntent.putExtra(SESSION_START_TIME_EXTRA, appState.startTimeMillis);
-      resultIntent.putExtra(CURRENT_GYM_ID_EXTRA, appState.getCurrentGymId());
-      resultIntent.setAction(RESUME_FROM_NOTIFICATION_ACTION);
-      TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-      stackBuilder.addParentStack(MapActivity.class);
-      stackBuilder.addNextIntent(resultIntent);
-      PendingIntent resultPendingIntent =
-          stackBuilder
-              .getPendingIntent(NOTIFICATION_REQUEST_CODE, PendingIntent.FLAG_UPDATE_CURRENT);
-
-      NotificationCompat.Builder mBuilder =
-          new NotificationCompat.Builder(this)
-              .setSmallIcon(R.drawable.ic_terrain_black_24dp)
-              .setContentTitle("Climb")
-              .setContentText("Session In Progress");
-      mBuilder.setContentIntent(resultPendingIntent);
-      NotificationManager mNotificationManager =
-          (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-      // mId allows you to update the notification later on.
-      Notification notification = mBuilder.build();
-      notification.flags = Notification.FLAG_ONGOING_EVENT;
-      mNotificationManager.notify(SESSION_NOTIFICATION_ID, notification);
+//      // Handle the notification & back stack navigation
+//      Intent resultIntent = new Intent(this, MapActivity.class);
+//      resultIntent.putExtra(SESSION_START_TIME_EXTRA, appState.startTimeMillis);
+//      resultIntent.putExtra(CURRENT_GYM_ID_EXTRA, appState.getCurrentGymId());
+//      resultIntent.setAction(RESUME_FROM_NOTIFICATION_ACTION);
+//      TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+//      stackBuilder.addParentStack(MapActivity.class);
+//      stackBuilder.addNextIntent(resultIntent);
+//      PendingIntent resultPendingIntent =
+//          stackBuilder
+//              .getPendingIntent(NOTIFICATION_REQUEST_CODE, PendingIntent.FLAG_UPDATE_CURRENT);
+//
+//      NotificationCompat.Builder mBuilder =
+//          new Builder(this)
+//              .setSmallIcon(R.drawable.ic_terrain_black_24dp)
+//              .setContentTitle(getString(R.string.notification_title))
+//              .setContentText(getString(R.string.notification_text));
+//      mBuilder.setContentIntent(resultPendingIntent);
+//
+//      Notification notification = mBuilder.build();
+//      notification.flags = Notification.FLAG_ONGOING_EVENT;
+//
+//      NotificationManager notificationManager = (NotificationManager) getSystemService(
+//          Context.NOTIFICATION_SERVICE);
+//      notificationManager.notify(SESSION_NOTIFICATION_ID, notification);
 
       Intent startSessionIntent = new Intent(this, MapActivity.class);
       startSessionIntent.setAction(START_SESSION_ACTION);
-      startActivity(startSessionIntent);
+      startActivityForResult(startSessionIntent, START_SESSION_REQUEST_CODE);
     }
   }
 
@@ -273,22 +272,7 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
     Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
 
     // also request sessions to display
-    Calendar cal = Calendar.getInstance();
-    Date now = new Date();
-    cal.setTime(now);
-    long endTime = cal.getTimeInMillis();
-    cal.add(Calendar.MONTH, -1);
-    long startTime = cal.getTimeInMillis();
-    appState.getSessionHistory(startTime, endTime, new ResultCallback<SessionReadResult>() {
-      @Override
-      public void onResult(@NonNull SessionReadResult sessionReadResult) {
-        if (sessionReadResult.getStatus().isSuccess()) {
-          sessionsAdapter.setSessions(sessionReadResult);
-        } else {
-          Log.e(getClass().toString(), "get session failed");
-        }
-      }
-    });
+    updateSessionsRecycler();
 
     if (appState.hasCurrentGym()) {
       startSessionButton.setEnabled(true);
@@ -392,12 +376,38 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
     }
   }
 
+  private void updateSessionsRecycler() {
+    Calendar cal = Calendar.getInstance();
+    Date now = new Date();
+    cal.setTime(now);
+    long endTime = cal.getTimeInMillis();
+    cal.add(Calendar.MONTH, -1);
+    long startTime = cal.getTimeInMillis();
+    appState.getSessionHistory(startTime, endTime, new ResultCallback<SessionReadResult>() {
+      @Override
+      public void onResult(@NonNull SessionReadResult sessionReadResult) {
+        if (sessionReadResult.getStatus().isSuccess()) {
+          sessionsAdapter.hideNoSessions();
+          sessionsAdapter.setSessions(sessionReadResult);
+        } else {
+          // indicate that there are no sessions
+          sessionsAdapter.showNoSessions();
+        }
+      }
+    });
+  }
+
   private void displayNoCurrentGym() {
-    // they have no gym selected, so tell them how to add one
-    appBarImage.setBackgroundResource(R.mipmap.ic_launcher);
+    // they have no gym selected
+    sessionsAdapter.showSelectGymInstructions();
+    sessionsAdapter.notifyDataSetChanged();
   }
 
   private void displayCurrentGym() {
+    // remove the instructions card
+    sessionsAdapter.hideSelectGymInstructions();
+    sessionsAdapter.notifyDataSetChanged();
+
     // get the gym
     Msgs.Gym gym = appState.getCurrentGym();
 

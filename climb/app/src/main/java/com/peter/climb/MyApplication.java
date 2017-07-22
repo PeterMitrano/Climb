@@ -42,14 +42,13 @@ public class MyApplication extends Application {
 
   private AppState state = new AppState();
 
-  public AppState getState(Context applicationContext, FetchGymDataListener listener) {
-    state.setApplicationContext(applicationContext);
-
-    state.refresh(listener);
+  public AppState fetchGymDataAndAppState(Context applicationContext,
+      FetchGymDataListener listener) {
+    state.refresh(listener, applicationContext);
     return state;
   }
 
-  class AppState implements FetchGymDataListener {
+  class AppState {
 
     static final String SESSION_START_TIME_EXTRA = "session_start_time_extra";
     static final String CURRENT_GYM_ID_EXTRA = "current_gym_id_extra";
@@ -57,11 +56,9 @@ public class MyApplication extends Application {
     static final int NO_GYM_ID = -1;
     static final long NO_START_TIME = -1;
 
-    private Gyms gyms;
-
-    GoogleApiClient mClient = null;
-
     // part of global app state
+    GoogleApiClient mClient = null;
+    private Gyms gyms = null;
     private Gym currentGym;
     private int currentGymId;
 
@@ -74,18 +71,12 @@ public class MyApplication extends Application {
     long startTimeMillis;
     boolean inProgress;
 
-    private Context applicationContext;
-
     private AppState() {
       gyms = null;
       sends = new ArrayList<>();
       currentGymId = NO_GYM_ID;
       inProgress = false;
       startTimeMillis = NO_START_TIME;
-    }
-
-    void setApplicationContext(Context applicationContext) {
-      this.applicationContext = applicationContext;
     }
 
     void createDataType(ResultCallback<DataTypeResult> resultCallback) {
@@ -103,13 +94,9 @@ public class MyApplication extends Application {
           .addField(colorField)
           .build();
 
-      // Invoke the Config API with:
-      // - The Google API client object
-      // - The create data type request
       PendingResult<DataTypeResult> pendingResult = Fitness.ConfigApi
           .createCustomDataType(mClient, request);
 
-      // Check the result asynchronously
       pendingResult.setResultCallback(resultCallback);
     }
 
@@ -143,11 +130,7 @@ public class MyApplication extends Application {
       }
     }
 
-    void endSession(ResultCallback<Status> resultCallback) {
-//      SessionInsertRequest insertRequest = insertFitnessSession();
-//      Fitness.SessionsApi.insertSession(mClient, insertRequest)
-//          .setResultCallback(resultCallback);
-
+    void endSession(ResultCallback<Status> resultCallback, Context applicationContext) {
       DataSource dataSource = new DataSource.Builder()
           .setAppPackageName(applicationContext)
           .setDataType(routeDataType)
@@ -210,13 +193,30 @@ public class MyApplication extends Application {
       return System.currentTimeMillis() - startTimeMillis;
     }
 
-    void refresh(@Nullable FetchGymDataListener listener) {
+    void refresh(final @Nullable FetchGymDataListener listener, Context applicationContext) {
       // this provider request makes an network request, so it must be run async
       FetchGymDataTask gymsAsyncTask = new FetchGymDataTask(applicationContext);
-      gymsAsyncTask.addFetchGymDataListener(this);
-      if (listener != null) {
-        gymsAsyncTask.addFetchGymDataListener(listener);
-      }
+      gymsAsyncTask.addFetchGymDataListener(new FetchGymDataListener() {
+        @Override
+        public void onGymsFound(Gyms gyms) {
+          AppState.this.gyms = gyms;
+          if (currentGymId != NO_GYM_ID) {
+            AppState.this.currentGym = gyms.getGyms(currentGymId);
+          }
+          if (listener != null) {
+            listener.onGymsFound(gyms);
+          }
+        }
+
+        @Override
+        public void onNoGymsFound() {
+          AppState.this.currentGymId = NO_GYM_ID;
+          AppState.this.gyms = null;
+          if (listener != null) {
+            listener.onNoGymsFound();
+          }
+        }
+      });
       gymsAsyncTask.execute();
     }
 
@@ -227,20 +227,6 @@ public class MyApplication extends Application {
         this.startTimeMillis = t;
         setCurrentGym(gym_id);
       }
-    }
-
-    @Override
-    public void onGymsFound(Gyms gyms) {
-      this.gyms = gyms;
-      if (currentGymId != NO_GYM_ID) {
-        this.currentGym = gyms.getGyms(currentGymId);
-      }
-    }
-
-    @Override
-    public void onNoGymsFound() {
-      this.currentGymId = NO_GYM_ID;
-      this.gyms = null;
     }
 
     void getSessionHistory(final long startTime, final long endTime,
@@ -269,6 +255,10 @@ public class MyApplication extends Application {
       PendingResult<SessionReadResult> pendingResult = Fitness.SessionsApi
           .readSession(mClient, readRequest);
       pendingResult.setResultCallback(resultCallback);
+    }
+
+    void clearSends() {
+      sends.clear();
     }
   }
 }
