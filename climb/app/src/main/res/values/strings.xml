@@ -24,4 +24,7 @@
   <string name="cancel">Cancel</string>
   <string name="end_empty_session">End Session Anyways</string>
   <string name="instructions">swipe left to view the gym map</string>
+  <string name="card_menu_delete">Delete</string>
+  <string name="delete_session_message">This session will be removed from your timeline.</string>
+  <string name="delete_session_title">Delete Session?</string>
 </resources>

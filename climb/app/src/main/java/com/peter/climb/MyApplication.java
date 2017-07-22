@@ -20,9 +20,12 @@ import com.google.android.gms.fitness.data.DataSource.Builder;
 import com.google.android.gms.fitness.data.DataType;
 import com.google.android.gms.fitness.data.Field;
 import com.google.android.gms.fitness.data.Session;
+import com.google.android.gms.fitness.request.DataDeleteRequest;
 import com.google.android.gms.fitness.request.DataTypeCreateRequest;
 import com.google.android.gms.fitness.request.SessionInsertRequest;
+import com.google.android.gms.fitness.request.SessionReadRequest;
 import com.google.android.gms.fitness.result.DataTypeResult;
+import com.google.android.gms.fitness.result.SessionReadResult;
 import com.peter.Climb.Msgs.Gym;
 import com.peter.Climb.Msgs.Gyms;
 import com.peter.Climb.Msgs.Route;
@@ -34,11 +37,8 @@ import java.util.concurrent.TimeUnit;
 
 public class MyApplication extends Application {
 
-  interface SetCurrentGymListener {
-
-    void onSetCurrentGymSuccess();
-
-    void onSetCurrentGymFail();
+  interface DeleteSessionListener {
+    void onDeleteSession(Session session, int index);
   }
 
   private AppState state = new AppState();
@@ -139,6 +139,10 @@ public class MyApplication extends Application {
       sends.add(new Send(route, System.currentTimeMillis()));
     }
 
+    boolean isSessionEmpty() {
+      return sends.isEmpty();
+    }
+
     void startSession() {
       if (!inProgress) {
         startTimeMillis = System.currentTimeMillis();
@@ -146,12 +150,7 @@ public class MyApplication extends Application {
       }
     }
 
-    @Nullable
-    PendingResult<Status> endSession() {
-      if (sends.isEmpty()) {
-        return null;
-      }
-
+    void endSession(ResultCallback<Status> resultCallback) {
       // Create the session to insert
       long endTime = System.currentTimeMillis();
       Session session = new Session.Builder()
@@ -183,7 +182,21 @@ public class MyApplication extends Application {
           .build();
 
       // attempt to insert the session into the user's google fit
-      return Fitness.SessionsApi.insertSession(mClient, insertRequest);
+      PendingResult<Status> pendingResult = Fitness.SessionsApi
+          .insertSession(mClient, insertRequest);
+      pendingResult.setResultCallback(resultCallback);
+    }
+
+    void deleteSession(Session session, long startTime, long endTime,
+        ResultCallback<Status> resultCallback) {
+      DataDeleteRequest deleteRequest = new DataDeleteRequest.Builder()
+          .setTimeInterval(startTime, endTime, TimeUnit.MILLISECONDS)
+          .deleteAllData()
+          .addSession(session)
+          .build();
+
+      PendingResult<Status> pendingResult = Fitness.HistoryApi.deleteData(mClient, deleteRequest);
+      pendingResult.setResultCallback(resultCallback);
     }
 
     boolean hasCurrentGym() {
@@ -225,6 +238,17 @@ public class MyApplication extends Application {
     public void onNoGymsFound() {
       this.currentGymId = NO_GYM_ID;
       this.gyms = null;
+    }
+
+    public void getSesssionHistory(long startTime, long endTime,
+        ResultCallback<SessionReadResult> resultCallback) {
+      SessionReadRequest readRequest = new SessionReadRequest.Builder()
+          .setTimeInterval(startTime, endTime, TimeUnit.MILLISECONDS)
+          .build();
+
+      PendingResult<SessionReadResult> pendingResult = Fitness.SessionsApi
+          .readSession(mClient, readRequest);
+      pendingResult.setResultCallback(resultCallback);
     }
   }
 }

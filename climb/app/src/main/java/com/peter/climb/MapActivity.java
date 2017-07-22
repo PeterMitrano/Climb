@@ -18,7 +18,6 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.peter.Climb.Msgs.Gyms;
@@ -100,8 +99,7 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
   @Override
   public void onClick(View v) {
     if (v.getId() == R.id.end_session_button) {
-      PendingResult<Status> result = appState.endSession();
-      if (result == null) {
+      if (appState.isSessionEmpty()) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(R.string.empty_session_message)
             .setPositiveButton(R.string.end_empty_session, new DialogInterface.OnClickListener() {
@@ -112,7 +110,7 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
             .setNegativeButton(R.string.cancel, null);
         builder.create().show();
       } else {
-        result.setResultCallback(this);
+        appState.endSession(this);
       }
     }
   }

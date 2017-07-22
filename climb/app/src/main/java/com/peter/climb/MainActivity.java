@@ -45,22 +45,24 @@ import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
-import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Scope;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.fitness.Fitness;
-import com.google.android.gms.fitness.request.SessionReadRequest;
+import com.google.android.gms.fitness.data.Session;
 import com.google.android.gms.fitness.result.SessionReadResult;
 import com.peter.Climb.Msgs;
 import com.peter.Climb.Msgs.Gyms;
 import com.peter.climb.FetchGymDataTask.FetchGymDataListener;
 import com.peter.climb.MyApplication.AppState;
+import com.peter.climb.MyApplication.DeleteSessionListener;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity implements OnNavigationItemSelectedListener,
-    OnClickListener, ConnectionCallbacks, OnConnectionFailedListener, FetchGymDataListener {
+    DeleteSessionListener, OnClickListener, ConnectionCallbacks, OnConnectionFailedListener,
+    FetchGymDataListener {
 
   public static final String PREFS_NAME = "MyPrefsFile";
   public static final String START_SESSION_ACTION = "start_session_action";
@@ -97,6 +99,7 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
     changeAccountsItem = navigationView.getMenu().findItem(R.id.change_accounts);
 
     sessionsAdapter = new SessionsAdapter();
+    sessionsAdapter.setOnDeleteSessionListener(this);
     sessionsRecycler.setAdapter(sessionsAdapter);
 
     startSessionButton.setEnabled(false);
@@ -280,14 +283,7 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
     long endTime = cal.getTimeInMillis();
     cal.add(Calendar.MONTH, -1);
     long startTime = cal.getTimeInMillis();
-
-    SessionReadRequest readRequest = new SessionReadRequest.Builder()
-        .setTimeInterval(startTime, endTime, TimeUnit.MILLISECONDS)
-        .build();
-
-    PendingResult<SessionReadResult> pendingResult = Fitness.SessionsApi
-        .readSession(appState.mClient, readRequest);
-    pendingResult.setResultCallback(new ResultCallback<SessionReadResult>() {
+    appState.getSesssionHistory(startTime, endTime, new ResultCallback<SessionReadResult>() {
       @Override
       public void onResult(@NonNull SessionReadResult sessionReadResult) {
         sessionsAdapter.setSessions(sessionReadResult);
@@ -332,6 +328,20 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
   }
 
   @Override
+  public void onDeleteSession(final Session session, final int index) {
+    long startTime = session.getStartTime(TimeUnit.MILLISECONDS);
+    long endTime = session.getEndTime(TimeUnit.MILLISECONDS);
+    appState.deleteSession(session, startTime, endTime, new ResultCallback<Status>() {
+      @Override
+      public void onResult(@NonNull Status status) {
+        // remove the item
+        sessionsAdapter.removeSession(session);
+        sessionsAdapter.notifyItemRemoved(index);
+      }
+    });
+  }
+
+  @Override
   public void onGymsFound(Gyms gyms) {
     // First check if this request came from a search for a specific gym
     Intent intent = getIntent();
@@ -372,6 +382,7 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
       appState.mClient = new GoogleApiClient.Builder(this)
           .addApi(Fitness.SESSIONS_API)
           .addApi(Fitness.CONFIG_API)
+          .addApi(Fitness.HISTORY_API)
           .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
           .addScope(new Scope(Scopes.PROFILE))
           .addConnectionCallbacks(this)
