@@ -17,11 +17,11 @@ import com.peter.climb.MyApplication.DeleteSessionListener;
 class SessionViewHolder extends RecyclerView.ViewHolder implements
     OnMenuItemClickListener, OnClickListener {
 
-  LinearLayout layout;
-  Toolbar toolbar;
-  CardView card;
-  TextView sessionTitleText;
-  TextView dateTimeText;
+  final LinearLayout layout;
+  final Toolbar toolbar;
+  final CardView card;
+  final TextView sessionTitleText;
+  final TextView dateTimeText;
   Session session;
   DeleteSessionListener deleteSessionListener;
 

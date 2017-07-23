@@ -5,9 +5,9 @@ import com.peter.Climb.Msgs.Wall;
 
 final class Send {
 
-  private Route route;
-  private long timeMillis;
-  private Wall wall;
+  private final Route route;
+  private final long timeMillis;
+  private final Wall wall;
 
   Send(Route route, Wall wall, long timeMillis) {
     this.route = route;

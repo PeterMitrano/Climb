@@ -40,7 +40,7 @@ public class MyApplication extends Application {
     void onDeleteSession(Session session, int index);
   }
 
-  private AppState state = new AppState();
+  final private AppState state = new AppState();
 
   public AppState fetchGymDataAndAppState(Context applicationContext,
       FetchGymDataListener listener) {
@@ -67,7 +67,7 @@ public class MyApplication extends Application {
     Field nameField;
     Field wallField;
     Field colorField;
-    private List<Send> sends;
+    final private List<Send> sends;
     long startTimeMillis;
     boolean inProgress;
 

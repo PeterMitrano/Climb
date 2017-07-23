@@ -175,7 +175,7 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
   }
 
   @Override
-  public boolean onNavigationItemSelected(MenuItem item) {
+  public boolean onNavigationItemSelected(@NonNull MenuItem item) {
     // Handle navigation view item clicks here.
     switch (item.getItemId()) {
       case R.id.app_settings: {

@@ -24,12 +24,12 @@ public class RouteLabelView extends View {
   private int routeGrade;
   private Msgs.Point2D position;
   private String routeName;
-  private Paint markerPaint;
+  final private Paint markerPaint;
+  final private Paint gradePaint;
+  final private Paint namePaint;
+  final private Rect gradeRect;
   private float metersToPixels;
   private float scaleFactor = 1.f;
-  private Paint gradePaint;
-  private Paint namePaint;
-  private Rect gradeRect;
   private float x1;
   private float y1;
   private float x2;

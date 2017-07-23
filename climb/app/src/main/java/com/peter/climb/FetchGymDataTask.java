@@ -12,7 +12,7 @@ import java.util.List;
 class FetchGymDataTask extends AsyncTask<Void, Integer, Gyms> {
 
   private final Context applicationContext;
-  private List<FetchGymDataListener> listeners = new ArrayList<>();
+  final private List<FetchGymDataListener> listeners = new ArrayList<>();
 
   interface FetchGymDataListener {
 

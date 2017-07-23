@@ -3,6 +3,7 @@ package com.peter.climb;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import com.google.android.gms.common.GoogleApiAvailability;
 
@@ -10,6 +11,7 @@ import com.google.android.gms.common.GoogleApiAvailability;
 public class ErrorDialogFragment extends DialogFragment {
 
   @Override
+  @NonNull
   public Dialog onCreateDialog(Bundle savedInstanceState) {
     // Get the error code and retrieve the appropriate dialog
     int errorCode = this.getArguments().getInt(MainActivity.DIALOG_ERROR);

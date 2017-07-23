@@ -6,8 +6,6 @@ import android.util.LruCache;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.ImageLoader;
-import com.android.volley.toolbox.RequestFuture;
-import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
 class RequestorSingleton {
@@ -15,7 +13,7 @@ class RequestorSingleton {
   private static RequestorSingleton mInstance;
   private static Context mCtx;
   private RequestQueue mRequestQueue;
-  private ImageLoader mImageLoader;
+  final private ImageLoader mImageLoader;
 
   private RequestorSingleton(Context context) {
     mCtx = context;

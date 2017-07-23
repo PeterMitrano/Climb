@@ -11,7 +11,7 @@ import com.peter.Climb.Msgs;
 
 public class WallView extends View {
 
-  private Paint wallPaint;
+  final private Paint wallPaint;
   private Msgs.Wall wall;
 
   private Path wallPath;

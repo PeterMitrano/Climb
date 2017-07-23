@@ -2,7 +2,7 @@ package com.peter.climb;
 
 import android.graphics.Color;
 
-public class Utils {
+class Utils {
 
   /**
    * Make a color lighter or darker
@@ -11,7 +11,7 @@ public class Utils {
    * @param factor >1f is lighter, <1f is darker
    * @return the new color
    */
-  public static int manipulateColor(int color, float factor) {
+  static int manipulateColor(int color, float factor) {
     int a = Color.alpha(color);
     int r = Math.round(Color.red(color) * factor);
     int g = Math.round(Color.green(color) * factor);
