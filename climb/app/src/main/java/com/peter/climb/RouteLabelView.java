@@ -164,6 +164,8 @@ public class RouteLabelView extends View {
             listener.onRouteClicked(this);
           }
 
+          Log.e(getClass().toString(), this.toString());
+
           markerPaint.setColor(routeColor);
           invalidate();
         }

@@ -11,10 +11,12 @@ import android.graphics.RectF;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.ViewGroup;
 import com.peter.Climb.Msgs.Gym;
+import com.peter.Climb.Msgs.Point2D;
 import com.peter.Climb.Msgs.Route;
 import com.peter.Climb.Msgs.Wall;
 import com.peter.climb.RouteLabelView.RouteClickedListener;
@@ -281,7 +283,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     return new_point;
   }
 
-  private void updateFloorRect() {
+  void updateFloorRect() {
     float w = gym.getFloors(floor).getWidth() * metersToPixels;
     float h = gym.getFloors(floor).getHeight() * metersToPixels;
     gymFloorRect.set(0, 0, w, h);
@@ -293,33 +295,53 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
       updateFloorRect();
       removeAllViews();
 
-      // add all the walls first
-      wallViews.clear();
-      for (Wall wall : gym.getFloors(floor).getWallsList()) {
-        WallView wallView = new WallView(getContext());
-        wallView.setWall(wall);
+      addWalls();
+      addRoutes();
+    }
+  }
 
-        wallViews.add(wallView);
-//        addView(wallView);
-      }
+  void addWalls() {
+    // add all the walls first
+    wallViews.clear();
+    for (Wall wall : gym.getFloors(floor).getWallsList()) {
+      WallView wallView = new WallView(getContext());
+      wallView.setWall(wall);
 
-      // then add the routes on top
-      routeLabelViews.clear();
-      routes.clear();
-      for (Wall wall : gym.getFloors(floor).getWallsList()) {
-        for (Route route : wall.getRoutesList()) {
-          RouteLabelView routeLabelView = new RouteLabelView(getContext());
-          routeLabelView.setRouteGrade(route.getGrade());
-          routeLabelView.setRouteName(route.getName());
-          routeLabelView.setPosition(route.getPosition());
-          routeLabelView.setRouteColor(route.getColor());
-          routeLabelView.addRouteClickedListener(this);
-          routeLabelViews.add(routeLabelView);
-          routes.add(route);
-          addView(routeLabelView);
-        }
+      wallViews.add(wallView);
+      addView(wallView);
+    }
+  }
+
+  void addRoutes() {
+    // then add the routes on top
+    routeLabelViews.clear();
+    routes.clear();
+    for (Wall wall : gym.getFloors(floor).getWallsList()) {
+      for (Route route : wall.getRoutesList()) {
+        RouteLabelView routeLabelView = new RouteLabelView(getContext());
+        routeLabelView.setRouteGrade(route.getGrade());
+        routeLabelView.setRouteName(route.getName());
+        routeLabelView.setPosition(route.getPosition());
+        routeLabelView.setRouteColor(route.getColor());
+        routeLabelView.addRouteClickedListener(this);
+        routeLabelViews.add(routeLabelView);
+        routes.add(route);
+        Log.e(getClass().toString(), routeLabelView.toString());
+        addView(routeLabelView);
       }
     }
+  }
+
+  void addRoute() {
+    Point2D p = Point2D.newBuilder().setX(4).setY(5).build();
+    RouteLabelView v = new RouteLabelView(getContext());
+    v.setRouteGrade(1);
+    v.setRouteName("Happiness");
+    v.setRouteColor("0xff0000");
+    v.setPosition(p);
+    v.setMetersToPixels(54);
+    routeLabelViews.add(v);
+    addView(v);
   }
 
   private void init() {

@@ -55,6 +55,8 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
     gymMapView = (GymMapView) findViewById(R.id.map_view);
 
     gymMapView.addAddRouteListener(this);
+    gymMapView.setGym(appState.getCurrentGym());
+
     startSessionTimer();
   }
 
@@ -167,7 +169,14 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
       appState.restoreFromIntent(intent);
     }
 
-    gymMapView.setGym(appState.getCurrentGym());
+//    gymMapView.setGym(appState.getCurrentGym());
+//    gymMapView.gym = appState.getCurrentGym();
+//    gymMapView.addWalls();
+//    gymMapView.addRoutes();
+//    gymMapView.updateScale();
+//    gymMapView.invalidate();
+//    gymMapView.invalidateChildren();
+    gymMapView.addRoute();
   }
 
   @Override
