@@ -60,7 +60,6 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
       // require app state to be set up, which may require HTTP request if coming from notification
       gymMapView.setGym(appState.getCurrentGym());
       gymMapView.addAddRouteListener(this);
-      startSessionTimer();
     }
 
     gymMapView.addAddRouteListener(this);
