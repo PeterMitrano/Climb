@@ -30,7 +30,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
   private List<WallView> wallViews;
 
   private List<RouteLabelView> routeLabelViews;
-  private Gym gym;
+  Gym gym;
   private ScaleGestureDetector scaleGestureDetector;
   private Paint gymFloorPaint;
   private Paint gymFloorOutlinePaint;
@@ -83,8 +83,9 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
 
   public void setGym(Gym gym) {
     this.gym = gym;
-
     onDataChanged();
+
+    // gym size has changed (if gym was null), so we must update scale
     updateScale();
     invalidate();
     invalidateChildren();
@@ -110,6 +111,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
 
     // this is an unavoidable check. we must be able to draw without the gym ready
     if (gym != null) {
+      // screen shape has changed, so we must update scale
       updateScale();
 
       for (WallView wallView : wallViews) {
@@ -230,30 +232,32 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     return true;
   }
 
-  private void updateScale() {
-    float gymAspectRatio = gym.getFloors(floor).getHeight() / gym.getFloors(floor).getWidth();
-    float screenAspectRatio = (float) getHeight() / getWidth();
+  void updateScale() {
+    if (gym != null) {
+      float gymAspectRatio = gym.getFloors(floor).getHeight() / gym.getFloors(floor).getWidth();
+      float screenAspectRatio = (float) getHeight() / getWidth();
 
-    if (gymAspectRatio < screenAspectRatio) {
-      // gym fills width
-      metersToPixels = getWidth() / gym.getFloors(floor).getWidth();
-    } else {
-      // gym fills height
-      metersToPixels = getHeight() / gym.getFloors(floor).getHeight();
-    }
+      if (gymAspectRatio < screenAspectRatio) {
+        // gym fills width
+        metersToPixels = getWidth() / gym.getFloors(floor).getWidth();
+      } else {
+        // gym fills height
+        metersToPixels = getHeight() / gym.getFloors(floor).getHeight();
+      }
 
-    updateFloorRect();
+      updateFloorRect();
 
-    for (WallView wallView : wallViews) {
-      wallView.setMetersToPixels(metersToPixels);
-    }
+      for (WallView wallView : wallViews) {
+        wallView.setMetersToPixels(metersToPixels);
+      }
 
-    for (RouteLabelView labelView : routeLabelViews) {
-      labelView.setMetersToPixels(metersToPixels);
+      for (RouteLabelView labelView : routeLabelViews) {
+        labelView.setMetersToPixels(metersToPixels);
+      }
     }
   }
 
-  private void invalidateChildren() {
+  void invalidateChildren() {
     for (WallView wallView : wallViews) {
       wallView.invalidate();
     }
@@ -283,18 +287,20 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     gymFloorRect.set(0, 0, w, h);
   }
 
-  private void onDataChanged() {
+  void onDataChanged() {
     // create all the views from the Gym msg in the constructor
     if (gym != null) {
       updateFloorRect();
+      removeAllViews();
 
       // add all the walls first
+      wallViews.clear();
       for (Wall wall : gym.getFloors(floor).getWallsList()) {
         WallView wallView = new WallView(getContext());
         wallView.setWall(wall);
 
         wallViews.add(wallView);
-        addView(wallView);
+//        addView(wallView);
       }
 
       // then add the routes on top

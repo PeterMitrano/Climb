@@ -12,6 +12,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -52,15 +53,6 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
     timerView = (TextView) findViewById(R.id.time);
 
     gymMapView = (GymMapView) findViewById(R.id.map_view);
-
-    Intent intent = getIntent();
-    if (intent.getAction().equals(RESUME_FROM_NOTIFICATION_ACTION)) {
-      appState.restoreFromIntent(intent);
-    } else {
-      // require app state to be set up, which may require HTTP request if coming from notification
-      gymMapView.setGym(appState.getCurrentGym());
-      gymMapView.addAddRouteListener(this);
-    }
 
     gymMapView.addAddRouteListener(this);
     startSessionTimer();
@@ -170,11 +162,16 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
 
   @Override
   public void onGymsFound(Gyms gyms) {
+    Intent intent = getIntent();
+    if (intent.getAction().equals(RESUME_FROM_NOTIFICATION_ACTION)) {
+      appState.restoreFromIntent(intent);
+    }
 
+    gymMapView.setGym(appState.getCurrentGym());
   }
 
   @Override
   public void onNoGymsFound() {
-
+    Log.e(getClass().toString(), "well fuck...");
   }
 }
