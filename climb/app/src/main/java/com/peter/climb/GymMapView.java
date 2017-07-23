@@ -339,6 +339,8 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     routeWallMap = new HashMap<>();
 
     scaleGestureDetector = new ScaleGestureDetector(getContext(), new MapScaleGestureListener());
+
+    setWillNotDraw(false);
   }
 
   public void addAddRouteListener(AddRouteListener listener) {
@@ -362,6 +364,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     @Override
     public boolean onScale(ScaleGestureDetector detector) {
       scaleFactor *= detector.getScaleFactor();
+//      Log.e(getClass().toString(), "scale " + detector.getScaleFactor());
 
       // Don't let the object get too small or too large.
       scaleFactor = Math.max(MIN_ZOOM_FACTOR, Math.min(scaleFactor, MAX_ZOOM_FACTOR));

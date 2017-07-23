@@ -14,7 +14,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.Toast;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
@@ -26,7 +25,7 @@ import com.peter.climb.GymMapView.AddRouteListener;
 import com.peter.climb.MyApplication.AppState;
 import com.peter.climb.SessionInfoFragment.SessionInfoListener;
 
-public class MapActivity extends AppCompatActivity implements OnClickListener, AddRouteListener,
+public class MapActivity extends AppCompatActivity implements AddRouteListener,
     FetchGymDataListener, SessionInfoListener {
 
   private AppState appState;
@@ -66,13 +65,6 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
 //
 //      decor_view.setSystemUiVisibility(flags);
 //    }
-  }
-
-  @Override
-  public void onClick(View v) {
-    if (v.getId() == R.id.map_view) {
-      // expand map view, collapse
-    }
   }
 
   @Override

@@ -100,10 +100,10 @@ public class RouteLabelView extends View {
       labelH = Math.max(gradeRect.height(), MIN_SIZE) + PADDING;
     }
 
-    x1 = cx - labelW / 2;
-    y1 = cy - labelH / 2;
-    x2 = cx + labelW / 2;
-    y2 = cy + labelH / 2;
+    x1 = cx - labelW / 2f;
+    y1 = cy - labelH / 2f;
+    x2 = cx + labelW / 2f;
+    y2 = cy + labelH / 2f;
 
     float sendCountRadius = Math.max(sendsRect.width(), sendsRect.height()) + SENDS_RECT_PADDING;
     float sendCountCx = x2;
@@ -113,8 +113,8 @@ public class RouteLabelView extends View {
 
     if (scaleFactor > SHOW_NAME_SCALE) {
       canvas.drawText(gradeString, cx - gradeRect.exactCenterX(),
-          y1 + PADDING / 2 + gradeRect.height(), gradePaint);
-      canvas.drawText(routeName, cx - nameRect.exactCenterX(), y2 - PADDING / 2,
+          y1 + PADDING / 2f + gradeRect.height(), gradePaint);
+      canvas.drawText(routeName, cx - nameRect.exactCenterX(), y2 - PADDING / 2f,
           namePaint);
     } else if (scaleFactor > SHOW_GRADE_SCALE) {
       canvas.drawText(gradeString, cx - gradeRect.exactCenterX(), cy - gradeRect.exactCenterY(),
