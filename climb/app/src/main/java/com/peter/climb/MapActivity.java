@@ -15,8 +15,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
@@ -26,18 +24,15 @@ import com.peter.Climb.Msgs.Wall;
 import com.peter.climb.FetchGymDataTask.FetchGymDataListener;
 import com.peter.climb.GymMapView.AddRouteListener;
 import com.peter.climb.MyApplication.AppState;
-import java.util.Locale;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
+import com.peter.climb.SessionInfoFragment.SessionInfoListener;
 
 public class MapActivity extends AppCompatActivity implements OnClickListener, AddRouteListener,
-    FetchGymDataListener {
+    FetchGymDataListener, SessionInfoListener {
 
   private AppState appState;
-  private TextView timerView;
   private View decor_view;
   private GymMapView gymMapView;
+  private SessionInfoFragment sessionInfoFragment;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -48,36 +43,12 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
         .fetchGymDataAndAppState(getApplicationContext(), this);
     decor_view = getWindow().getDecorView();
 
-    Button endSessionButton = (Button) findViewById(R.id.end_session_button);
-    endSessionButton.setOnClickListener(this);
-
-    timerView = (TextView) findViewById(R.id.time);
+    sessionInfoFragment = (SessionInfoFragment) getSupportFragmentManager()
+        .findFragmentById(R.id.session_info_fragment);
+    sessionInfoFragment.setSessionInfoListener(this);
 
     gymMapView = (GymMapView) findViewById(R.id.map_view);
-
     gymMapView.addAddRouteListener(this);
-  }
-
-  private void startSessionTimer() {
-    new Timer().scheduleAtFixedRate(new TimerTask() {
-      @Override
-      public void run() {
-        runOnUiThread(new Runnable() {
-
-          @Override
-          public void run() {
-            long millis = appState.getSessionLength();
-            String hms = String
-                .format(Locale.US, "%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(millis),
-                    TimeUnit.MILLISECONDS.toMinutes(millis) % TimeUnit.HOURS.toMinutes(1),
-                    TimeUnit.MILLISECONDS.toSeconds(millis) % TimeUnit.MINUTES.toSeconds(1));
-            timerView.setText(hms);
-          }
-
-        });
-      }
-
-    }, 0, 1000);
   }
 
   @Override
@@ -99,46 +70,8 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
 
   @Override
   public void onClick(View v) {
-    if (v.getId() == R.id.end_session_button) {
-      if (appState.isSessionEmpty()) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage(R.string.empty_session_message)
-            .setPositiveButton(R.string.end_empty_session, new DialogInterface.OnClickListener() {
-              public void onClick(DialogInterface dialog, int id) {
-                dismissNotificationAndFinish(RESULT_CANCELED);
-              }
-            })
-            .setNegativeButton(R.string.cancel, null);
-        builder.create().show();
-      } else {
-        appState.endSession(new ResultCallback<Status>() {
-          @Override
-          public void onResult(@NonNull Status status) {
-
-            if (status.isSuccess()) {
-              Toast.makeText(getApplicationContext(), "Session Saved!", Toast.LENGTH_SHORT).show();
-              dismissNotificationAndFinish(RESULT_OK);
-            } else if (status.hasResolution()) {
-              try {
-                status.getResolution().send();
-              } catch (CanceledException e) {
-                e.printStackTrace();
-              }
-            } else {
-              Snackbar snack = Snackbar
-                  .make(decor_view, "Failed to store your session in Google fit",
-                      Snackbar.LENGTH_LONG);
-              snack.setAction(R.string.ignore_end_session_error, new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                  dismissNotificationAndFinish(RESULT_CANCELED);
-                }
-              });
-              snack.show();
-            }
-          }
-        }, getApplicationContext());
-      }
+    if (v.getId() == R.id.map_view) {
+      // expand map view, collapse
     }
   }
 
@@ -171,12 +104,56 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
     }
 
     gymMapView.setGym(appState.getCurrentGym());
-    startSessionTimer();
+    sessionInfoFragment.startSessionTimer();
   }
 
   @Override
   public void onNoGymsFound() {
     // TODO: this is a serious case that needs to be handled.
     Log.e(getClass().toString(), "well fuck...");
+  }
+
+  @Override
+  public void onSessionEnded() {
+    if (appState.isSessionEmpty()) {
+      AlertDialog.Builder builder = new AlertDialog.Builder(this);
+      builder.setMessage(R.string.empty_session_message)
+          .setPositiveButton(R.string.end_empty_session, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+              dismissNotificationAndFinish(RESULT_CANCELED);
+            }
+          })
+          .setNegativeButton(R.string.cancel, null);
+      builder.create().show();
+    } else {
+      appState.endSession(new ResultCallback<Status>() {
+        @Override
+        public void onResult(@NonNull Status status) {
+
+          if (status.isSuccess()) {
+            Toast.makeText(getApplicationContext(), "Session Saved!", Toast.LENGTH_SHORT).show();
+            dismissNotificationAndFinish(RESULT_OK);
+          } else if (status.hasResolution()) {
+            try {
+              status.getResolution().send();
+            } catch (CanceledException e) {
+              e.printStackTrace();
+            }
+          } else {
+            Snackbar snack = Snackbar
+                .make(decor_view, "Failed to store your session in Google fit",
+                    Snackbar.LENGTH_LONG);
+            snack.setAction(R.string.ignore_end_session_error, new View.OnClickListener() {
+              @Override
+              public void onClick(View v) {
+                dismissNotificationAndFinish(RESULT_CANCELED);
+              }
+            });
+            snack.show();
+          }
+        }
+      }, getApplicationContext());
+    }
+
   }
 }

@@ -25,7 +25,7 @@ import java.util.List;
 public class GymMapView extends ViewGroup implements RouteClickedListener {
 
   public static final float MAX_ZOOM_FACTOR = 4.0f;
-  public static final int GYM_FLOOR_OUTLINE_STROKE_WIDTH = 24;
+  public static final int GYM_FLOOR_OUTLINE_STROKE_WIDTH = 16;
   private static final int GYM_FLOOR_OUTLINE_COLOR = 0xff3d3d3d;
   private static final float MIN_ZOOM_FACTOR = 0.85f;
   private List<WallView> wallViews;
@@ -244,6 +244,9 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
       metersToPixels = getHeight() / gym.getFloors(floor).getHeight();
     }
 
+    posX = (getWidth() - gym.getFloors(floor).getWidth() * metersToPixels) / 2;
+    posY = (getHeight() - gym.getFloors(floor).getHeight() * metersToPixels) / 2;
+
     updateFloorRect();
 
     for (WallView wallView : wallViews) {
@@ -288,8 +291,6 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
   private void onDataChanged() {
     // create all the views from the Gym msg in the constructor
     if (gym != null) {
-      updateFloorRect();
-
       // add all the walls first
       for (Wall wall : gym.getFloors(floor).getWallsList()) {
         WallView wallView = new WallView(getContext());
@@ -320,7 +321,8 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
   }
 
   private void init() {
-    scaleFactor = 1.f;
+    // start all the way zoomed out
+    scaleFactor = 0.9f;
 
     gymFloorRect = new RectF();
     gymFloorPaint = new Paint(Paint.ANTI_ALIAS_FLAG);

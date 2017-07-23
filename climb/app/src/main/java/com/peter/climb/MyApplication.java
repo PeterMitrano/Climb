@@ -43,7 +43,7 @@ public class MyApplication extends Application {
   final private AppState state = new AppState();
 
   public AppState fetchGymDataAndAppState(Context applicationContext,
-      FetchGymDataListener listener) {
+      @Nullable FetchGymDataListener listener) {
     state.refresh(listener, applicationContext);
     return state;
   }

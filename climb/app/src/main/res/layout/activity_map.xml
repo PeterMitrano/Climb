@@ -6,38 +6,14 @@
   android:layout_height="match_parent"
   android:background="#ffffff">
 
-  <android.support.constraint.ConstraintLayout
-    android:id="@+id/session_info"
+  <fragment
+    android:id="@+id/session_info_fragment"
     android:layout_width="0dp"
     android:layout_height="wrap_content"
-    android:padding="8dp"
-    android:background="#222"
-    app:layout_constraintBottom_toBottomOf="parent"
     app:layout_constraintLeft_toLeftOf="parent"
-    app:layout_constraintRight_toRightOf="parent">
-
-    <TextView
-      android:id="@+id/time"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:paddingTop="16dp"
-      android:text="@string/init_time"
-      android:textColor="#ddd"
-      android:textSize="20sp"
-      app:layout_constraintLeft_toRightOf="parent"
-      app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-      android:id="@+id/end_session_button"
-      style="@style/Widget.AppCompat.Button.Borderless"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:text="@string/end"
-      android:textSize="20sp"
-      app:layout_constraintRight_toRightOf="parent"
-      app:layout_constraintTop_toTopOf="parent" />
-
-  </android.support.constraint.ConstraintLayout>
+    app:layout_constraintRight_toRightOf="parent"
+    app:layout_constraintBottom_toBottomOf="parent"
+    android:name="com.peter.climb.SessionInfoFragment" />
 
   <com.peter.climb.GymMapView
     android:id="@+id/map_view"
@@ -45,7 +21,7 @@
     android:layout_height="0dp"
     android:background="@color/black"
     android:clipChildren="false"
-    app:layout_constraintBottom_toTopOf="@id/session_info"
+    app:layout_constraintBottom_toTopOf="@id/session_info_fragment"
     app:layout_constraintLeft_toLeftOf="parent"
     app:layout_constraintRight_toRightOf="parent"
     app:layout_constraintTop_toTopOf="parent"
