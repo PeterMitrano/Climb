@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 public class SessionInfoFragment extends Fragment implements OnClickListener {
 
   interface SessionInfoListener {
+
     void onSessionEnded();
   }
 
@@ -60,9 +61,6 @@ public class SessionInfoFragment extends Fragment implements OnClickListener {
       if (sessionInfoListener != null) {
         sessionInfoListener.onSessionEnded();
       }
-    }
-    else if (v.getId() == R.id.session_info_fragment) {
-      // expand the fragment
     }
   }
 

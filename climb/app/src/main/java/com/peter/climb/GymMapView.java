@@ -9,7 +9,6 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -349,7 +348,6 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
   @Override
   public void onRouteClicked(RouteLabelView view) {
     // indicate the route has been added
-    Snackbar.make(this, "Route added!", Snackbar.LENGTH_SHORT).show();
     int index = routeLabelViews.indexOf(view);
     Route route = routes.get(index);
 

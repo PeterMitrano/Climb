@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.support.v4.content.ContextCompat;
 import android.view.MotionEvent;
 import android.view.View;
 import com.peter.Climb.Msgs;
@@ -13,21 +14,26 @@ import java.util.List;
 
 public class RouteLabelView extends View {
 
-  public static final int GRADE_FONT_SIZE = 10;
-  public static final int NAME_FONT_SIZE = 6;
+  private static final float GRADE_FONT_SIZE = 10f;
+  private static final float NAME_FONT_SIZE = 6f;
+  private static final float SEND_COUNT_FONT_SIZE = 4f;
   private static final float SHOW_GRADE_SCALE = 1.6f;
   private static final float SHOW_NAME_SCALE = 2.6f;
-  public static final float MIN_SIZE = 10f;
-  private static final float PADDING = 10;
-  private static final float GRADE_NAME_PADDING = 2;
-  private final Rect nameRect;
+  private static final float MIN_SIZE = 10f;
+  private static final float PADDING = 10f;
+  private static final float GRADE_NAME_PADDING = 2f;
+  private static final float SENDS_RECT_PADDING = 2f;
   private int routeGrade;
   private Msgs.Point2D position;
   private String routeName;
-  final private Paint markerPaint;
-  final private Paint gradePaint;
-  final private Paint namePaint;
-  final private Rect gradeRect;
+  private final Paint gradePaint;
+  private final Paint namePaint;
+  private final Paint markerPaint;
+  private final Paint sendCountBubblePaint;
+  private final Paint sendCountPaint;
+  private final Rect gradeRect;
+  private final Rect nameRect;
+  private final Rect sendsRect;
   private float metersToPixels;
   private float scaleFactor = 1.f;
   private float x1;
@@ -37,9 +43,12 @@ public class RouteLabelView extends View {
   private int routeColor;
   private List<RouteClickedListener> routeClickedListeners;
   private boolean routeOwnsEvent;
+  private int sends;
 
   public RouteLabelView(Context context) {
     super(context);
+
+    sends = 0;
 
     routeClickedListeners = new ArrayList<>();
 
@@ -48,6 +57,7 @@ public class RouteLabelView extends View {
 
     gradeRect = new Rect();
     nameRect = new Rect();
+    sendsRect = new Rect();
 
     gradePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     gradePaint.setColor(Color.BLACK);
@@ -55,7 +65,15 @@ public class RouteLabelView extends View {
     namePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     namePaint.setColor(Color.BLACK);
 
+    sendCountBubblePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    sendCountBubblePaint.setColor(ContextCompat.getColor(context, R.color.colorAccent));
+
+    sendCountPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    sendCountPaint.setColor(Color.WHITE);
+
     setElevation(2);
+
+    setWillNotDraw(false);
   }
 
   @Override
@@ -66,22 +84,30 @@ public class RouteLabelView extends View {
     float cy = this.position.getY() * metersToPixels;
 
     String gradeString = toGradeString(routeGrade);
+    String sendsString = String.valueOf(sends);
     gradePaint.getTextBounds(gradeString, 0, gradeString.length(), gradeRect);
     namePaint.getTextBounds(routeName, 0, routeName.length(), nameRect);
+    sendCountPaint.getTextBounds(sendsString, 0, sendsString.length(), sendsRect);
 
-    float w = MIN_SIZE;
-    float h = MIN_SIZE;
+    float labelW = MIN_SIZE;
+    float labelH = MIN_SIZE;
     if (scaleFactor > SHOW_NAME_SCALE) {
-      w = Math.max(Math.max(gradeRect.width(), nameRect.width()), MIN_SIZE) + PADDING;
-      h = Math.max(gradeRect.height() + nameRect.height(), MIN_SIZE) + PADDING + GRADE_NAME_PADDING;
+      labelW = Math.max(Math.max(gradeRect.width(), nameRect.width()), MIN_SIZE) + PADDING;
+      labelH =
+          Math.max(gradeRect.height() + nameRect.height(), MIN_SIZE) + PADDING + GRADE_NAME_PADDING;
     } else if (scaleFactor > SHOW_GRADE_SCALE) {
-      w = Math.max(gradeRect.width(), MIN_SIZE) + PADDING;
-      h = Math.max(gradeRect.height(), MIN_SIZE) + PADDING;
+      labelW = Math.max(gradeRect.width(), MIN_SIZE) + PADDING;
+      labelH = Math.max(gradeRect.height(), MIN_SIZE) + PADDING;
     }
-    x1 = cx - w / 2;
-    y1 = cy - h / 2;
-    x2 = cx + w / 2;
-    y2 = cy + h / 2;
+
+    x1 = cx - labelW / 2;
+    y1 = cy - labelH / 2;
+    x2 = cx + labelW / 2;
+    y2 = cy + labelH / 2;
+
+    float sendCountRadius = Math.max(sendsRect.width(), sendsRect.height()) + SENDS_RECT_PADDING;
+    float sendCountCx = x2;
+    float sendCountCy = y1;
 
     canvas.drawRect(x1, y1, x2, y2, markerPaint);
 
@@ -93,6 +119,12 @@ public class RouteLabelView extends View {
     } else if (scaleFactor > SHOW_GRADE_SCALE) {
       canvas.drawText(gradeString, cx - gradeRect.exactCenterX(), cy - gradeRect.exactCenterY(),
           gradePaint);
+    }
+
+    if (sends > 0) {
+      canvas.drawCircle(sendCountCx, sendCountCy, sendCountRadius, sendCountBubblePaint);
+      canvas.drawText(sendsString, sendCountCx - sendsRect.exactCenterX(),
+          sendCountCy - sendsRect.exactCenterY(), sendCountPaint);
     }
   }
 
@@ -136,6 +168,7 @@ public class RouteLabelView extends View {
 
     gradePaint.setTextSize(GRADE_FONT_SIZE * scaleFactor);
     namePaint.setTextSize(NAME_FONT_SIZE * scaleFactor);
+    sendCountPaint.setTextSize(SEND_COUNT_FONT_SIZE * scaleFactor);
     invalidate();
   }
 
@@ -155,15 +188,8 @@ public class RouteLabelView extends View {
         break;
       }
       case MotionEvent.ACTION_UP: {
-        if (within(ev.getX(), ev.getY()) && routeOwnsEvent) {
-
-          // and actual click happened
-          for (RouteClickedListener listener : routeClickedListeners) {
-            listener.onRouteClicked(this);
-          }
-
-          markerPaint.setColor(routeColor);
-          invalidate();
+        if (within(ev.getX(), ev.getY()) && routeOwnsEvent && scaleFactor > SHOW_GRADE_SCALE) {
+          onRouteClicked();
         }
 
         // release ownership of this event
@@ -186,6 +212,18 @@ public class RouteLabelView extends View {
     }
 
     return false;
+  }
+
+  private void onRouteClicked() {
+    markerPaint.setColor(routeColor);
+    sends++;
+
+    invalidate();
+
+    // Dispatch to parents who are listening
+    for (RouteClickedListener listener : routeClickedListeners) {
+      listener.onRouteClicked(this);
+    }
   }
 
   private boolean within(float x, float y) {
