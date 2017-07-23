@@ -12,7 +12,6 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -63,6 +62,9 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
       gymMapView.addAddRouteListener(this);
       startSessionTimer();
     }
+
+    gymMapView.addAddRouteListener(this);
+    startSessionTimer();
   }
 
   private void startSessionTimer() {
@@ -165,18 +167,6 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
 
     // close the activity
     finish();
-  }
-
-//  @Override
-  public void onSetCurrentGymSuccess() {
-    gymMapView.setGym(appState.getCurrentGym());
-    gymMapView.addAddRouteListener(this);
-    startSessionTimer();
-  }
-
-//  @Override
-  public void onSetCurrentGymFail() {
-    Log.e(getClass().toString(), "well fuck...");
   }
 
   @Override
