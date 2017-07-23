@@ -21,17 +21,18 @@ import android.widget.Toast;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.peter.Climb.Msgs.Gyms;
 import com.peter.Climb.Msgs.Route;
+import com.peter.climb.FetchGymDataTask.FetchGymDataListener;
 import com.peter.climb.GymMapView.AddRouteListener;
 import com.peter.climb.MyApplication.AppState;
-import com.peter.climb.MyApplication.SetCurrentGymListener;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 public class MapActivity extends AppCompatActivity implements OnClickListener, AddRouteListener,
-    ResultCallback<Status>, SetCurrentGymListener {
+    ResultCallback<Status>, FetchGymDataListener {
 
   private AppState appState;
   private TextView timerView;
@@ -43,7 +44,7 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_map);
 
-    appState = ((MyApplication) getApplicationContext()).getState(getApplicationContext(), null);
+    appState = ((MyApplication) getApplicationContext()).getState(getApplicationContext(), this);
     decor_view = getWindow().getDecorView();
 
     Button endSessionButton = (Button) findViewById(R.id.end_session_button);
@@ -166,15 +167,25 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
     finish();
   }
 
-  @Override
+//  @Override
   public void onSetCurrentGymSuccess() {
     gymMapView.setGym(appState.getCurrentGym());
     gymMapView.addAddRouteListener(this);
     startSessionTimer();
   }
 
-  @Override
+//  @Override
   public void onSetCurrentGymFail() {
     Log.e(getClass().toString(), "well fuck...");
+  }
+
+  @Override
+  public void onGymsFound(Gyms gyms) {
+
+  }
+
+  @Override
+  public void onNoGymsFound() {
+
   }
 }
