@@ -48,7 +48,8 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
   private List<Route> routes;
   private List<AddRouteListener> addRouteListeners;
 
-  public interface AddRouteListener {
+  interface AddRouteListener {
+
     void onAddRoute(Route route);
   }
 
@@ -84,6 +85,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     this.gym = gym;
 
     onDataChanged();
+    updateScale();
     invalidate();
     invalidateChildren();
   }
@@ -106,27 +108,9 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
   protected void onSizeChanged(int w, int h, int oldw, int oldh) {
     super.onSizeChanged(w, h, oldw, oldh);
 
+    // this is an unavoidable check. we must be able to draw without the gym ready
     if (gym != null) {
-      float gymAspectRatio = gym.getFloors(floor).getHeight() / gym.getFloors(floor).getWidth();
-      float screenAspectRatio = (float) getHeight() / getWidth();
-
-      if (gymAspectRatio < screenAspectRatio) {
-        // gym fills width
-        metersToPixels = getWidth() / gym.getFloors(floor).getWidth();
-      } else {
-        // gym fills height
-        metersToPixels = getHeight() / gym.getFloors(floor).getHeight();
-      }
-
-      updateFloorRect();
-
-      for (WallView wallView : wallViews) {
-        wallView.setMetersToPixels(metersToPixels);
-      }
-
-      for (RouteLabelView labelView : routeLabelViews) {
-        labelView.setMetersToPixels(metersToPixels);
-      }
+      updateScale();
 
       for (WallView wallView : wallViews) {
         wallView.layout(0, 0, w, h);
@@ -137,6 +121,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
       }
     }
   }
+
 
   @Override
   protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
@@ -243,6 +228,29 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
       }
     }
     return true;
+  }
+
+  private void updateScale() {
+    float gymAspectRatio = gym.getFloors(floor).getHeight() / gym.getFloors(floor).getWidth();
+    float screenAspectRatio = (float) getHeight() / getWidth();
+
+    if (gymAspectRatio < screenAspectRatio) {
+      // gym fills width
+      metersToPixels = getWidth() / gym.getFloors(floor).getWidth();
+    } else {
+      // gym fills height
+      metersToPixels = getHeight() / gym.getFloors(floor).getHeight();
+    }
+
+    updateFloorRect();
+
+    for (WallView wallView : wallViews) {
+      wallView.setMetersToPixels(metersToPixels);
+    }
+
+    for (RouteLabelView labelView : routeLabelViews) {
+      labelView.setMetersToPixels(metersToPixels);
+    }
   }
 
   private void invalidateChildren() {
