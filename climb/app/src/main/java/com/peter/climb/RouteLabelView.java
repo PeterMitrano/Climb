@@ -104,6 +104,7 @@ public class RouteLabelView extends View {
   public void setPosition(Msgs.Point2D position) {
     this.position = position;
     invalidate();
+    requestLayout();
   }
 
   public void setRouteName(String routeName) {
@@ -121,7 +122,7 @@ public class RouteLabelView extends View {
       routeColor = Color.parseColor(color);
       markerPaint.setColor(routeColor);
     } catch (IllegalArgumentException | StringIndexOutOfBoundsException e) {
-      Log.e(this.getClass().toString(), color);
+      Log.e(this.getClass().toString(), "Invalid color string " + color);
       routeColor = Color.LTGRAY;
       markerPaint.setColor(Color.LTGRAY);
     }
@@ -139,6 +140,7 @@ public class RouteLabelView extends View {
     gradePaint.setTextSize(GRADE_FONT_SIZE * scaleFactor);
     namePaint.setTextSize(NAME_FONT_SIZE * scaleFactor);
     invalidate();
+    requestLayout();
   }
 
   public boolean handleMotionEvent(MotionEvent ev) {
@@ -148,7 +150,7 @@ public class RouteLabelView extends View {
       case MotionEvent.ACTION_DOWN: {
         if (within(ev.getX(), ev.getY())) {
           // change color to show selection
-          int highlightedColor = Utils.manipulateColor(routeColor, 0.7f);
+          int highlightedColor = Utils.manipulateColor(routeColor, 0.5f);
           markerPaint.setColor(highlightedColor);
           invalidate();
           routeOwnsEvent = true;

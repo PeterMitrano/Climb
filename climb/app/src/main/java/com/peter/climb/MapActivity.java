@@ -53,6 +53,7 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
     timerView = (TextView) findViewById(R.id.time);
 
     gymMapView = (GymMapView) findViewById(R.id.map_view);
+    findViewById(R.id.session_info).setOnClickListener(this);
 
     gymMapView.addAddRouteListener(this);
     gymMapView.setGym(appState.getCurrentGym());
@@ -101,6 +102,7 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
 
   @Override
   public void onClick(View v) {
+    gymMapView.addRoute();
     if (v.getId() == R.id.end_session_button) {
       PendingResult<Status> result = appState.endSession();
       if (result == null) {
@@ -176,7 +178,6 @@ public class MapActivity extends AppCompatActivity implements OnClickListener, A
 //    gymMapView.updateScale();
 //    gymMapView.invalidate();
 //    gymMapView.invalidateChildren();
-    gymMapView.addRoute();
   }
 
   @Override

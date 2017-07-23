@@ -122,6 +122,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
 
       for (RouteLabelView labelView : routeLabelViews) {
         labelView.layout(0, 0, w, h);
+        Log.e(getClass().toString(), labelView.toString() + " onSizeChanged()");
       }
     }
   }
@@ -337,7 +338,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     RouteLabelView v = new RouteLabelView(getContext());
     v.setRouteGrade(1);
     v.setRouteName("Happiness");
-    v.setRouteColor("0xff0000");
+    v.setRouteColor("#ff0000");
     v.setPosition(p);
     v.setMetersToPixels(54);
     routeLabelViews.add(v);

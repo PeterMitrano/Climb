@@ -97,6 +97,7 @@ function fakeGyms() {
     route0.setName('Lappnor Project');
     route0.setPosition(p6);
     route0.setGrade(17);
+    route0.setColor("#00ffff");
 
     let wall = new msgs.Wall();
     wall.setName('The Dawn Wall');
@@ -158,6 +159,7 @@ function fakeGyms() {
     route0.setName('Action Complete');
     route0.setPosition(p6);
     route0.setGrade(16);
+    route0.setColor("#ff00ff");
 
     let wall = new msgs.Wall();
     wall.setName('Wave');
