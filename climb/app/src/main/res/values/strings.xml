@@ -31,4 +31,6 @@
   <string name="select_gym_instructions_title">No Gym Selected</string>
   <string name="select_gym_instructions_subtitle">Use the search bar above to find your gym.</string>
   <string name="app_bar_image_description">Your current gym image</string>
+  <string name="send_feedback">Send Feedback</string>
+  <string name="help">Help</string>
 </resources>
