@@ -1,8 +1,8 @@
 package com.peter.climb;
 
-import static com.peter.climb.AppState.CURRENT_GYM_ID_EXTRA;
-import static com.peter.climb.AppState.RESUME_FROM_NOTIFICATION_ACTION;
-import static com.peter.climb.AppState.SESSION_START_TIME_EXTRA;
+import static com.peter.climb.MyApplication.AppState.CURRENT_GYM_ID_EXTRA;
+import static com.peter.climb.MyApplication.AppState.RESUME_FROM_NOTIFICATION_ACTION;
+import static com.peter.climb.MyApplication.AppState.SESSION_START_TIME_EXTRA;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -49,8 +49,8 @@ import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.fitness.Fitness;
 import com.peter.Climb.Msgs;
 import com.peter.Climb.Msgs.Gyms;
-import com.peter.climb.AppState.SetCurrentGymListener;
 import com.peter.climb.FetchGymDataTask.FetchGymDataListener;
+import com.peter.climb.MyApplication.AppState;
 
 public class MainActivity extends AppCompatActivity
     implements OnNavigationItemSelectedListener, OnClickListener,
@@ -64,7 +64,6 @@ public class MainActivity extends AppCompatActivity
   static final int REQUEST_RESOLVE_ERROR = 1002;
   static final String DIALOG_ERROR = "GOOGLE_API_ERROR";
   private static final int NOTIFICATION_REQUEST_CODE = 1003;
-  private AppState appState;
   private boolean mResolvingError = false;
 
   private ImageView largeIconImageView;
@@ -75,6 +74,8 @@ public class MainActivity extends AppCompatActivity
   private SwipeRefreshLayout swipeRefreshLayout;
   private MenuItem changeAccountsItem;
 
+  private AppState appState;
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -83,7 +84,8 @@ public class MainActivity extends AppCompatActivity
     Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
 
-    appState = ((MyApplication) getApplicationContext()).getState(getApplicationContext());
+    // calling this function ensures that gym data is fetched if need be
+    appState = ((MyApplication) getApplicationContext()).getState(getApplicationContext(), this);
 
     swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swiperefresh);
     largeIconImageView = (ImageView) findViewById(R.id.large_icon_image_view);
@@ -105,8 +107,6 @@ public class MainActivity extends AppCompatActivity
     toggle.syncState();
 
     navigationView.setNavigationItemSelectedListener(this);
-
-    attemptToDisplayCurrentGym();
 
     // connect to google fit API
     Intent intent = getIntent();
@@ -309,12 +309,41 @@ public class MainActivity extends AppCompatActivity
   @Override
   public void onGymsFound(Gyms gyms) {
     swipeRefreshLayout.setRefreshing(false);
+
+    // First check if this request came from a search for a specific gym
+    Intent intent = getIntent();
+    if (intent.getAction().equals(Intent.ACTION_VIEW)) {
+      Uri uri = getIntent().getData();
+      try {
+        int gymId = Integer.parseInt(uri.getLastPathSegment().toLowerCase());
+        appState.setCurrentGym(gymId);
+      } catch (NumberFormatException e) {
+        e.printStackTrace();
+        // failure case 1, invalid search result
+        Snackbar.make(swipeRefreshLayout, "Invalid search result", Snackbar.LENGTH_SHORT).show();
+      }
+    } else {
+      // try to look up the currently selected gym from preferences
+      SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+      int gymId = settings.getInt(GYM_ID_PREF_KEY, AppState.NO_GYM_ID);
+      appState.setCurrentGym(gymId);
+    }
+
+    if (appState.hasCurrentGym()) {
+      if (appState.mClient.isConnected()) {
+        startSessionButton.setEnabled(true);
+      }
+      displayCurrentGym();
+    } else {
+      displayNoCurrentGym();
+    }
   }
 
   @Override
   public void onNoGymsFound() {
-    Snackbar.make(swipeRefreshLayout, "No gyms found.", Snackbar.LENGTH_LONG);
     swipeRefreshLayout.setRefreshing(false);
+
+    Snackbar.make(swipeRefreshLayout, "No gyms found.", Snackbar.LENGTH_LONG).show();
   }
 
   private void buildFitnessClient() {
@@ -329,45 +358,6 @@ public class MainActivity extends AppCompatActivity
           .build();
 
       appState.mClient.connect();
-    }
-  }
-
-  private void attemptToDisplayCurrentGym() {
-    // Listener for when gyms are fetched (if they needed to be)
-    SetCurrentGymListener setCurrentGymListener = new SetCurrentGymListener() {
-      @Override
-      public void onSetCurrentGymSuccess() {
-        displayCurrentGym();
-
-        // allow the user to start the session
-        if (appState.mClient != null && appState.mClient.isConnected()) {
-          startSessionButton.setEnabled(true);
-        }
-      }
-
-      @Override
-      public void onSetCurrentGymFail() {
-        displayNoCurrentGym();
-      }
-    };
-
-    // First check if this request came from a search for a specific gym
-    Intent intent = getIntent();
-    if (intent.getAction().equals(Intent.ACTION_VIEW)) {
-      Uri uri = getIntent().getData();
-      try {
-        int gymId = Integer.parseInt(uri.getLastPathSegment().toLowerCase());
-        appState.setCurrentGym(gymId, setCurrentGymListener);
-      } catch (NumberFormatException e) {
-        e.printStackTrace();
-        // failure case 1, invalid search result
-        Snackbar.make(swipeRefreshLayout, "Invalid search result", Snackbar.LENGTH_SHORT).show();
-      }
-    } else {
-      // try to look up the currently selected gym from preferences
-      SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-      int gymId = settings.getInt(GYM_ID_PREF_KEY, AppState.NO_GYM_ID);
-      appState.setCurrentGym(gymId, setCurrentGymListener);
     }
   }
 
