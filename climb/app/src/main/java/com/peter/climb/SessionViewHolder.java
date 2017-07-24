@@ -12,18 +12,18 @@ import android.view.View.OnClickListener;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.google.android.gms.fitness.data.Session;
-import com.peter.climb.MyApplication.DeleteSessionListener;
+import com.peter.climb.MyApplication.SessionCardListener;
 
 class SessionViewHolder extends RecyclerView.ViewHolder implements
     OnMenuItemClickListener, OnClickListener {
 
-  final LinearLayout layout;
+  private final LinearLayout layout;
   final Toolbar toolbar;
   final CardView card;
   final TextView sessionTitleText;
   final TextView dateTimeText;
   Session session;
-  DeleteSessionListener deleteSessionListener;
+  SessionCardListener sessionCardListener;
 
   SessionViewHolder(View itemView) {
     super(itemView);
@@ -47,7 +47,7 @@ class SessionViewHolder extends RecyclerView.ViewHolder implements
       builder.setMessage(R.string.delete_session_message).setTitle(R.string.delete_session_title)
           .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
-              deleteSessionListener.onDeleteSession(session, getAdapterPosition());
+              sessionCardListener.onDeleteSession(session, getAdapterPosition());
             }
           })
           .setNegativeButton(android.R.string.cancel, null);
@@ -58,6 +58,7 @@ class SessionViewHolder extends RecyclerView.ViewHolder implements
 
   @Override
   public void onClick(View v) {
+    sessionCardListener.onShowSessionDetails(session, getAdapterPosition());
   }
 }
 

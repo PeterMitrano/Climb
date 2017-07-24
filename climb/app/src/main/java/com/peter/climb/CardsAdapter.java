@@ -8,7 +8,7 @@ import android.widget.LinearLayout;
 import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.Session;
 import com.google.android.gms.fitness.result.SessionReadResult;
-import com.peter.climb.MyApplication.DeleteSessionListener;
+import com.peter.climb.MyApplication.SessionCardListener;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -20,7 +20,7 @@ class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
   private int special_card_count = 0;
   private List<Session> sessions;
   private SessionReadResult sessionReadResult;
-  private DeleteSessionListener deleteSessionListener;
+  private SessionCardListener sessionCardListener;
   private boolean show_instructions = false;
   private boolean show_no_sessions = false;
 
@@ -33,8 +33,7 @@ class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
 
     if (this.sessions.isEmpty()) {
       showNoSessions();
-    }
-    else {
+    } else {
       hideNoSessions();
     }
 
@@ -98,7 +97,7 @@ class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
         sessionViewHolder.sessionTitleText.setText(title);
         sessionViewHolder.dateTimeText.setText(activeTimeString);
         sessionViewHolder.session = session;
-        sessionViewHolder.deleteSessionListener = this.deleteSessionListener;
+        sessionViewHolder.sessionCardListener = this.sessionCardListener;
         sessionViewHolder.toolbar.setTitle(toolbarTitle);
         break;
 
@@ -132,8 +131,8 @@ class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
     return sessions != null && sessions.size() > 0;
   }
 
-  void setOnDeleteSessionListener(DeleteSessionListener deleteSessionListener) {
-    this.deleteSessionListener = deleteSessionListener;
+  void setSessionCardListener(SessionCardListener sessionCardListener) {
+    this.sessionCardListener = sessionCardListener;
   }
 
   void showSelectGymInstructions() {

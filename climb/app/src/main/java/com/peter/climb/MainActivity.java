@@ -46,13 +46,13 @@ import com.peter.Climb.Msgs;
 import com.peter.Climb.Msgs.Gyms;
 import com.peter.climb.FetchGymDataTask.FetchGymDataListener;
 import com.peter.climb.MyApplication.AppState;
-import com.peter.climb.MyApplication.DeleteSessionListener;
+import com.peter.climb.MyApplication.SessionCardListener;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity implements OnNavigationItemSelectedListener,
-    DeleteSessionListener, OnClickListener, ConnectionCallbacks, OnConnectionFailedListener,
+    SessionCardListener, OnClickListener, ConnectionCallbacks, OnConnectionFailedListener,
     FetchGymDataListener {
 
   public static final int REQUEST_RESOLVE_ERROR = 1001;
@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
     changeAccountsItem = navigationView.getMenu().findItem(R.id.change_accounts);
 
     cardsAdapter = new CardsAdapter();
-    cardsAdapter.setOnDeleteSessionListener(this);
+    cardsAdapter.setSessionCardListener(this);
     cardsRecycler.setAdapter(cardsAdapter);
 
     startSessionButton.setEnabled(false);
@@ -304,6 +304,12 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
         cardsAdapter.notifyItemRemoved(index);
       }
     });
+  }
+
+  @Override
+  public void onShowSessionDetails(Session session, int index) {
+    Intent intent = new Intent(this, SessionDetailsActivity.class);
+    startActivity(intent);
   }
 
   @Override

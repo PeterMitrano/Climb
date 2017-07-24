@@ -33,4 +33,8 @@
   <string name="app_bar_image_description">Your current gym image</string>
   <string name="send_feedback">Send Feedback</string>
   <string name="help">Help</string>
+  <string name="active_time">Active Time</string>
+  <string name="session_detail_icon_description">session detail icon</string>
+  <string name="active_time_label">Active Time</string>
+  <string name="problems_sent_label">Problems Sent</string>
 </resources>

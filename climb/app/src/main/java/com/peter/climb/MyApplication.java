@@ -35,9 +35,11 @@ import java.util.concurrent.TimeUnit;
 
 public class MyApplication extends Application {
 
-  interface DeleteSessionListener {
+  interface SessionCardListener {
 
     void onDeleteSession(Session session, int index);
+
+    void onShowSessionDetails(Session session, int index);
   }
 
   final private AppState state = new AppState();
