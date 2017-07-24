@@ -156,8 +156,8 @@ public class MyApplication extends Application {
       // Create the session to insert
       long endTime = System.currentTimeMillis();
       com.google.android.gms.fitness.data.Session session = new com.google.android.gms.fitness.data.Session.Builder()
-          .setName("Climbing MySession")
-          .setDescription("MySession at " + currentGym.getName())
+          .setName("Climbing Session")
+          .setDescription("Session at " + currentGym.getName())
           .setIdentifier(UUID.randomUUID().toString())
           .setActivity(FitnessActivities.ROCK_CLIMBING)
           .setStartTime(startTimeMillis, TimeUnit.MILLISECONDS)
