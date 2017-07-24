@@ -39,7 +39,7 @@ public class MyApplication extends Application {
 
     void onDeleteSession(Session session, int index);
 
-    void onShowSessionDetails(Session session, int index);
+    void onShowSessionDetails(Session session, ArrayList<DataSet> dataSets, int index);
   }
 
   final private AppState state = new AppState();
@@ -155,9 +155,9 @@ public class MyApplication extends Application {
 
       // Create the session to insert
       long endTime = System.currentTimeMillis();
-      Session session = new Session.Builder()
-          .setName("Climbing Session")
-          .setDescription("Session at " + currentGym.getName())
+      com.google.android.gms.fitness.data.Session session = new com.google.android.gms.fitness.data.Session.Builder()
+          .setName("Climbing MySession")
+          .setDescription("MySession at " + currentGym.getName())
           .setIdentifier(UUID.randomUUID().toString())
           .setActivity(FitnessActivities.ROCK_CLIMBING)
           .setStartTime(startTimeMillis, TimeUnit.MILLISECONDS)
@@ -175,7 +175,8 @@ public class MyApplication extends Application {
       pendingResult.setResultCallback(resultCallback);
     }
 
-    void deleteSession(Session session, long startTime, long endTime,
+    void deleteSession(com.google.android.gms.fitness.data.Session session, long startTime,
+        long endTime,
         ResultCallback<Status> resultCallback) {
       DataDeleteRequest deleteRequest = new DataDeleteRequest.Builder()
           .setTimeInterval(startTime, endTime, TimeUnit.MILLISECONDS)

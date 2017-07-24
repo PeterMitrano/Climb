@@ -123,7 +123,7 @@ public class MapActivity extends AppCompatActivity implements AddRouteListener,
         public void onResult(@NonNull Status status) {
 
           if (status.isSuccess()) {
-            Toast.makeText(getApplicationContext(), "Session Saved!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "MySession Saved!", Toast.LENGTH_SHORT).show();
             dismissNotificationAndFinish(RESULT_OK);
           } else if (status.hasResolution()) {
             try {

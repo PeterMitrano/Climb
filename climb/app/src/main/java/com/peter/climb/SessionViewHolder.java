@@ -11,8 +11,10 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.Session;
 import com.peter.climb.MyApplication.SessionCardListener;
+import java.util.ArrayList;
 
 class SessionViewHolder extends RecyclerView.ViewHolder implements
     OnMenuItemClickListener, OnClickListener {
@@ -22,8 +24,10 @@ class SessionViewHolder extends RecyclerView.ViewHolder implements
   final CardView card;
   final TextView sessionTitleText;
   final TextView dateTimeText;
-  Session session;
+
+  private Session session;
   SessionCardListener sessionCardListener;
+  private ArrayList<DataSet> datasets;
 
   SessionViewHolder(View itemView) {
     super(itemView);
@@ -58,7 +62,13 @@ class SessionViewHolder extends RecyclerView.ViewHolder implements
 
   @Override
   public void onClick(View v) {
-    sessionCardListener.onShowSessionDetails(session, getAdapterPosition());
+    sessionCardListener.onShowSessionDetails(session, datasets, getAdapterPosition());
   }
+
+  void setSession(Session session, ArrayList<DataSet> datasets) {
+    this.session = session;
+    this.datasets = datasets;
+  }
+
 }
 

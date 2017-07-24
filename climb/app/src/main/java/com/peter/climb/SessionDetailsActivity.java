@@ -9,12 +9,33 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import com.google.android.gms.fitness.data.DataPoint;
+import com.google.android.gms.fitness.data.DataSet;
+import com.google.android.gms.fitness.data.Session;
+import com.peter.climb.MyApplication.AppState;
+import java.util.ArrayList;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 public class SessionDetailsActivity extends AppCompatActivity {
+
+  static final String SENDS_KEY = "sends_key";
+  static final String DATASETS_KEY = "datasets_key";
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+
+    // pass null for the listener because I'm lazy and we don't need it
+    AppState appState = ((MyApplication) getApplicationContext())
+        .fetchGymDataAndAppState(getApplicationContext(), null);
+
+    Bundle bundle = getIntent().getExtras();
+    Session session = bundle.getParcelable(SENDS_KEY);
+    ArrayList<DataSet> dataSets = bundle.getParcelableArrayList(DATASETS_KEY);
+    String activeTime = Utils.activeTimeString(session);
+    String calories = "Unknown";
+
     setContentView(R.layout.activity_session_details);
     Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
@@ -22,9 +43,29 @@ public class SessionDetailsActivity extends AppCompatActivity {
     LinearLayout detailsLayout = (LinearLayout) findViewById(R.id.details_layout);
     LinearLayout sendsLayout = (LinearLayout) findViewById(R.id.sends_layout);
 
-    String activeTime = "1h 23m";
-    String sendCount = "12";
-    String calories = "412";
+    String sendCount= "0";
+    if (session != null) {
+      int sendCountInt = 0;
+      if (dataSets != null) {
+        for (DataSet dataSet : dataSets) {
+          for (DataPoint pt : dataSet.getDataPoints()) {
+            sendCountInt++;
+            String name = pt.getValue(appState.nameField).asString();
+            String grade = pt.getValue(appState.gradeField).asString();
+            String color = pt.getValue(appState.colorField).asString();
+            long millis = pt.getStartTime(TimeUnit.MILLISECONDS);
+            String timeString = String
+                .format(Locale.US, "%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(millis),
+                    TimeUnit.MILLISECONDS.toMinutes(millis) % TimeUnit.HOURS.toMinutes(1),
+                    TimeUnit.MILLISECONDS.toSeconds(millis) % TimeUnit.MINUTES.toSeconds(1));
+
+            sendsLayout.addView(addSend(name, grade, timeString, color));
+          }
+        }
+      }
+
+      sendCount = String.valueOf(sendCountInt);
+    }
 
     detailsLayout.addView(
         addDetail(R.drawable.ic_terrain_black_24dp, R.string.problems_sent_label, sendCount));
@@ -33,11 +74,7 @@ public class SessionDetailsActivity extends AppCompatActivity {
     detailsLayout.addView(
         addDetail(R.drawable.ic_calories_black_24dp, R.string.calories_burned_label, calories));
 
-    for (int i = 0; i < 10; i++) {
-      sendsLayout.addView(addSend("Pikachu", "V3", "10:20pm 23s", "#ff00ff"));
-    }
-
-    String title = "Session at Ascend PGH";
+    String title = "MySession at Ascend PGH";
     toolbar.setTitle(title);
   }
 

@@ -9,8 +9,8 @@ import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.Session;
 import com.google.android.gms.fitness.result.SessionReadResult;
 import com.peter.climb.MyApplication.SessionCardListener;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
 
@@ -28,6 +28,7 @@ class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
   }
 
   void setSessions(SessionReadResult sessionReadResult) {
+    // Digest the read result
     this.sessionReadResult = sessionReadResult;
     this.sessions = sessionReadResult.getSessions();
 
@@ -79,26 +80,23 @@ class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
         SessionViewHolder sessionViewHolder = (SessionViewHolder) holder;
         Session session = sessions.get(position);
         List<DataSet> dataSets = sessionReadResult.getDataSet(session);
+        ArrayList<DataSet> dataSetsArrayList = new ArrayList<>(dataSets);
         int numberOfSends = 0;
 
         for (DataSet dataSet : dataSets) {
           numberOfSends += dataSet.getDataPoints().size();
         }
 
-        long milliseconds =
-            session.getEndTime(TimeUnit.MILLISECONDS) - session.getStartTime(TimeUnit.MILLISECONDS);
-        int hours = (int) milliseconds / (1000 * 60 * 60);
-        int minutes = (int) milliseconds / (1000 * 60);
-        String activeTimeString = hours + " h " + minutes + " min";
+        String activeTimeString = Utils.activeTimeString(session);
 
         String title = numberOfSends + " Sends";
         String toolbarTitle = session.getDescription();
 
         sessionViewHolder.sessionTitleText.setText(title);
         sessionViewHolder.dateTimeText.setText(activeTimeString);
-        sessionViewHolder.session = session;
         sessionViewHolder.sessionCardListener = this.sessionCardListener;
         sessionViewHolder.toolbar.setTitle(toolbarTitle);
+        sessionViewHolder.setSession(session, dataSetsArrayList);
         break;
 
       case NO_SESSIONS_CARD_TYPE:

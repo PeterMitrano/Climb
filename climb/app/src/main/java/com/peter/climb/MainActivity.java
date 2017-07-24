@@ -1,5 +1,8 @@
 package com.peter.climb;
 
+import static com.peter.climb.SessionDetailsActivity.DATASETS_KEY;
+import static com.peter.climb.SessionDetailsActivity.SENDS_KEY;
+
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
@@ -40,6 +43,7 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.fitness.Fitness;
+import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.Session;
 import com.google.android.gms.fitness.result.SessionReadResult;
 import com.peter.Climb.Msgs;
@@ -47,6 +51,7 @@ import com.peter.Climb.Msgs.Gyms;
 import com.peter.climb.FetchGymDataTask.FetchGymDataListener;
 import com.peter.climb.MyApplication.AppState;
 import com.peter.climb.MyApplication.SessionCardListener;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -307,8 +312,10 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
   }
 
   @Override
-  public void onShowSessionDetails(Session session, int index) {
+  public void onShowSessionDetails(Session session, ArrayList<DataSet> dataSets, int index) {
     Intent intent = new Intent(this, SessionDetailsActivity.class);
+    intent.putExtra(SENDS_KEY, session);
+    intent.putParcelableArrayListExtra(DATASETS_KEY, dataSets);
     startActivity(intent);
   }
 
