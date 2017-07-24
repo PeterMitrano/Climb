@@ -18,8 +18,8 @@
       android:id="@+id/details_layout"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:layout_marginTop="10dp"
-      android:layout_marginBottom="10dp"
+      android:layout_marginTop="8dp"
+      android:layout_marginBottom="8dp"
       android:orientation="vertical" />
 
     <View style="@style/Divider" />
@@ -28,8 +28,8 @@
       android:id="@+id/sends_layout"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:layout_marginTop="10dp"
-      android:layout_marginBottom="10dp"
+      android:layout_marginTop="8dp"
+      android:layout_marginBottom="8dp"
       android:orientation="vertical" />
   </LinearLayout>
 

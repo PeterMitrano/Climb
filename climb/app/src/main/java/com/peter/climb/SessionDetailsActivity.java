@@ -24,13 +24,18 @@ public class SessionDetailsActivity extends AppCompatActivity {
 
     String activeTime = "1h 23m";
     String sendCount = "12";
+    String calories = "412";
 
     detailsLayout.addView(
         addDetail(R.drawable.ic_terrain_black_24dp, R.string.problems_sent_label, sendCount));
     detailsLayout.addView(
         addDetail(R.drawable.ic_timer_black_24dp, R.string.active_time_label, activeTime));
+    detailsLayout.addView(
+        addDetail(R.drawable.ic_calories_black_24dp, R.string.calories_burned_label, calories));
 
-    sendsLayout.addView(addSend("Pikachu", "V3", "10:20pm 23s", "#ff00ff"));
+    for (int i = 0; i < 10; i++) {
+      sendsLayout.addView(addSend("Pikachu", "V3", "10:20pm 23s", "#ff00ff"));
+    }
 
     String title = "Session at Ascend PGH";
     toolbar.setTitle(title);

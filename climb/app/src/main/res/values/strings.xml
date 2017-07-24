@@ -37,4 +37,5 @@
   <string name="session_detail_icon_description">session detail icon</string>
   <string name="active_time_label">Active Time</string>
   <string name="problems_sent_label">Problems Sent</string>
+  <string name="calories_burned_label">Calories Burned</string>
 </resources>
