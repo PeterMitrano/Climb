@@ -290,6 +290,8 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
   private void onDataChanged() {
     // create all the views from the Gym msg in the constructor
     if (gym != null) {
+      removeAllViews();
+
       // add all the walls first
       for (Wall wall : gym.getFloors(floor).getWallsList()) {
         WallView wallView = new WallView(getContext());
@@ -297,6 +299,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
 
         wallViews.add(wallView);
         addView(wallView);
+        wallView.layout(0, 0, getWidth(), getHeight());
       }
 
       // then add the routes on top
@@ -314,9 +317,11 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
           routes.add(route);
           routeWallMap.put(route, wall);
           addView(routeLabelView);
+          routeLabelView.layout(0, 0, getWidth(), getHeight());
         }
       }
     }
+
   }
 
   private void init() {
@@ -339,8 +344,6 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     routeWallMap = new HashMap<>();
 
     scaleGestureDetector = new ScaleGestureDetector(getContext(), new MapScaleGestureListener());
-
-    setWillNotDraw(false);
   }
 
   public void addAddRouteListener(AddRouteListener listener) {
@@ -364,7 +367,6 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     @Override
     public boolean onScale(ScaleGestureDetector detector) {
       scaleFactor *= detector.getScaleFactor();
-//      Log.e(getClass().toString(), "scale " + detector.getScaleFactor());
 
       // Don't let the object get too small or too large.
       scaleFactor = Math.max(MIN_ZOOM_FACTOR, Math.min(scaleFactor, MAX_ZOOM_FACTOR));
