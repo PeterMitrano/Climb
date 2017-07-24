@@ -31,8 +31,10 @@
         android:resource="@xml/searchable" />
     </activity>
     <activity
+      android:configChanges="orientation"
       android:name=".MapActivity"
       android:parentActivityName=".MainActivity"
+      android:screenOrientation="portrait"
       android:theme="@style/AppTheme.NoActionBar">
       <meta-data
         android:name="android.support.PARENT_ACTIVITY"

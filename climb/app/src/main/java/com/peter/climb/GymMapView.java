@@ -91,14 +91,6 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     invalidateChildren();
   }
 
-  public WallView getWallView(int index) {
-    return wallViews.get(index);
-  }
-
-  public RouteLabelView getRouteLabelView(int index) {
-    return routeLabelViews.get(index);
-  }
-
   @Override
   protected void onLayout(boolean changed, int l, int t, int r, int b) {
     // Do nothing. Do not call the superclass method--that would start a layout pass
