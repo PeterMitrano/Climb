@@ -87,7 +87,7 @@ class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
           numberOfSends += dataSet.getDataPoints().size();
         }
 
-        String activeTimeString = Utils.activeTimeString(session);
+        String activeTimeString = Utils.activeTimeStringHM(session);
 
         String title = numberOfSends + " Sends";
         String toolbarTitle = session.getDescription();

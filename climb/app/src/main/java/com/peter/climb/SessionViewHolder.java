@@ -40,6 +40,7 @@ class SessionViewHolder extends RecyclerView.ViewHolder implements
 
     toolbar.inflateMenu(R.menu.card_menu);
     toolbar.setOnMenuItemClickListener(this);
+    toolbar.setOnClickListener(this);
     card.setOnClickListener(this);
   }
 

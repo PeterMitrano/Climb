@@ -14,7 +14,6 @@ import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.Session;
 import com.peter.climb.MyApplication.AppState;
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 public class SessionDetailsActivity extends AppCompatActivity {
@@ -33,7 +32,7 @@ public class SessionDetailsActivity extends AppCompatActivity {
     Bundle bundle = getIntent().getExtras();
     Session session = bundle.getParcelable(SENDS_KEY);
     ArrayList<DataSet> dataSets = bundle.getParcelableArrayList(DATASETS_KEY);
-    String activeTime = Utils.activeTimeString(session);
+    String activeTime = Utils.activeTimeStringHM(session);
     String calories = "Unknown";
 
     setContentView(R.layout.activity_session_details);
@@ -43,7 +42,7 @@ public class SessionDetailsActivity extends AppCompatActivity {
     LinearLayout detailsLayout = (LinearLayout) findViewById(R.id.details_layout);
     LinearLayout sendsLayout = (LinearLayout) findViewById(R.id.sends_layout);
 
-    String sendCount= "0";
+    String sendCount = "0";
     if (session != null) {
       int sendCountInt = 0;
       if (dataSets != null) {
@@ -53,12 +52,9 @@ public class SessionDetailsActivity extends AppCompatActivity {
             String name = pt.getValue(appState.nameField).asString();
             String grade = pt.getValue(appState.gradeField).asString();
             String color = pt.getValue(appState.colorField).asString();
-            long millis = pt.getStartTime(TimeUnit.MILLISECONDS);
-            String timeString = String
-                .format(Locale.US, "%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(millis),
-                    TimeUnit.MILLISECONDS.toMinutes(millis) % TimeUnit.HOURS.toMinutes(1),
-                    TimeUnit.MILLISECONDS.toSeconds(millis) % TimeUnit.MINUTES.toSeconds(1));
-
+            long timeSinceStartOfSession = pt.getStartTime(TimeUnit.MILLISECONDS) - session
+                .getStartTime(TimeUnit.MILLISECONDS);
+            String timeString = Utils.millisDurationHMS(timeSinceStartOfSession);
             sendsLayout.addView(addSend(name, grade, timeString, color));
           }
         }
@@ -74,7 +70,7 @@ public class SessionDetailsActivity extends AppCompatActivity {
     detailsLayout.addView(
         addDetail(R.drawable.ic_calories_black_24dp, R.string.calories_burned_label, calories));
 
-    String title = "MySession at Ascend PGH";
+    String title = "Session";
     toolbar.setTitle(title);
   }
 

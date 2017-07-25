@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:card_view="http://schemas.android.com/apk/res-auto"
+  android:id="@+id/card_layout"
   android:layout_width="match_parent"
   android:layout_height="wrap_content"
   android:layout_marginBottom="8dp">
@@ -15,7 +16,6 @@
     card_view:cardCornerRadius="4dp">
 
     <LinearLayout
-      android:id="@+id/card_layout"
       android:layout_width="match_parent"
       android:layout_height="match_parent"
       android:layout_margin="10dp"
@@ -25,7 +25,9 @@
         android:id="@+id/card_toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:elevation="2dp" />
+        android:clickable="true"
+        android:elevation="2dp"
+        android:foreground="?android:attr/selectableItemBackground" />
 
       <TextView
         android:id="@+id/session_title_text"

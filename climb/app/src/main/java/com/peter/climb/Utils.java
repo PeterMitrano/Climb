@@ -2,6 +2,7 @@ package com.peter.climb;
 
 import android.graphics.Color;
 import com.google.android.gms.fitness.data.Session;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 class Utils {
@@ -24,16 +25,44 @@ class Utils {
         Math.min(b, 255));
   }
 
-  static String activeTimeString(Session session) {
+  static String activeTimeStringHMS(Session session) {
     long milliseconds =
         session.getEndTime(TimeUnit.MILLISECONDS) - session.getStartTime(TimeUnit.MILLISECONDS);
-    return activeTimeString(milliseconds);
+    return millisDurationHMS(milliseconds);
   }
 
-  private static String activeTimeString(long millis) {
-    int hours = (int) millis / (1000 * 60 * 60);
-    int minutes = (int) millis / (1000 * 60);
-    return hours + " h " + minutes + " min";
+  static String activeTimeStringHM(Session session) {
+    long milliseconds =
+        session.getEndTime(TimeUnit.MILLISECONDS) - session.getStartTime(TimeUnit.MILLISECONDS);
+    return millisDurationHM(milliseconds);
+  }
 
+  /**
+   * Has minimum of 1 minute output
+   *
+   * @param millis input time duration in milliseconds
+   * @return formatting string of hours + minutes
+   */
+  static String millisDurationHMS(long millis) {
+    int seconds = (int) (millis / 1000) % 60;
+    int minutes = (int) ((millis / (1000 * 60)) % 60);
+    int hours = (int) ((millis / (1000 * 60 * 60)) % 24);
+
+    if (hours == 0 && minutes == 0 && seconds == 0) {
+      seconds = 1;
+    }
+
+    return String.format(Locale.getDefault(), "%dh %dm %ds", hours, minutes, seconds);
+  }
+
+  static String millisDurationHM(long millis) {
+    int minutes = (int) ((millis / (1000 * 60)) % 60);
+    int hours = (int) ((millis / (1000 * 60 * 60)) % 24);
+
+    if (hours == 0 && minutes == 0) {
+      minutes = 1;
+    }
+
+    return String.format(Locale.getDefault(), "%dh %dm", hours, minutes);
   }
 }

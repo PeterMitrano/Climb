@@ -11,10 +11,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import com.peter.climb.MyApplication.AppState;
-import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
 
 public class SessionInfoFragment extends Fragment implements OnClickListener {
 
@@ -84,16 +82,13 @@ public class SessionInfoFragment extends Fragment implements OnClickListener {
           @Override
           public void run() {
             long millis = appState.getSessionLength();
-            String hms = String
-                .format(Locale.US, "%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(millis),
-                    TimeUnit.MILLISECONDS.toMinutes(millis) % TimeUnit.HOURS.toMinutes(1),
-                    TimeUnit.MILLISECONDS.toSeconds(millis) % TimeUnit.MINUTES.toSeconds(1));
+            String hms = Utils.millisDurationHMS(millis);
             timerView.setText(hms);
           }
 
         });
       }
 
-    }, 0, 1000);
+    }, 0, 100);
   }
 }
