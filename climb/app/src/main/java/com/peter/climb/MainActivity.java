@@ -142,7 +142,6 @@ public class MainActivity extends MyActivity implements OnNavigationItemSelected
     searchView.setFocusable(true);
     searchView.setIconified(false);
 
-    // Override the onQueryTextListener just to return true on Submit,
     // so it doesn't reload the activity
     searchView.setOnQueryTextListener(
         new SearchView.OnQueryTextListener() {
@@ -248,7 +247,7 @@ public class MainActivity extends MyActivity implements OnNavigationItemSelected
 
   @Override
   public void onGoogleFitFailed() {
-    // these are really unlikely to happen, but they render google fit useless
+    // these are really unlikely to happen, but it renders google fit api useless
     startSessionButton.setEnabled(false);
     Snackbar snack = Snackbar.make(cardsRecycler, "Failed to connect to google Fit.", Snackbar.LENGTH_INDEFINITE);
     snack.setAction("Try Again", new View.OnClickListener() {

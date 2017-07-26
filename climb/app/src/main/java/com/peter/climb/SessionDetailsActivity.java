@@ -127,7 +127,7 @@ public class SessionDetailsActivity extends MyActivity implements GoogleFitListe
     int sendCountInt = 0;
     if (dataSets != null && appState.hasDataTypes()) {
       for (DataSet dataSet : dataSets) {
-        if (dataSet.getDataType() == appState.routeDataType) {
+        if (dataSet.getDataType().equals(appState.routeDataType)) {
           for (DataPoint pt : dataSet.getDataPoints()) {
             sendCountInt++;
             String name = pt.getValue(appState.nameField).asString();
@@ -139,7 +139,7 @@ public class SessionDetailsActivity extends MyActivity implements GoogleFitListe
             sendsLayout.addView(addSend(name, grade, timeString, color));
           }
         }
-        else if (dataSet.getDataType() == appState.metadataType) {
+        else if (dataSet.getDataType().equals(appState.metadataType)) {
           DataPoint metadata = dataSet.getDataPoints().get(0);
           String url = metadata.getValue(appState.imageUrlField).asString();
 

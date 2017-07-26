@@ -87,7 +87,8 @@ class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
     switch (viewType) {
       case SESSION_CARD_TYPE:
         SessionViewHolder sessionViewHolder = (SessionViewHolder) holder;
-        Session session = sessions.get(0);
+        int sessionIndex = showInstructions ? position - 1 : position;
+        Session session = sessions.get(sessionIndex);
         List<DataSet> dataSets = sessionReadResult.getDataSet(session);
         ArrayList<DataSet> dataSetsArrayList = new ArrayList<>(dataSets);
         int numberOfSends = 0;
