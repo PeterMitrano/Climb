@@ -1,6 +1,5 @@
 package com.peter.climb;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -33,12 +32,8 @@ public class SessionInfoFragment extends Fragment implements OnClickListener {
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
       Bundle savedInstanceState) {
-    FragmentActivity activity = getActivity();
-    if (activity != null) {
-      Context applicationContext = activity.getApplicationContext();
-      appState = ((MyApplication) applicationContext)
-          .fetchGymDataAndAppState(applicationContext, null);
-    }
+    // here don't need google fit or gyms
+    appState = ((MyApplication) getActivity().getApplicationContext()).fetchGymData(null);
 
     return inflater.inflate(R.layout.session_info, container, false);
   }

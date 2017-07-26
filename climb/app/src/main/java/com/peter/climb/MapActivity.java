@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -22,13 +21,11 @@ import com.peter.Climb.Msgs.Route;
 import com.peter.Climb.Msgs.Wall;
 import com.peter.climb.FetchGymDataTask.FetchGymDataListener;
 import com.peter.climb.GymMapView.AddRouteListener;
-import com.peter.climb.MyApplication.AppState;
 import com.peter.climb.SessionInfoFragment.SessionInfoListener;
 
-public class MapActivity extends AppCompatActivity implements AddRouteListener,
+public class MapActivity extends MyActivity implements AddRouteListener,
     FetchGymDataListener, SessionInfoListener {
 
-  private AppState appState;
   private View decor_view;
   private GymMapView gymMapView;
   private SessionInfoFragment sessionInfoFragment;
@@ -38,8 +35,9 @@ public class MapActivity extends AppCompatActivity implements AddRouteListener,
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_map);
 
-    appState = ((MyApplication) getApplicationContext())
-        .fetchGymDataAndAppState(getApplicationContext(), this);
+    appState = ((MyApplication) getApplicationContext()).fetchGymData(this);
+    setupGoogleFit(null);
+
     decor_view = getWindow().getDecorView();
 
     sessionInfoFragment = (SessionInfoFragment) getSupportFragmentManager()
@@ -87,7 +85,6 @@ public class MapActivity extends AppCompatActivity implements AddRouteListener,
     finish();
   }
 
-
   @Override
   public void onGymsFound(Gyms gyms) {
     Intent intent = getIntent();
@@ -117,7 +114,7 @@ public class MapActivity extends AppCompatActivity implements AddRouteListener,
           })
           .setNegativeButton(R.string.cancel, null);
       builder.create().show();
-    } else {
+    } else if (appState.mClient.isConnected()) {
       appState.endSession(new ResultCallback<Status>() {
         @Override
         public void onResult(@NonNull Status status) {
@@ -132,20 +129,39 @@ public class MapActivity extends AppCompatActivity implements AddRouteListener,
               e.printStackTrace();
             }
           } else {
-            Snackbar snack = Snackbar
-                .make(decor_view, "Failed to store your session in Google fit",
-                    Snackbar.LENGTH_LONG);
-            snack.setAction(R.string.ignore_end_session_error, new View.OnClickListener() {
-              @Override
-              public void onClick(View v) {
-                dismissNotificationAndFinish(RESULT_CANCELED);
-              }
-            });
-            snack.show();
+            showGoogleFitFailure();
           }
         }
       }, getApplicationContext());
+    } else {
+      showGoogleFitFailure();
     }
+  }
 
+  private void showGoogleFitFailure() {
+    Snackbar snack = Snackbar
+        .make(decor_view, "Failed to store your session in Google fit",
+            Snackbar.LENGTH_LONG);
+    snack.setAction(R.string.ignore_end_session_error, new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        dismissNotificationAndFinish(RESULT_CANCELED);
+      }
+    });
+    snack.show();
+  }
+
+  @Override
+  void onPermissionsDenied() {
+    Snackbar snack = Snackbar
+        .make(gymMapView, R.string.no_fit_permission_msg, Snackbar.LENGTH_INDEFINITE);
+    snack.setAction(R.string.ask_again, new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        appState.mClient.reconnect();
+        mResolvingError = false;
+      }
+    });
+    snack.show();
   }
 }

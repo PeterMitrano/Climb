@@ -8,6 +8,7 @@ import android.widget.LinearLayout;
 import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.Session;
 import com.google.android.gms.fitness.result.SessionReadResult;
+import com.peter.climb.MyApplication.AppState;
 import com.peter.climb.MyApplication.SessionCardListener;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +18,7 @@ class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
   private static final int NO_SESSIONS_CARD_TYPE = 1;
   private static final int SESSION_CARD_TYPE = 2;
   private static final int SELECT_GYM_INSTRUCTIONS_CARD_TYPE = 3;
+  private final AppState appState;
   private int specialCardCount = 0;
   private List<Session> sessions;
   private SessionReadResult sessionReadResult;
@@ -24,7 +26,9 @@ class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
   private boolean showInstructions = false;
   private boolean showNoSessions = false;
 
-  CardsAdapter() {
+  CardsAdapter(AppState appState) {
+    sessions = new ArrayList<>();
+    this.appState = appState;
   }
 
   void clearSessions() {
@@ -89,7 +93,9 @@ class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
         int numberOfSends = 0;
 
         for (DataSet dataSet : dataSets) {
-          numberOfSends += dataSet.getDataPoints().size();
+          if (dataSet.getDataType().equals(appState.routeDataType)) {
+            numberOfSends += dataSet.getDataPoints().size();
+          }
         }
 
         String activeTimeString = Utils.activeTimeStringHM(session);

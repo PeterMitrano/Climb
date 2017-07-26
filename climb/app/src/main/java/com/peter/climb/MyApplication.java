@@ -18,15 +18,14 @@ import com.google.android.gms.fitness.data.DataType;
 import com.google.android.gms.fitness.data.Field;
 import com.google.android.gms.fitness.data.Session;
 import com.google.android.gms.fitness.request.DataDeleteRequest;
-import com.google.android.gms.fitness.request.DataTypeCreateRequest;
 import com.google.android.gms.fitness.request.SessionInsertRequest;
 import com.google.android.gms.fitness.request.SessionReadRequest;
-import com.google.android.gms.fitness.result.DataTypeResult;
 import com.google.android.gms.fitness.result.SessionReadResult;
 import com.peter.Climb.Msgs.Gym;
 import com.peter.Climb.Msgs.Gyms;
 import com.peter.Climb.Msgs.Route;
 import com.peter.Climb.Msgs.Wall;
+import com.peter.climb.CreateDataTypesTask.CreateDataTypesListener;
 import com.peter.climb.FetchGymDataTask.FetchGymDataListener;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,11 +41,16 @@ public class MyApplication extends Application {
     void onShowSessionDetails(Session session, ArrayList<DataSet> dataSets, int index);
   }
 
+  interface GoogleFitListener {
+
+    void onGoogleFitConnected();
+    void onGoogleFitFailed();
+  }
+
   final private AppState state = new AppState();
 
-  public AppState fetchGymDataAndAppState(Context applicationContext,
-      @Nullable FetchGymDataListener listener) {
-    state.refresh(listener, applicationContext);
+  public AppState fetchGymData(@Nullable FetchGymDataListener fetchGymDataListener) {
+    state.refreshGyms(fetchGymDataListener);
     return state;
   }
 
@@ -58,20 +62,23 @@ public class MyApplication extends Application {
     static final int NO_GYM_ID = -1;
     static final long NO_START_TIME = -1;
 
-    // part of global app state
-    GoogleApiClient mClient = null;
-    private Gyms gyms = null;
-    private Gym currentGym;
-    private int currentGymId;
+    final private List<Send> sends;
 
-    private DataType routeDataType;
+
+    boolean inProgress;
+    long startTimeMillis;
+    int currentGymId;
+    DataType routeDataType;
+    DataType metadataType;
+    GoogleApiClient mClient = null;
+    Gyms gyms = null;
+    Gym currentGym;
     Field gradeField;
     Field nameField;
     Field wallField;
     Field colorField;
-    final private List<Send> sends;
-    long startTimeMillis;
-    boolean inProgress;
+    Field gymField;
+    Field imageUrlField;
 
     private AppState() {
       gyms = null;
@@ -79,27 +86,6 @@ public class MyApplication extends Application {
       currentGymId = NO_GYM_ID;
       inProgress = false;
       startTimeMillis = NO_START_TIME;
-    }
-
-    void createDataType(ResultCallback<DataTypeResult> resultCallback) {
-      gradeField = Field.zzm("Grade", Field.FORMAT_STRING);
-      nameField = Field.zzm("Name", Field.FORMAT_STRING);
-      wallField = Field.zzm("Wall", Field.FORMAT_STRING);
-      colorField = Field.zzm("Color", Field.FORMAT_STRING);
-      // Build a request to create a new data type
-      DataTypeCreateRequest request = new DataTypeCreateRequest.Builder()
-          // The prefix of your data type name must match your app's package name
-          .setName(getPackageName() + ".route_data_type")
-          .addField(gradeField)
-          .addField(nameField)
-          .addField(wallField)
-          .addField(colorField)
-          .build();
-
-      PendingResult<DataTypeResult> pendingResult = Fitness.ConfigApi
-          .createCustomDataType(mClient, request);
-
-      pendingResult.setResultCallback(resultCallback);
     }
 
     int getCurrentGymId() {
@@ -133,13 +119,28 @@ public class MyApplication extends Application {
     }
 
     void endSession(ResultCallback<Status> resultCallback, Context applicationContext) {
+      DataSource metadataSource = new DataSource.Builder()
+          .setAppPackageName(applicationContext)
+          .setDataType(metadataType)
+          .setName("metadata")
+          .setType(DataSource.TYPE_DERIVED)
+          .build();
+
       DataSource dataSource = new DataSource.Builder()
           .setAppPackageName(applicationContext)
           .setDataType(routeDataType)
           .setName("user_input")
           .setType(DataSource.TYPE_RAW)
           .build();
+
       DataSet dataset = DataSet.create(dataSource);
+      DataSet metadataset = DataSet.create(metadataSource);
+
+      DataPoint metadata = metadataset.createDataPoint();
+      metadata.setTimeInterval(System.currentTimeMillis(), System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+      metadata.getValue(imageUrlField).setString(currentGym.getLargeIconUrl());
+      metadata.getValue(gymField).setString(currentGym.getName());
+      metadataset.add(metadata);
 
       // iterate over the save route information and create all the datapoints
       for (Send route : sends) {
@@ -167,6 +168,7 @@ public class MyApplication extends Application {
       SessionInsertRequest insertRequest = new SessionInsertRequest.Builder()
           .setSession(session)
           .addDataSet(dataset)
+          .addDataSet(metadataset)
           .build();
 
       // attempt to insert the session into the user's google fit
@@ -196,33 +198,6 @@ public class MyApplication extends Application {
       return System.currentTimeMillis() - startTimeMillis;
     }
 
-    void refresh(final @Nullable FetchGymDataListener listener, Context applicationContext) {
-      // this provider request makes an network request, so it must be run async
-      FetchGymDataTask gymsAsyncTask = new FetchGymDataTask(applicationContext);
-      gymsAsyncTask.addFetchGymDataListener(new FetchGymDataListener() {
-        @Override
-        public void onGymsFound(Gyms gyms) {
-          AppState.this.gyms = gyms;
-          if (currentGymId != NO_GYM_ID) {
-            AppState.this.currentGym = gyms.getGyms(currentGymId);
-          }
-          if (listener != null) {
-            listener.onGymsFound(gyms);
-          }
-        }
-
-        @Override
-        public void onNoGymsFound() {
-          AppState.this.currentGymId = NO_GYM_ID;
-          AppState.this.gyms = null;
-          if (listener != null) {
-            listener.onNoGymsFound();
-          }
-        }
-      });
-      gymsAsyncTask.execute();
-    }
-
     void restoreFromIntent(Intent intent) {
       long t = intent.getLongExtra(SESSION_START_TIME_EXTRA, -1);
       int gym_id = intent.getIntExtra(CURRENT_GYM_ID_EXTRA, -1);
@@ -234,24 +209,9 @@ public class MyApplication extends Application {
 
     void getSessionHistory(final long startTime, final long endTime,
         final ResultCallback<SessionReadResult> resultCallback) {
-
-      if (routeDataType == null) {
-        createDataType(new ResultCallback<DataTypeResult>() {
-          @Override
-          public void onResult(@NonNull DataTypeResult dataTypeResult) {
-            routeDataType = dataTypeResult.getDataType();
-            makeReadRequest(startTime, endTime, resultCallback);
-          }
-        });
-      } else {
-        makeReadRequest(startTime, endTime, resultCallback);
-      }
-    }
-
-    void makeReadRequest(long startTime, long endTime,
-        ResultCallback<SessionReadResult> resultCallback) {
       SessionReadRequest readRequest = new SessionReadRequest.Builder()
           .setTimeInterval(startTime, endTime, TimeUnit.MILLISECONDS)
+          .read(metadataType)
           .read(routeDataType)
           .build();
 
@@ -263,5 +223,19 @@ public class MyApplication extends Application {
     void clearSends() {
       sends.clear();
     }
+
+    void refreshGyms(final @Nullable FetchGymDataListener listener) {
+      // this provider request makes an network request, so it must be run async
+      new FetchGymDataTask(this, getApplicationContext(), listener).execute();
+    }
+
+    void createDataTypes(@NonNull final CreateDataTypesListener createDataTypesListener) {
+      new CreateDataTypesTask(this, getPackageName(), createDataTypesListener).execute();
+    }
+
+    boolean hasDataTypes() {
+      return metadataType != null && routeDataType != null;
+    }
+
   }
 }

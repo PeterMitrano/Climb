@@ -1,18 +1,21 @@
 package com.peter.climb;
 
+import static com.peter.climb.MyApplication.AppState.NO_GYM_ID;
+
 import android.content.Context;
 import android.database.Cursor;
 import android.os.AsyncTask;
+import android.support.annotation.Nullable;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.peter.Climb.Msgs;
 import com.peter.Climb.Msgs.Gyms;
-import java.util.ArrayList;
-import java.util.List;
+import com.peter.climb.MyApplication.AppState;
 
 class FetchGymDataTask extends AsyncTask<Void, Integer, Gyms> {
 
   private final Context applicationContext;
-  final private List<FetchGymDataListener> listeners = new ArrayList<>();
+  private FetchGymDataListener fetchGymDataListener;
+  private final AppState appState;
 
   interface FetchGymDataListener {
 
@@ -21,8 +24,11 @@ class FetchGymDataTask extends AsyncTask<Void, Integer, Gyms> {
     void onNoGymsFound();
   }
 
-  FetchGymDataTask(Context applicationContenxt) {
-    this.applicationContext = applicationContenxt;
+  FetchGymDataTask(AppState appState, Context applicationContext,
+      @Nullable FetchGymDataListener fetchGymDataListener) {
+    this.appState = appState;
+    this.applicationContext = applicationContext;
+    this.fetchGymDataListener = fetchGymDataListener;
   }
 
   @Override
@@ -53,16 +59,21 @@ class FetchGymDataTask extends AsyncTask<Void, Integer, Gyms> {
     }
   }
 
-  void addFetchGymDataListener(FetchGymDataListener listener) {
-    listeners.add(listener);
-  }
-
+  @Override
   protected void onPostExecute(Msgs.Gyms gyms) {
-    for (FetchGymDataListener listener : listeners) {
-      if (gyms != null && gyms.getGymsCount() > 0) {
-        listener.onGymsFound(gyms);
-      } else {
-        listener.onNoGymsFound();
+    if (gyms != null && gyms.getGymsCount() > 0) {
+      appState.gyms = gyms;
+      if (appState.currentGymId != NO_GYM_ID) {
+        appState.currentGym = gyms.getGyms(appState.currentGymId);
+      }
+      if (fetchGymDataListener != null) {
+        fetchGymDataListener.onGymsFound(gyms);
+      }
+    } else {
+      appState.currentGymId = NO_GYM_ID;
+      appState.gyms = null;
+      if (fetchGymDataListener != null) {
+        fetchGymDataListener.onNoGymsFound();
       }
     }
   }

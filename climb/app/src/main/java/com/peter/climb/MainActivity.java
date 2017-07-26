@@ -6,13 +6,11 @@ import static com.peter.climb.SessionDetailsActivity.SENDS_KEY;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentSender.SendIntentException;
 import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.NavigationView.OnNavigationItemSelectedListener;
@@ -20,10 +18,8 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -34,15 +30,8 @@ import android.widget.ImageView;
 import android.widget.SearchView;
 import android.widget.Toast;
 import com.android.volley.toolbox.ImageLoader;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.Scopes;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
-import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.common.api.Status;
-import com.google.android.gms.fitness.Fitness;
 import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.Session;
 import com.google.android.gms.fitness.result.SessionReadResult;
@@ -50,32 +39,27 @@ import com.peter.Climb.Msgs;
 import com.peter.Climb.Msgs.Gyms;
 import com.peter.climb.FetchGymDataTask.FetchGymDataListener;
 import com.peter.climb.MyApplication.AppState;
+import com.peter.climb.MyApplication.GoogleFitListener;
 import com.peter.climb.MyApplication.SessionCardListener;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-public class MainActivity extends AppCompatActivity implements OnNavigationItemSelectedListener,
-    SessionCardListener, OnClickListener, ConnectionCallbacks, OnConnectionFailedListener,
-    FetchGymDataListener {
+public class MainActivity extends MyActivity implements OnNavigationItemSelectedListener,
+    SessionCardListener, OnClickListener, GoogleFitListener, FetchGymDataListener {
 
-  public static final int REQUEST_RESOLVE_ERROR = 1001;
   public static final int SESSION_NOTIFICATION_ID = 1002;
   public static final int START_SESSION_REQUEST_CODE = 1004;
-  public static final String DIALOG_ERROR = "GOOGLE_API_ERROR";
   public static final String PREFS_NAME = "MyPrefsFile";
   public static final String START_SESSION_ACTION = "start_session_action";
 
-  private boolean mResolvingError = false;
   private static final String GYM_ID_PREF_KEY = "gym_id_pref_key";
 
   private FloatingActionButton startSessionButton;
   private ImageView appBarImage;
-  private MenuItem changeAccountsItem;
   private RecyclerView cardsRecycler;
 
-  private AppState appState;
   private CardsAdapter cardsAdapter;
   private int searchedGymId;
 
@@ -88,16 +72,14 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
     setSupportActionBar(toolbar);
 
     // calling this function ensures that gym data is fetched if need be
-    appState = ((MyApplication) getApplicationContext())
-        .fetchGymDataAndAppState(getApplicationContext(), this);
+    appState = ((MyApplication) getApplicationContext()).fetchGymData(this);
 
     appBarImage = (ImageView) findViewById(R.id.app_bar_image);
     cardsRecycler = (RecyclerView) findViewById(R.id.sessions_recycler);
     startSessionButton = (FloatingActionButton) findViewById(R.id.start_session_button);
     NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-    changeAccountsItem = navigationView.getMenu().findItem(R.id.change_accounts);
 
-    cardsAdapter = new CardsAdapter();
+    cardsAdapter = new CardsAdapter(appState);
     cardsAdapter.setSessionCardListener(this);
     cardsRecycler.setAdapter(cardsAdapter);
 
@@ -117,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
     searchedGymId = AppState.NO_GYM_ID;
     if (action.equals(Intent.ACTION_MAIN)) {
       // connect to google fit API
-      buildFitnessClient();
+      setupGoogleFit(this);
     } else if (action.equals(Intent.ACTION_SEARCH)) {
       // check if this request came from a search for a specific gym
       Uri uri = getIntent().getData();
@@ -149,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     MenuInflater inflater = getMenuInflater();
-    inflater.inflate(R.menu.toolbar_menu, menu);
+    inflater.inflate(R.menu.main_toolbar_menu, menu);
 
     // Get the SearchView and set the searchable configuration
     SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
@@ -204,29 +186,24 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
   }
 
   @Override
-  protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-    if (requestCode == REQUEST_RESOLVE_ERROR) {
-      mResolvingError = false;
-      if (resultCode == RESULT_OK) {
-        // Make sure the app is not already connected or attempting to connect
-        if (!appState.mClient.isConnecting() &&
-            !appState.mClient.isConnected()) {
-          appState.mClient.connect();
-        }
-      } else {
-        Snackbar snack = Snackbar
-            .make(cardsRecycler, R.string.no_fit_permission_msg, Snackbar.LENGTH_INDEFINITE);
-        snack.setAction(R.string.ask_again, new View.OnClickListener() {
-          @Override
-          public void onClick(View v) {
-            appState.mClient.reconnect();
-            mResolvingError = false;
-          }
-        });
-        snack.show();
-        cardsAdapter.showNoSessions();
+  void onPermissionsDenied() {
+    Snackbar snack = Snackbar
+        .make(cardsRecycler, R.string.no_fit_permission_msg, Snackbar.LENGTH_INDEFINITE);
+    snack.setAction(R.string.ask_again, new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        appState.mClient.reconnect();
+        mResolvingError = false;
       }
-    } else if (requestCode == START_SESSION_REQUEST_CODE) {
+    });
+    snack.show();
+    cardsAdapter.showNoSessions();
+  }
+
+  @Override
+  protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    super.onActivityResult(requestCode, resultCode, data);
+    if (requestCode == START_SESSION_REQUEST_CODE) {
       if (resultCode == RESULT_OK) {
         updateSessionsRecycler();
       }
@@ -257,7 +234,7 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
   }
 
   @Override
-  public void onConnected(@Nullable Bundle bundle) {
+  public void onGoogleFitConnected() {
     String message = "Sign in Successful";
     Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
 
@@ -270,31 +247,17 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
   }
 
   @Override
-  public void onConnectionSuspended(int i) {
-    // If your connection to the sensor gets lost at some point,
-    // you'll be able to determine the reason and react to it here.
-    if (i == GoogleApiClient.ConnectionCallbacks.CAUSE_NETWORK_LOST) {
-      Log.e(getClass().toString(), "Connection lost.  Cause: Network Lost.");
-    } else if (i
-        == GoogleApiClient.ConnectionCallbacks.CAUSE_SERVICE_DISCONNECTED) {
-      Log.e(getClass().toString(), "Connection lost.  Reason: Service Disconnected");
-    }
-  }
-
-  @Override
-  public void onConnectionFailed(@NonNull ConnectionResult result) {
-    if (!mResolvingError && result.hasResolution()) {
-      try {
-        mResolvingError = true;
-        result.startResolutionForResult(this, REQUEST_RESOLVE_ERROR);
-      } catch (SendIntentException e) {
-        // There was an error with the resolution intent. Try again.
-        appState.mClient.connect();
+  public void onGoogleFitFailed() {
+    // these are really unlikely to happen, but they render google fit useless
+    startSessionButton.setEnabled(false);
+    Snackbar snack = Snackbar.make(cardsRecycler, "Failed to connect to google Fit.", Snackbar.LENGTH_INDEFINITE);
+    snack.setAction("Try Again", new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        appState.mClient.reconnect();
       }
-    } else {
-      Log.e(getClass().toString(), result.getErrorCode() + ", " + result.getErrorMessage());
-      showErrorDialog(result.getErrorCode());
-    }
+    });
+    snack.show();
   }
 
   @Override
@@ -304,9 +267,13 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
     appState.deleteSession(session, startTime, endTime, new ResultCallback<Status>() {
       @Override
       public void onResult(@NonNull Status status) {
-        // remove the item
-        cardsAdapter.removeSession(session);
-        cardsAdapter.notifyItemRemoved(index);
+        if (status.isSuccess()) {
+          // remove the item
+          cardsAdapter.removeSession(session);
+          cardsAdapter.notifyItemRemoved(index);
+        } else {
+          Snackbar.make(cardsRecycler, "Failed to delete session", Snackbar.LENGTH_SHORT).show();
+        }
       }
     });
   }
@@ -351,23 +318,6 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
     cardsAdapter.showSelectGymInstructions();
   }
 
-  private void buildFitnessClient() {
-    if (appState.mClient == null) {
-      appState.mClient = new GoogleApiClient.Builder(this)
-          .addApi(Fitness.SESSIONS_API)
-          .addApi(Fitness.CONFIG_API)
-          .addApi(Fitness.HISTORY_API)
-          .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
-          .addScope(new Scope(Scopes.FITNESS_LOCATION_READ_WRITE))
-          .addScope(new Scope(Scopes.PROFILE))
-          .addConnectionCallbacks(this)
-          .addOnConnectionFailedListener(this)
-          .build();
-
-      appState.mClient.connect();
-    }
-  }
-
   private void updateSessionsRecycler() {
     Calendar cal = Calendar.getInstance();
     Date now = new Date();
@@ -376,7 +326,7 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
     cal.add(Calendar.MONTH, -1);
     long startTime = cal.getTimeInMillis();
 
-    if (appState.mClient.isConnected()) {
+    if (appState.mClient.isConnected() && appState.hasDataTypes()) {
       appState.getSessionHistory(startTime, endTime, new ResultCallback<SessionReadResult>() {
         @Override
         public void onResult(@NonNull SessionReadResult sessionReadResult) {
@@ -414,21 +364,5 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
         R.drawable.ic_error_black_24dp);
     RequestorSingleton.getInstance(
         getApplicationContext()).getImageLoader().get(url, listener);
-  }
-
-  /* Creates a dialog for an error message */
-  private void showErrorDialog(int errorCode) {
-    // Create a fragment for the error dialog
-    ErrorDialogFragment dialogFragment = new ErrorDialogFragment();
-    // Pass the error that should be displayed
-    Bundle args = new Bundle();
-    args.putInt(DIALOG_ERROR, errorCode);
-    dialogFragment.setArguments(args);
-    dialogFragment.show(getSupportFragmentManager(), getClass().toString());
-  }
-
-  /* Called from ErrorDialogFragment when the dialog is dismissed. */
-  public void onDialogDismissed() {
-    mResolvingError = false;
   }
 }

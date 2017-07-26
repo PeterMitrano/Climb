@@ -1,80 +1,77 @@
 package com.peter.climb;
 
+import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
-import android.support.v7.app.AppCompatActivity;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
+import com.android.volley.toolbox.ImageLoader;
 import com.google.android.gms.fitness.data.DataPoint;
 import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.Session;
-import com.peter.climb.MyApplication.AppState;
+import com.peter.climb.MyApplication.GoogleFitListener;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-public class SessionDetailsActivity extends AppCompatActivity {
+public class SessionDetailsActivity extends MyActivity implements GoogleFitListener {
 
   static final String SENDS_KEY = "sends_key";
   static final String DATASETS_KEY = "datasets_key";
 
+  private LinearLayout layout;
+  private ImageView appBarImage;
+  private Toolbar toolbar;
+  private Session session;
+  private LinearLayout sendsLayout;
+  private LinearLayout detailsLayout;
+  private ArrayList<DataSet> dataSets;
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_session_details);
 
-    // pass null for the listener because I'm lazy and we don't need it
-    AppState appState = ((MyApplication) getApplicationContext())
-        .fetchGymDataAndAppState(getApplicationContext(), null);
+    // pass null for the listener because we don't need it
+    appState = ((MyApplication) getApplicationContext()).fetchGymData(null);
+    setupGoogleFit(this);
 
     Bundle bundle = getIntent().getExtras();
-    Session session = bundle.getParcelable(SENDS_KEY);
-    ArrayList<DataSet> dataSets = bundle.getParcelableArrayList(DATASETS_KEY);
-    String activeTime = Utils.activeTimeStringHM(session);
-    String calories = "Unknown";
+    session = bundle.getParcelable(SENDS_KEY);
+    dataSets = bundle.getParcelableArrayList(DATASETS_KEY);
 
-    setContentView(R.layout.activity_session_details);
-    Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-    setSupportActionBar(toolbar);
+    layout = (LinearLayout) findViewById(R.id.layout);
+    appBarImage = (ImageView) findViewById(R.id.app_bar_image);
+    toolbar = (Toolbar) findViewById(R.id.toolbar);
 
-    LinearLayout detailsLayout = (LinearLayout) findViewById(R.id.details_layout);
-    LinearLayout sendsLayout = (LinearLayout) findViewById(R.id.sends_layout);
-
-    String sendCount = "0";
     if (session != null) {
-      int sendCountInt = 0;
-      if (dataSets != null) {
-        for (DataSet dataSet : dataSets) {
-          for (DataPoint pt : dataSet.getDataPoints()) {
-            sendCountInt++;
-            String name = pt.getValue(appState.nameField).asString();
-            String grade = pt.getValue(appState.gradeField).asString();
-            String color = pt.getValue(appState.colorField).asString();
-            long timeSinceStartOfSession = pt.getStartTime(TimeUnit.MILLISECONDS) - session
-                .getStartTime(TimeUnit.MILLISECONDS);
-            String timeString = Utils.millisDurationHMS(timeSinceStartOfSession);
-            sendsLayout.addView(addSend(name, grade, timeString, color));
-          }
-        }
-      }
 
-      sendCount = String.valueOf(sendCountInt);
+      toolbar.setTitle(session.getDescription());
+      setSupportActionBar(toolbar);
+
+      detailsLayout = (LinearLayout) findViewById(R.id.details_layout);
+      sendsLayout = (LinearLayout) findViewById(R.id.sends_layout);
+
     }
+  }
 
-    detailsLayout.addView(
-        addDetail(R.drawable.ic_terrain_black_24dp, R.string.problems_sent_label, sendCount));
-    detailsLayout.addView(
-        addDetail(R.drawable.ic_timer_black_24dp, R.string.active_time_label, activeTime));
-    detailsLayout.addView(
-        addDetail(R.drawable.ic_calories_black_24dp, R.string.calories_burned_label, calories));
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    MenuInflater inflater = getMenuInflater();
+    inflater.inflate(R.menu.session_details_toolbar_menu, menu);
 
-    String title = "Session";
-    toolbar.setTitle(title);
+    return true;
   }
 
   View addSend(String name, String grade, String time, String color) {
+    @SuppressLint("InflateParams")
     ConstraintLayout sendItem = (ConstraintLayout) getLayoutInflater()
         .inflate(R.layout.session_send_item, null);
     TextView sendName = (TextView) sendItem.findViewById(R.id.session_send_name);
@@ -105,5 +102,76 @@ public class SessionDetailsActivity extends AppCompatActivity {
     detailText.setText(text);
 
     return detailItem;
+  }
+
+  @Override
+  void onPermissionsDenied() {
+    Snackbar snack = Snackbar
+        .make(layout, R.string.no_fit_permission_msg, Snackbar.LENGTH_INDEFINITE);
+    snack.setAction(R.string.ask_again, new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        appState.mClient.reconnect();
+        mResolvingError = false;
+      }
+    });
+    snack.show();
+  }
+
+  @Override
+  public void onGoogleFitConnected() {
+    if (session == null) {
+      return;
+    }
+
+    int sendCountInt = 0;
+    if (dataSets != null && appState.hasDataTypes()) {
+      for (DataSet dataSet : dataSets) {
+        if (dataSet.getDataType() == appState.routeDataType) {
+          for (DataPoint pt : dataSet.getDataPoints()) {
+            sendCountInt++;
+            String name = pt.getValue(appState.nameField).asString();
+            String grade = pt.getValue(appState.gradeField).asString();
+            String color = pt.getValue(appState.colorField).asString();
+            long timeSinceStartOfSession = pt.getStartTime(TimeUnit.MILLISECONDS) - session
+                .getStartTime(TimeUnit.MILLISECONDS);
+            String timeString = Utils.millisDurationHMS(timeSinceStartOfSession);
+            sendsLayout.addView(addSend(name, grade, timeString, color));
+          }
+        }
+        else if (dataSet.getDataType() == appState.metadataType) {
+          DataPoint metadata = dataSet.getDataPoints().get(0);
+          String url = metadata.getValue(appState.imageUrlField).asString();
+
+          ImageLoader.ImageListener listener = ImageLoader.getImageListener(
+              appBarImage,
+              0,
+              R.drawable.ic_error_black_24dp);
+
+          RequestorSingleton.getInstance(
+              getApplicationContext()).getImageLoader().get(url, listener);
+
+        }
+      }
+    } else {
+      onGoogleFitFailed();
+    }
+
+    String activeTime = Utils.activeTimeStringHM(session);
+    String sendCount = String.valueOf(sendCountInt);
+    String calories = "Unknown";
+
+    detailsLayout.addView(
+        addDetail(R.drawable.ic_terrain_black_24dp, R.string.problems_sent_label, sendCount));
+    detailsLayout.addView(
+        addDetail(R.drawable.ic_timer_black_24dp, R.string.active_time_label, activeTime));
+    detailsLayout.addView(
+        addDetail(R.drawable.ic_calories_black_24dp, R.string.calories_burned_label, calories));
+
+  }
+
+  @Override
+  public void onGoogleFitFailed() {
+    Toast.makeText(this, "Failed to parse Google Fit Session", Toast.LENGTH_SHORT).show();
   }
 }
