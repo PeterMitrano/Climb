@@ -17,14 +17,19 @@ class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
   private static final int NO_SESSIONS_CARD_TYPE = 1;
   private static final int SESSION_CARD_TYPE = 2;
   private static final int SELECT_GYM_INSTRUCTIONS_CARD_TYPE = 3;
-  private int special_card_count = 0;
+  private int specialCardCount = 0;
   private List<Session> sessions;
   private SessionReadResult sessionReadResult;
   private SessionCardListener sessionCardListener;
-  private boolean show_instructions = false;
-  private boolean show_no_sessions = false;
+  private boolean showInstructions = false;
+  private boolean showNoSessions = false;
 
   CardsAdapter() {
+  }
+
+  void clearSessions() {
+    sessions.clear();
+    sessionReadResult = null;
   }
 
   void setSessions(SessionReadResult sessionReadResult) {
@@ -78,7 +83,7 @@ class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
     switch (viewType) {
       case SESSION_CARD_TYPE:
         SessionViewHolder sessionViewHolder = (SessionViewHolder) holder;
-        Session session = sessions.get(position);
+        Session session = sessions.get(0);
         List<DataSet> dataSets = sessionReadResult.getDataSet(session);
         ArrayList<DataSet> dataSetsArrayList = new ArrayList<>(dataSets);
         int numberOfSends = 0;
@@ -108,18 +113,18 @@ class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
   @Override
   public int getItemCount() {
     if (hasSessions()) {
-      return sessions.size() + special_card_count;
+      return sessions.size() + specialCardCount;
     } else {
-      return special_card_count;
+      return specialCardCount;
     }
   }
 
   @Override
   public int getItemViewType(int position) {
-    if (hasSessions()) {
-      return SESSION_CARD_TYPE;
-    } else if (show_instructions && position == 0) {
+    if (showInstructions && position == 0) {
       return SELECT_GYM_INSTRUCTIONS_CARD_TYPE;
+    } else if (hasSessions()) {
+      return SESSION_CARD_TYPE;
     } else {
       return NO_SESSIONS_CARD_TYPE;
     }
@@ -134,33 +139,33 @@ class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
   }
 
   void showSelectGymInstructions() {
-    if (!show_instructions) {
-      special_card_count++;
-      show_instructions = true;
+    if (!showInstructions) {
+      specialCardCount++;
+      showInstructions = true;
       notifyDataSetChanged();
     }
   }
 
   void hideSelectGymInstructions() {
-    if (show_instructions) {
-      special_card_count--;
-      show_instructions = false;
+    if (showInstructions) {
+      specialCardCount--;
+      showInstructions = false;
       notifyDataSetChanged();
     }
   }
 
   void showNoSessions() {
-    if (!show_no_sessions) {
-      special_card_count++;
-      show_no_sessions = true;
+    if (!showNoSessions) {
+      specialCardCount++;
+      showNoSessions = true;
       notifyDataSetChanged();
     }
   }
 
   void hideNoSessions() {
-    if (show_no_sessions) {
-      special_card_count--;
-      show_no_sessions = false;
+    if (showNoSessions) {
+      specialCardCount--;
+      showNoSessions = false;
       notifyDataSetChanged();
     }
   }

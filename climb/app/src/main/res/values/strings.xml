@@ -15,10 +15,10 @@
   <string name="no_fit_permission_msg">We store your data in Google Fit, but we need your permission!</string>
   <string name="ask_again">ASK AGAIN</string>
   <string name="change_accounts">Change Accounts</string>
-  <string name="ignore_end_session_error">End Anyways</string>
-  <string name="empty_session_message">You didn\'t add any routes to this session.</string>
+  <string name="ignore_end_session_error">End Without Saving</string>
+  <string name="empty_session_message">You didn\'t add any routes to this session. No session will be saved</string>
   <string name="cancel">Cancel</string>
-  <string name="end_empty_session">End Session Anyways</string>
+  <string name="end_empty_session">End Anyways</string>
   <string name="instructions">swipe left to view the gym map</string>
   <string name="card_menu_delete">Delete</string>
   <string name="delete_session_message">This session will be removed from your timeline.</string>

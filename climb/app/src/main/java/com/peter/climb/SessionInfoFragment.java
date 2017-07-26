@@ -89,6 +89,6 @@ public class SessionInfoFragment extends Fragment implements OnClickListener {
         });
       }
 
-    }, 0, 100);
+    }, 0, 1000);
   }
 }

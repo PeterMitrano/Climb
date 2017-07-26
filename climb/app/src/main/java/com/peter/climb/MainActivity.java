@@ -187,9 +187,9 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
         break;
       }
       case R.id.change_accounts: {
-        // they probably want to change accounts if they clicked here
         if (appState.mClient.isConnected()) {
           startSessionButton.setEnabled(false);
+          cardsAdapter.clearSessions();
           appState.mClient.clearDefaultAccountAndReconnect();
         } else {
           appState.mClient.connect();
@@ -224,6 +224,7 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
           }
         });
         snack.show();
+        cardsAdapter.showNoSessions();
       }
     } else if (requestCode == START_SESSION_REQUEST_CODE) {
       if (resultCode == RESULT_OK) {
@@ -265,7 +266,6 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
 
     if (appState.hasCurrentGym()) {
       startSessionButton.setEnabled(true);
-      changeAccountsItem.setTitle(R.string.change_accounts);
     }
   }
 
@@ -348,6 +348,7 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
   @Override
   public void onNoGymsFound() {
     Snackbar.make(cardsRecycler, "No gyms found.", Snackbar.LENGTH_LONG).show();
+    cardsAdapter.showSelectGymInstructions();
   }
 
   private void buildFitnessClient() {
@@ -374,17 +375,21 @@ public class MainActivity extends AppCompatActivity implements OnNavigationItemS
     long endTime = cal.getTimeInMillis();
     cal.add(Calendar.MONTH, -1);
     long startTime = cal.getTimeInMillis();
-    appState.getSessionHistory(startTime, endTime, new ResultCallback<SessionReadResult>() {
-      @Override
-      public void onResult(@NonNull SessionReadResult sessionReadResult) {
-        if (sessionReadResult.getStatus().isSuccess()) {
-          cardsAdapter.setSessions(sessionReadResult);
-        } else {
-          // indicate that there are no sessions
-          cardsAdapter.showNoSessions();
+
+    if (appState.mClient.isConnected()) {
+      appState.getSessionHistory(startTime, endTime, new ResultCallback<SessionReadResult>() {
+        @Override
+        public void onResult(@NonNull SessionReadResult sessionReadResult) {
+          if (sessionReadResult.getStatus().isSuccess()) {
+            cardsAdapter.setSessions(sessionReadResult);
+          } else {
+            cardsAdapter.showNoSessions();
+          }
         }
-      }
-    });
+      });
+    } else {
+      cardsAdapter.showNoSessions();
+    }
   }
 
   private void displayNoCurrentGym() {
