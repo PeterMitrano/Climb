@@ -38,9 +38,6 @@ public class MapActivity extends MyActivity implements AddRouteListener, Session
 
     appState = ((MyApplication) getApplicationContext()).fetchGymData(this);
 
-    // FOR TESTING ONLY
-    appState.mClient.disconnect();
-
     decor_view = getWindow().getDecorView();
 
     sessionInfoFragment = (SessionInfoFragment) getSupportFragmentManager()

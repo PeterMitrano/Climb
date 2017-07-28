@@ -168,6 +168,7 @@ public class MainActivity extends MyActivity implements OnNavigationItemSelected
         if (appState.mClient.isConnected()) {
           startSessionButton.setEnabled(false);
           cardsAdapter.clearSessions();
+          cardsAdapter.hideNoSessions();
           cardsAdapter.showNotSignedIn();
           appState.reconnect();
         } else {
@@ -185,6 +186,7 @@ public class MainActivity extends MyActivity implements OnNavigationItemSelected
   @Override
   void onPermissionsDenied() {
     mResolvingError = false;
+    cardsAdapter.hideNoSessions();
     cardsAdapter.showNotSignedIn();
   }
 
