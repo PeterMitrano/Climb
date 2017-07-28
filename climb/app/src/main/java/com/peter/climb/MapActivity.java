@@ -20,7 +20,8 @@ import com.google.android.gms.common.api.Status;
 import com.peter.Climb.Msgs.Gyms;
 import com.peter.Climb.Msgs.Route;
 import com.peter.Climb.Msgs.Wall;
-import com.peter.climb.GymMapView.AddRouteListener;
+import com.peter.climb.Views.GymMapView;
+import com.peter.climb.Views.GymMapView.AddRouteListener;
 import com.peter.climb.SessionInfoFragment.SessionInfoListener;
 
 public class MapActivity extends MyActivity implements AddRouteListener, SessionInfoListener {

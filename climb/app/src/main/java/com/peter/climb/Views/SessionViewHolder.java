@@ -1,4 +1,4 @@
-package com.peter.climb;
+package com.peter.climb.Views;
 
 import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
@@ -14,22 +14,23 @@ import android.widget.TextView;
 import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.Session;
 import com.peter.climb.CardsAdapter.CardListener;
+import com.peter.climb.R;
 import java.util.ArrayList;
 
-class SessionViewHolder extends RecyclerView.ViewHolder implements
+public class SessionViewHolder extends RecyclerView.ViewHolder implements
     OnMenuItemClickListener, OnClickListener {
 
   private final LinearLayout layout;
-  final Toolbar toolbar;
+  public final Toolbar toolbar;
   final CardView card;
-  final TextView sessionTitleText;
-  final TextView dateTimeText;
+  public final TextView sessionTitleText;
+  public final TextView dateTimeText;
 
   private Session session;
-  CardListener cardListener;
+  public CardListener cardListener;
   private ArrayList<DataSet> datasets;
 
-  SessionViewHolder(View itemView) {
+  public SessionViewHolder(View itemView) {
     super(itemView);
 
     layout = (LinearLayout) itemView.findViewById(R.id.card_layout);
@@ -66,7 +67,7 @@ class SessionViewHolder extends RecyclerView.ViewHolder implements
     cardListener.onShowSessionDetails(session, datasets, getAdapterPosition());
   }
 
-  void setSession(Session session, ArrayList<DataSet> datasets) {
+  public void setSession(Session session, ArrayList<DataSet> datasets) {
     this.session = session;
     this.datasets = datasets;
   }

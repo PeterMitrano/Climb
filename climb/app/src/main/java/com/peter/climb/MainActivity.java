@@ -20,6 +20,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -93,6 +94,9 @@ public class MainActivity extends MyActivity implements OnNavigationItemSelected
     searchedGymId = AppState.NO_GYM_ID;
     if (action.equals(Intent.ACTION_MAIN)) {
       // connect to google fit API
+      if (!appState.mClient.isConnected()) {
+        appState.mClient.connect();
+      }
     } else if (action.equals(Intent.ACTION_SEARCH)) {
       // check if this request came from a search for a specific gym
       Uri uri = getIntent().getData();
@@ -164,6 +168,7 @@ public class MainActivity extends MyActivity implements OnNavigationItemSelected
         if (appState.mClient.isConnected()) {
           startSessionButton.setEnabled(false);
           cardsAdapter.clearSessions();
+          cardsAdapter.showNotSignedIn();
           appState.reconnect();
         } else {
           appState.mClient.connect();
@@ -179,17 +184,8 @@ public class MainActivity extends MyActivity implements OnNavigationItemSelected
 
   @Override
   void onPermissionsDenied() {
-    Snackbar snack = Snackbar
-        .make(cardsRecycler, R.string.no_fit_permission_msg, Snackbar.LENGTH_INDEFINITE);
-    snack.setAction(R.string.ask_again, new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        appState.mClient.reconnect();
-        mResolvingError = false;
-      }
-    });
-    snack.show();
-    cardsAdapter.showNoSessions();
+    mResolvingError = false;
+    cardsAdapter.showNotSignedIn();
   }
 
   @Override
@@ -229,6 +225,7 @@ public class MainActivity extends MyActivity implements OnNavigationItemSelected
   @Override
   public void onGoogleFitConnected() {
     // also request sessions to display
+    cardsAdapter.hideNotSignedIn();
     updateSessionsRecycler();
 
     if (appState.hasCurrentGym()) {
@@ -284,6 +281,11 @@ public class MainActivity extends MyActivity implements OnNavigationItemSelected
   }
 
   @Override
+  public void signIn() {
+    appState.mClient.reconnect();
+  }
+
+  @Override
   public void onGymsFound(Gyms gyms) {
     // Two possible sources of current gym are search and settings
     SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
@@ -332,11 +334,13 @@ public class MainActivity extends MyActivity implements OnNavigationItemSelected
           if (sessionReadResult.getStatus().isSuccess()) {
             cardsAdapter.setSessions(sessionReadResult);
           } else {
+            Log.e(getClass().toString(), "session read failed");
             cardsAdapter.showNoSessions();
           }
         }
       });
     } else {
+      Log.e(getClass().toString(), "not connected or missing datatypes");
       cardsAdapter.showNoSessions();
     }
   }

@@ -5,7 +5,7 @@ import com.google.android.gms.fitness.data.Session;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-class Utils {
+public class Utils {
 
   /**
    * Make a color lighter or darker
@@ -14,7 +14,7 @@ class Utils {
    * @param factor >1f is lighter, <1f is darker
    * @return the new color
    */
-  static int manipulateColor(int color, float factor) {
+  public static int manipulateColor(int color, float factor) {
     int a = Color.alpha(color);
     int r = Math.round(Color.red(color) * factor);
     int g = Math.round(Color.green(color) * factor);

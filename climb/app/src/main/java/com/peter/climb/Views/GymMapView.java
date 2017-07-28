@@ -1,4 +1,4 @@
-package com.peter.climb;
+package com.peter.climb.Views;
 
 import static android.view.MotionEvent.INVALID_POINTER_ID;
 
@@ -16,7 +16,8 @@ import android.view.ViewGroup;
 import com.peter.Climb.Msgs.Gym;
 import com.peter.Climb.Msgs.Route;
 import com.peter.Climb.Msgs.Wall;
-import com.peter.climb.RouteLabelView.RouteClickedListener;
+import com.peter.climb.R;
+import com.peter.climb.Views.RouteLabelView.RouteClickedListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,7 +50,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
   private List<AddRouteListener> addRouteListeners;
   private HashMap<Route, Wall> routeWallMap;
 
-  interface AddRouteListener {
+  public interface AddRouteListener {
 
     void onAddRoute(Route route, Wall wall);
   }

@@ -35,11 +35,6 @@ public abstract class MyActivity extends AppCompatActivity implements OnConnecti
 
     // calling this function ensures that gym data is fetched if need be
     appState = ((MyApplication) getApplicationContext()).fetchGymData(this);
-  }
-
-  @Override
-  public void onStart() {
-    super.onStart();
 
     // We do this here so that whatever activity opens first (usually main) can setup google fit.
     // All activities that could possibly need google fit should call this in onCreate()
@@ -56,10 +51,6 @@ public abstract class MyActivity extends AppCompatActivity implements OnConnecti
 
     appState.mClient.registerConnectionCallbacks(this);
     appState.mClient.registerConnectionFailedListener(this);
-
-    if (!appState.mClient.isConnected()) {
-      appState.mClient.connect();
-    }
   }
 
   @Override

@@ -43,4 +43,7 @@
   <string name="no_gyms_found_title">Couldn\'t Connect to our Gym Database</string>
   <string name="session_save_failure">Failed to store your session in Google Fit</string>
   <string name="retry">Retry</string>
+  <string name="not_signed_in_title">You\'re Not Signed In</string>
+  <string name="not_signed_in_subtitle">You must be signed in to start a session.</string>
+  <string name="sign_in">Sign In</string>
 </resources>

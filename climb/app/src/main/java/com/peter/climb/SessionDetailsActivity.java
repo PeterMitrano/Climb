@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -51,11 +52,21 @@ public class SessionDetailsActivity extends MyActivity {
 
       toolbar.setTitle(session.getDescription());
       setSupportActionBar(toolbar);
+      ActionBar actionBar = getSupportActionBar();
+
+      actionBar.setDisplayHomeAsUpEnabled(true);
+      actionBar.setDisplayShowHomeEnabled(true);
 
       detailsLayout = (LinearLayout) findViewById(R.id.details_layout);
       sendsLayout = (LinearLayout) findViewById(R.id.sends_layout);
 
     }
+  }
+
+  @Override
+  public boolean onSupportNavigateUp() {
+    onBackPressed();
+    return true;
   }
 
   @Override

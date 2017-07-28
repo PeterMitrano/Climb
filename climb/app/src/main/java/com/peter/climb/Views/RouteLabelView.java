@@ -1,4 +1,4 @@
-package com.peter.climb;
+package com.peter.climb.Views;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -9,6 +9,8 @@ import android.support.v4.content.ContextCompat;
 import android.view.MotionEvent;
 import android.view.View;
 import com.peter.Climb.Msgs;
+import com.peter.climb.R;
+import com.peter.climb.Utils;
 import java.util.ArrayList;
 import java.util.List;
 

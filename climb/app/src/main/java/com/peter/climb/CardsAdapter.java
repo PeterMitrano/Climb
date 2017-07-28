@@ -9,24 +9,31 @@ import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.Session;
 import com.google.android.gms.fitness.result.SessionReadResult;
 import com.peter.climb.MyApplication.AppState;
+import com.peter.climb.Views.GenericViewHolder;
+import com.peter.climb.Views.NoGymsFoundViewHolder;
+import com.peter.climb.Views.NotSignedInViewHolder;
+import com.peter.climb.Views.SessionViewHolder;
 import java.util.ArrayList;
 import java.util.List;
 
-class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
+public class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
 
-  interface CardListener {
+  public interface CardListener {
 
     void onDeleteSession(Session session, int index);
 
     void onShowSessionDetails(Session session, ArrayList<DataSet> dataSets, int index);
 
     void onRefreshGyms();
+
+    void signIn();
   }
 
   private static final Integer NO_SESSIONS_CARD_TYPE = 1;
   private static final Integer SESSION_CARD_TYPE = 2;
   private static final Integer SELECT_GYM_INSTRUCTIONS_CARD_TYPE = 3;
   private static final Integer NO_GYMS_FOUND_CARD_TYPE = 4;
+  private static final Integer NOT_SIGNED_IN_CARD_TYPE = 5;
   private final AppState appState;
   private ArrayList<Object> dataset;
   private SessionReadResult sessionReadResult;
@@ -87,6 +94,10 @@ class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
       card = (LinearLayout) LayoutInflater.from(parent.getContext())
           .inflate(R.layout.session_card, parent, false);
       return new SessionViewHolder(card);
+    } else if (viewType == NOT_SIGNED_IN_CARD_TYPE) {
+      card = (LinearLayout) LayoutInflater.from(parent.getContext())
+          .inflate(R.layout.not_signed_in_card, parent, false);
+      return new NotSignedInViewHolder(card);
     } else if (viewType == NO_GYMS_FOUND_CARD_TYPE) {
       card = (LinearLayout) LayoutInflater.from(parent.getContext())
           .inflate(R.layout.no_gyms_found_card, parent, false);
@@ -94,19 +105,14 @@ class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
     } else if (viewType == SELECT_GYM_INSTRUCTIONS_CARD_TYPE) {
       card = (LinearLayout) LayoutInflater.from(parent.getContext())
           .inflate(R.layout.select_gym_instructions_card, parent, false);
-      return new SelectGymInstructionsViewHolder(card);
+      return new GenericViewHolder(card);
     } else if (viewType == NO_SESSIONS_CARD_TYPE) {
       card = (LinearLayout) LayoutInflater.from(parent.getContext())
           .inflate(R.layout.no_sessions_card, parent, false);
-      return new NoSessionsViewHolder(card);
+      return new GenericViewHolder(card);
     } else {
       card = new LinearLayout(parent.getContext());
-      return new ViewHolder(card) {
-        @Override
-        public String toString() {
-          return "Empty Card";
-        }
-      };
+      return new GenericViewHolder(card);
     }
   }
 
@@ -138,6 +144,9 @@ class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
     } else if (viewType == NO_GYMS_FOUND_CARD_TYPE) {
       NoGymsFoundViewHolder noGymsFoundViewHolder = (NoGymsFoundViewHolder) holder;
       noGymsFoundViewHolder.cardListener = this.cardListener;
+    } else if (viewType == NOT_SIGNED_IN_CARD_TYPE) {
+      NotSignedInViewHolder notSignedInViewHolder = (NotSignedInViewHolder) holder;
+      notSignedInViewHolder.cardListener = this.cardListener;
     }
   }
 
@@ -215,6 +224,20 @@ class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
   void showNoGymsFound() {
     if (!dataset.contains(NO_GYMS_FOUND_CARD_TYPE)) {
       dataset.add(0, NO_GYMS_FOUND_CARD_TYPE);
+      notifyDataSetChanged();
+    }
+  }
+
+  void showNotSignedIn() {
+    if (!dataset.contains(NOT_SIGNED_IN_CARD_TYPE)) {
+      dataset.add(0, NOT_SIGNED_IN_CARD_TYPE);
+      notifyDataSetChanged();
+    }
+  }
+
+  void hideNotSignedIn() {
+    if (dataset.contains(NOT_SIGNED_IN_CARD_TYPE)) {
+      dataset.remove(NOT_SIGNED_IN_CARD_TYPE);
       notifyDataSetChanged();
     }
   }

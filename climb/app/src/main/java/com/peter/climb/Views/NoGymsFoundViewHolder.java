@@ -1,20 +1,20 @@
-package com.peter.climb;
+package com.peter.climb.Views;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import com.peter.climb.CardsAdapter.CardListener;
+import com.peter.climb.R;
 
-class NoGymsFoundViewHolder extends RecyclerView.ViewHolder {
+public class NoGymsFoundViewHolder extends RecyclerView.ViewHolder {
 
-  private Button refreshButton;
-  CardListener cardListener;
+  public CardListener cardListener;
 
-  NoGymsFoundViewHolder(View itemView) {
+  public NoGymsFoundViewHolder(View itemView) {
     super(itemView);
 
-    refreshButton = (Button) itemView.findViewById(R.id.refresh_button);
+    Button refreshButton = (Button) itemView.findViewById(R.id.refresh_button);
     refreshButton.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {

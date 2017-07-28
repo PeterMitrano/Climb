@@ -15,7 +15,7 @@
     app:layout_constraintBottom_toBottomOf="parent"
     android:name="com.peter.climb.SessionInfoFragment" />
 
-  <com.peter.climb.GymMapView
+  <com.peter.climb.Views.GymMapView
     android:id="@+id/map_view"
     android:layout_width="0dp"
     android:layout_height="0dp"
