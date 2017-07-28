@@ -1,6 +1,7 @@
 package com.peter.climb;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
@@ -9,6 +10,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -54,12 +56,13 @@ public class SessionDetailsActivity extends MyActivity {
       setSupportActionBar(toolbar);
       ActionBar actionBar = getSupportActionBar();
 
-      actionBar.setDisplayHomeAsUpEnabled(true);
-      actionBar.setDisplayShowHomeEnabled(true);
+      if (actionBar != null) {
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setDisplayShowHomeEnabled(true);
+      }
 
       detailsLayout = (LinearLayout) findViewById(R.id.details_layout);
       sendsLayout = (LinearLayout) findViewById(R.id.sends_layout);
-
     }
   }
 
@@ -73,6 +76,16 @@ public class SessionDetailsActivity extends MyActivity {
   public boolean onCreateOptionsMenu(Menu menu) {
     MenuInflater inflater = getMenuInflater();
     inflater.inflate(R.menu.session_details_toolbar_menu, menu);
+
+    return true;
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    if (item.getItemId() == R.id.edit_session_item) {
+      Intent intent = new Intent(this, EditSessionActivity.class);
+      startActivity(intent);
+    }
 
     return true;
   }
@@ -168,9 +181,9 @@ public class SessionDetailsActivity extends MyActivity {
     String calories = "Unknown";
 
     detailsLayout.addView(
-        addDetail(R.drawable.ic_terrain_black_24dp, R.string.problems_sent_label, sendCount));
-    detailsLayout.addView(
         addDetail(R.drawable.ic_timer_black_24dp, R.string.active_time_label, activeTime));
+    detailsLayout.addView(
+        addDetail(R.drawable.ic_terrain_black_24dp, R.string.problems_sent_label, sendCount));
     detailsLayout.addView(
         addDetail(R.drawable.ic_calories_black_24dp, R.string.calories_burned_label, calories));
 

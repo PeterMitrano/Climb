@@ -3,7 +3,7 @@
   xmlns:app="http://schemas.android.com/apk/res-auto">
 
   <item
-    android:id="@+id/edit_item"
+    android:id="@+id/edit_session_item"
     android:icon="@drawable/ic_edit_light_24dp"
     android:title="@string/edit_item_title"
     app:popupTheme="@style/AppTheme.PopupOverlay"
