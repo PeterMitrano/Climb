@@ -13,7 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.Session;
-import com.peter.climb.MyApplication.SessionCardListener;
+import com.peter.climb.CardsAdapter.CardListener;
 import java.util.ArrayList;
 
 class SessionViewHolder extends RecyclerView.ViewHolder implements
@@ -26,7 +26,7 @@ class SessionViewHolder extends RecyclerView.ViewHolder implements
   final TextView dateTimeText;
 
   private Session session;
-  SessionCardListener sessionCardListener;
+  CardListener cardListener;
   private ArrayList<DataSet> datasets;
 
   SessionViewHolder(View itemView) {
@@ -52,7 +52,7 @@ class SessionViewHolder extends RecyclerView.ViewHolder implements
       builder.setMessage(R.string.delete_session_message).setTitle(R.string.delete_session_title)
           .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
-              sessionCardListener.onDeleteSession(session, getAdapterPosition());
+              cardListener.onDeleteSession(session, getAdapterPosition());
             }
           })
           .setNegativeButton(android.R.string.cancel, null);
@@ -63,7 +63,7 @@ class SessionViewHolder extends RecyclerView.ViewHolder implements
 
   @Override
   public void onClick(View v) {
-    sessionCardListener.onShowSessionDetails(session, datasets, getAdapterPosition());
+    cardListener.onShowSessionDetails(session, datasets, getAdapterPosition());
   }
 
   void setSession(Session session, ArrayList<DataSet> datasets) {

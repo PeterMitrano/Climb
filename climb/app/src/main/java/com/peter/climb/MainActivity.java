@@ -28,7 +28,6 @@ import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.ImageView;
 import android.widget.SearchView;
-import android.widget.Toast;
 import com.android.volley.toolbox.ImageLoader;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
@@ -37,17 +36,15 @@ import com.google.android.gms.fitness.data.Session;
 import com.google.android.gms.fitness.result.SessionReadResult;
 import com.peter.Climb.Msgs;
 import com.peter.Climb.Msgs.Gyms;
-import com.peter.climb.FetchGymDataTask.FetchGymDataListener;
+import com.peter.climb.CardsAdapter.CardListener;
 import com.peter.climb.MyApplication.AppState;
-import com.peter.climb.MyApplication.GoogleFitListener;
-import com.peter.climb.MyApplication.SessionCardListener;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends MyActivity implements OnNavigationItemSelectedListener,
-    SessionCardListener, OnClickListener, GoogleFitListener, FetchGymDataListener {
+    CardListener, OnClickListener {
 
   public static final int SESSION_NOTIFICATION_ID = 1002;
   public static final int START_SESSION_REQUEST_CODE = 1004;
@@ -71,16 +68,13 @@ public class MainActivity extends MyActivity implements OnNavigationItemSelected
     Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
 
-    // calling this function ensures that gym data is fetched if need be
-    appState = ((MyApplication) getApplicationContext()).fetchGymData(this);
-
     appBarImage = (ImageView) findViewById(R.id.app_bar_image);
     cardsRecycler = (RecyclerView) findViewById(R.id.sessions_recycler);
     startSessionButton = (FloatingActionButton) findViewById(R.id.start_session_button);
     NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
 
     cardsAdapter = new CardsAdapter(appState);
-    cardsAdapter.setSessionCardListener(this);
+    cardsAdapter.setCardListener(this);
     cardsRecycler.setAdapter(cardsAdapter);
 
     startSessionButton.setEnabled(false);
@@ -99,7 +93,6 @@ public class MainActivity extends MyActivity implements OnNavigationItemSelected
     searchedGymId = AppState.NO_GYM_ID;
     if (action.equals(Intent.ACTION_MAIN)) {
       // connect to google fit API
-      setupGoogleFit(this);
     } else if (action.equals(Intent.ACTION_SEARCH)) {
       // check if this request came from a search for a specific gym
       Uri uri = getIntent().getData();
@@ -171,7 +164,7 @@ public class MainActivity extends MyActivity implements OnNavigationItemSelected
         if (appState.mClient.isConnected()) {
           startSessionButton.setEnabled(false);
           cardsAdapter.clearSessions();
-          appState.mClient.clearDefaultAccountAndReconnect();
+          appState.reconnect();
         } else {
           appState.mClient.connect();
         }
@@ -222,6 +215,7 @@ public class MainActivity extends MyActivity implements OnNavigationItemSelected
   @Override
   public void onClick(View v) {
     if (v.getId() == R.id.start_session_button) {
+      unregisterGoogleFitListener();
 
       // if not, start a new session
       appState.startSession();
@@ -234,9 +228,6 @@ public class MainActivity extends MyActivity implements OnNavigationItemSelected
 
   @Override
   public void onGoogleFitConnected() {
-    String message = "Sign in Successful";
-    Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-
     // also request sessions to display
     updateSessionsRecycler();
 
@@ -249,7 +240,9 @@ public class MainActivity extends MyActivity implements OnNavigationItemSelected
   public void onGoogleFitFailed() {
     // these are really unlikely to happen, but it renders google fit api useless
     startSessionButton.setEnabled(false);
-    Snackbar snack = Snackbar.make(cardsRecycler, "Failed to connect to google Fit.", Snackbar.LENGTH_INDEFINITE);
+    cardsAdapter.clearSessions();
+    Snackbar snack = Snackbar
+        .make(cardsRecycler, "Failed to connect to google Fit.", Snackbar.LENGTH_INDEFINITE);
     snack.setAction("Try Again", new View.OnClickListener() {
       @Override
       public void onClick(View v) {
@@ -286,6 +279,11 @@ public class MainActivity extends MyActivity implements OnNavigationItemSelected
   }
 
   @Override
+  public void onRefreshGyms() {
+    appState.refreshGyms(this);
+  }
+
+  @Override
   public void onGymsFound(Gyms gyms) {
     // Two possible sources of current gym are search and settings
     SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
@@ -309,12 +307,14 @@ public class MainActivity extends MyActivity implements OnNavigationItemSelected
     } else {
       displayNoCurrentGym();
     }
+
+    cardsAdapter.hideNoGymsFound();
   }
 
   @Override
   public void onNoGymsFound() {
     Snackbar.make(cardsRecycler, "No gyms found.", Snackbar.LENGTH_LONG).show();
-    cardsAdapter.showSelectGymInstructions();
+    cardsAdapter.showNoGymsFound();
   }
 
   private void updateSessionsRecycler() {

@@ -9,39 +9,62 @@ import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.Session;
 import com.google.android.gms.fitness.result.SessionReadResult;
 import com.peter.climb.MyApplication.AppState;
-import com.peter.climb.MyApplication.SessionCardListener;
 import java.util.ArrayList;
 import java.util.List;
 
 class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
 
-  private static final int NO_SESSIONS_CARD_TYPE = 1;
-  private static final int SESSION_CARD_TYPE = 2;
-  private static final int SELECT_GYM_INSTRUCTIONS_CARD_TYPE = 3;
+  interface CardListener {
+
+    void onDeleteSession(Session session, int index);
+
+    void onShowSessionDetails(Session session, ArrayList<DataSet> dataSets, int index);
+
+    void onRefreshGyms();
+  }
+
+  private static final Integer NO_SESSIONS_CARD_TYPE = 1;
+  private static final Integer SESSION_CARD_TYPE = 2;
+  private static final Integer SELECT_GYM_INSTRUCTIONS_CARD_TYPE = 3;
+  private static final Integer NO_GYMS_FOUND_CARD_TYPE = 4;
   private final AppState appState;
-  private int specialCardCount = 0;
-  private List<Session> sessions;
+  private ArrayList<Object> dataset;
   private SessionReadResult sessionReadResult;
-  private SessionCardListener sessionCardListener;
-  private boolean showInstructions = false;
-  private boolean showNoSessions = false;
+  private CardListener cardListener;
 
   CardsAdapter(AppState appState) {
-    sessions = new ArrayList<>();
+    dataset = new ArrayList<>();
     this.appState = appState;
   }
 
   void clearSessions() {
-    sessions.clear();
+    clearSessionFromDataSet();
     sessionReadResult = null;
+    notifyDataSetChanged();
+  }
+
+  private void clearSessionFromDataSet() {
+    for (int i = 0; i < dataset.size(); ) {
+      Object datum = dataset.get(i);
+      if (datum instanceof Session) {
+        dataset.remove(datum);
+      } else {
+        i++;
+      }
+    }
   }
 
   void setSessions(SessionReadResult sessionReadResult) {
     // Digest the read result
     this.sessionReadResult = sessionReadResult;
-    this.sessions = sessionReadResult.getSessions();
+    clearSessionFromDataSet();
+    List<Session> sessions = sessionReadResult.getSessions();
 
-    if (this.sessions.isEmpty()) {
+    for (Session session : sessions) {
+      dataset.add(session);
+    }
+
+    if (sessions.isEmpty()) {
       showNoSessions();
     } else {
       hideNoSessions();
@@ -51,7 +74,7 @@ class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
   }
 
   void removeSession(Session session) {
-    sessions.remove(session);
+    dataset.remove(session);
     if (!hasSessions()) {
       showNoSessions();
     }
@@ -60,23 +83,30 @@ class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
   @Override
   public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
     LinearLayout card;
-    switch (viewType) {
-      case SESSION_CARD_TYPE:
-        card = (LinearLayout) LayoutInflater.from(parent.getContext())
-            .inflate(R.layout.session_card, parent, false);
-        return new SessionViewHolder(card);
-
-      case SELECT_GYM_INSTRUCTIONS_CARD_TYPE:
-        card = (LinearLayout) LayoutInflater.from(parent.getContext())
-            .inflate(R.layout.select_gym_instructions_card, parent, false);
-        return new SelectGymInstructionsViewHolder(card);
-
-      case NO_SESSIONS_CARD_TYPE:
-      default:
-        card = (LinearLayout) LayoutInflater.from(parent.getContext())
-            .inflate(R.layout.no_sessions_card, parent, false);
-
-        return new NoSessionsViewHolder(card);
+    if (viewType == SESSION_CARD_TYPE) {
+      card = (LinearLayout) LayoutInflater.from(parent.getContext())
+          .inflate(R.layout.session_card, parent, false);
+      return new SessionViewHolder(card);
+    } else if (viewType == NO_GYMS_FOUND_CARD_TYPE) {
+      card = (LinearLayout) LayoutInflater.from(parent.getContext())
+          .inflate(R.layout.no_gyms_found_card, parent, false);
+      return new NoGymsFoundViewHolder(card);
+    } else if (viewType == SELECT_GYM_INSTRUCTIONS_CARD_TYPE) {
+      card = (LinearLayout) LayoutInflater.from(parent.getContext())
+          .inflate(R.layout.select_gym_instructions_card, parent, false);
+      return new SelectGymInstructionsViewHolder(card);
+    } else if (viewType == NO_SESSIONS_CARD_TYPE) {
+      card = (LinearLayout) LayoutInflater.from(parent.getContext())
+          .inflate(R.layout.no_sessions_card, parent, false);
+      return new NoSessionsViewHolder(card);
+    } else {
+      card = new LinearLayout(parent.getContext());
+      return new ViewHolder(card) {
+        @Override
+        public String toString() {
+          return "Empty Card";
+        }
+      };
     }
   }
 
@@ -84,95 +114,107 @@ class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
   public void onBindViewHolder(ViewHolder holder, int position) {
     int viewType = getItemViewType(position);
 
-    switch (viewType) {
-      case SESSION_CARD_TYPE:
-        SessionViewHolder sessionViewHolder = (SessionViewHolder) holder;
-        int sessionIndex = showInstructions ? position - 1 : position;
-        Session session = sessions.get(sessionIndex);
-        List<DataSet> dataSets = sessionReadResult.getDataSet(session);
-        ArrayList<DataSet> dataSetsArrayList = new ArrayList<>(dataSets);
-        int numberOfSends = 0;
+    if (viewType == SESSION_CARD_TYPE) {
+      SessionViewHolder sessionViewHolder = (SessionViewHolder) holder;
+      Session session = (Session) dataset.get(position);
+      List<DataSet> routeTypeDataSets = sessionReadResult.getDataSet(session, appState.routeDataType);
+      ArrayList<DataSet> dataSetsArrayList = new ArrayList<>(routeTypeDataSets);
+      int numberOfSends = 0;
 
-        for (DataSet dataSet : dataSets) {
-          if (dataSet.getDataType().equals(appState.routeDataType)) {
-            numberOfSends += dataSet.getDataPoints().size();
-          }
-        }
+      for (DataSet routeTypeDataSet : routeTypeDataSets) {
+          numberOfSends += routeTypeDataSet.getDataPoints().size();
+      }
 
-        String activeTimeString = Utils.activeTimeStringHM(session);
+      String activeTimeString = Utils.activeTimeStringHM(session);
 
-        String title = numberOfSends + " Sends";
-        String toolbarTitle = session.getDescription();
+      String title = numberOfSends + " Sends";
+      String toolbarTitle = session.getDescription();
 
-        sessionViewHolder.sessionTitleText.setText(title);
-        sessionViewHolder.dateTimeText.setText(activeTimeString);
-        sessionViewHolder.sessionCardListener = this.sessionCardListener;
-        sessionViewHolder.toolbar.setTitle(toolbarTitle);
-        sessionViewHolder.setSession(session, dataSetsArrayList);
-        break;
-
-      case NO_SESSIONS_CARD_TYPE:
-      default:
-        break;
+      sessionViewHolder.sessionTitleText.setText(title);
+      sessionViewHolder.dateTimeText.setText(activeTimeString);
+      sessionViewHolder.cardListener = this.cardListener;
+      sessionViewHolder.toolbar.setTitle(toolbarTitle);
+      sessionViewHolder.setSession(session, dataSetsArrayList);
+    } else if (viewType == NO_GYMS_FOUND_CARD_TYPE) {
+      NoGymsFoundViewHolder noGymsFoundViewHolder = (NoGymsFoundViewHolder) holder;
+      noGymsFoundViewHolder.cardListener = this.cardListener;
     }
   }
 
   @Override
   public int getItemCount() {
-    if (hasSessions()) {
-      return sessions.size() + specialCardCount;
-    } else {
-      return specialCardCount;
-    }
+    return dataset.size();
   }
 
   @Override
   public int getItemViewType(int position) {
-    if (showInstructions && position == 0) {
-      return SELECT_GYM_INSTRUCTIONS_CARD_TYPE;
-    } else if (hasSessions()) {
+    Object datum = dataset.get(position);
+    if (datum instanceof Session) {
       return SESSION_CARD_TYPE;
     } else {
-      return NO_SESSIONS_CARD_TYPE;
+      return (int) datum;
     }
   }
 
   private boolean hasSessions() {
-    return sessions != null && sessions.size() > 0;
+    for (Object datum : dataset) {
+      if (datum instanceof Session) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
-  void setSessionCardListener(SessionCardListener sessionCardListener) {
-    this.sessionCardListener = sessionCardListener;
+  void setCardListener(CardListener cardListener) {
+    this.cardListener = cardListener;
   }
 
   void showSelectGymInstructions() {
-    if (!showInstructions) {
-      specialCardCount++;
-      showInstructions = true;
+    if (!dataset.contains(SELECT_GYM_INSTRUCTIONS_CARD_TYPE)) {
+      dataset.add(0, SELECT_GYM_INSTRUCTIONS_CARD_TYPE);
       notifyDataSetChanged();
     }
   }
 
   void hideSelectGymInstructions() {
-    if (showInstructions) {
-      specialCardCount--;
-      showInstructions = false;
+    if (dataset.contains(SELECT_GYM_INSTRUCTIONS_CARD_TYPE)) {
+      dataset.remove(SELECT_GYM_INSTRUCTIONS_CARD_TYPE);
       notifyDataSetChanged();
     }
   }
 
   void showNoSessions() {
-    if (!showNoSessions) {
-      specialCardCount++;
-      showNoSessions = true;
+    if (!dataset.contains(NO_SESSIONS_CARD_TYPE)) {
+      int i = 0;
+      for (; i < dataset.size(); i++) {
+        Object datum = dataset.get(i);
+        if (datum instanceof Session) {
+          break;
+        }
+      }
+      dataset.add(i, NO_SESSIONS_CARD_TYPE);
       notifyDataSetChanged();
     }
   }
 
   void hideNoSessions() {
-    if (showNoSessions) {
-      specialCardCount--;
-      showNoSessions = false;
+    if (dataset.contains(NO_SESSIONS_CARD_TYPE)) {
+      dataset.remove(NO_SESSIONS_CARD_TYPE);
+      notifyDataSetChanged();
+    }
+  }
+
+  void hideNoGymsFound() {
+    if (dataset.contains(NO_GYMS_FOUND_CARD_TYPE)) {
+      dataset.remove(NO_GYMS_FOUND_CARD_TYPE);
+      notifyDataSetChanged();
+    }
+  }
+
+  void showNoGymsFound() {
+    if (!dataset.contains(NO_GYMS_FOUND_CARD_TYPE)) {
+      dataset.add(0, NO_GYMS_FOUND_CARD_TYPE);
       notifyDataSetChanged();
     }
   }

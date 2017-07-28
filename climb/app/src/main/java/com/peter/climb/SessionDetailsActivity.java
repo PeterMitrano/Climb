@@ -17,11 +17,11 @@ import com.android.volley.toolbox.ImageLoader;
 import com.google.android.gms.fitness.data.DataPoint;
 import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.Session;
-import com.peter.climb.MyApplication.GoogleFitListener;
+import com.peter.Climb.Msgs.Gyms;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-public class SessionDetailsActivity extends MyActivity implements GoogleFitListener {
+public class SessionDetailsActivity extends MyActivity {
 
   static final String SENDS_KEY = "sends_key";
   static final String DATASETS_KEY = "datasets_key";
@@ -38,10 +38,6 @@ public class SessionDetailsActivity extends MyActivity implements GoogleFitListe
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_session_details);
-
-    // pass null for the listener because we don't need it
-    appState = ((MyApplication) getApplicationContext()).fetchGymData(null);
-    setupGoogleFit(this);
 
     Bundle bundle = getIntent().getExtras();
     session = bundle.getParcelable(SENDS_KEY);
@@ -138,8 +134,7 @@ public class SessionDetailsActivity extends MyActivity implements GoogleFitListe
             String timeString = Utils.millisDurationHMS(timeSinceStartOfSession);
             sendsLayout.addView(addSend(name, grade, timeString, color));
           }
-        }
-        else if (dataSet.getDataType().equals(appState.metadataType)) {
+        } else if (dataSet.getDataType().equals(appState.metadataType)) {
           DataPoint metadata = dataSet.getDataPoints().get(0);
           String url = metadata.getValue(appState.imageUrlField).asString();
 
@@ -173,5 +168,13 @@ public class SessionDetailsActivity extends MyActivity implements GoogleFitListe
   @Override
   public void onGoogleFitFailed() {
     Toast.makeText(this, "Failed to parse Google Fit Session", Toast.LENGTH_SHORT).show();
+  }
+
+  @Override
+  public void onGymsFound(Gyms gyms) {
+  }
+
+  @Override
+  public void onNoGymsFound() {
   }
 }

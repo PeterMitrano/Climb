@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent.CanceledException;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -19,16 +20,15 @@ import com.google.android.gms.common.api.Status;
 import com.peter.Climb.Msgs.Gyms;
 import com.peter.Climb.Msgs.Route;
 import com.peter.Climb.Msgs.Wall;
-import com.peter.climb.FetchGymDataTask.FetchGymDataListener;
 import com.peter.climb.GymMapView.AddRouteListener;
 import com.peter.climb.SessionInfoFragment.SessionInfoListener;
 
-public class MapActivity extends MyActivity implements AddRouteListener,
-    FetchGymDataListener, SessionInfoListener {
+public class MapActivity extends MyActivity implements AddRouteListener, SessionInfoListener {
 
   private View decor_view;
   private GymMapView gymMapView;
   private SessionInfoFragment sessionInfoFragment;
+  private boolean notifyOnConnect = false;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -36,7 +36,9 @@ public class MapActivity extends MyActivity implements AddRouteListener,
     setContentView(R.layout.activity_map);
 
     appState = ((MyApplication) getApplicationContext()).fetchGymData(this);
-    setupGoogleFit(null);
+
+    // FOR TESTING ONLY
+    appState.mClient.disconnect();
 
     decor_view = getWindow().getDecorView();
 
@@ -139,16 +141,21 @@ public class MapActivity extends MyActivity implements AddRouteListener,
   }
 
   private void showGoogleFitFailure() {
-    Snackbar snack = Snackbar
-        .make(decor_view, "Failed to store your session in Google fit",
-            Snackbar.LENGTH_LONG);
-    snack.setAction(R.string.ignore_end_session_error, new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        dismissNotificationAndFinish(RESULT_CANCELED);
-      }
-    });
-    snack.show();
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    builder.setMessage(R.string.session_save_failure)
+        .setPositiveButton(R.string.ignore_end_session_error, new OnClickListener() {
+          public void onClick(DialogInterface dialog, int id) {
+            dismissNotificationAndFinish(RESULT_CANCELED);
+          }
+        })
+        .setNegativeButton(R.string.retry, new OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialog, int id) {
+            notifyOnConnect = true;
+            appState.mClient.connect();
+          }
+        });
+    builder.create().show();
   }
 
   @Override
@@ -163,5 +170,23 @@ public class MapActivity extends MyActivity implements AddRouteListener,
       }
     });
     snack.show();
+  }
+
+  @Override
+  public void onGoogleFitConnected() {
+    if (notifyOnConnect) {
+      String message = "Sign in was Successful";
+      Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+      notifyOnConnect = false;
+    }
+  }
+
+  @Override
+  public void onGoogleFitFailed() {
+    if (notifyOnConnect) {
+      String message = "Google Fit Disconnected";
+      Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+      notifyOnConnect = false;
+    }
   }
 }

@@ -15,19 +15,54 @@ import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListe
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.fitness.Fitness;
 import com.peter.climb.CreateDataTypesTask.CreateDataTypesListener;
+import com.peter.climb.FetchGymDataTask.FetchGymDataListener;
 import com.peter.climb.MyApplication.AppState;
 import com.peter.climb.MyApplication.GoogleFitListener;
 
 public abstract class MyActivity extends AppCompatActivity implements OnConnectionFailedListener,
-    ConnectionCallbacks {
+    ConnectionCallbacks, GoogleFitListener, FetchGymDataListener {
 
   public static final int REQUEST_RESOLVE_ERROR = 1001;
   public static final String DIALOG_ERROR = "GOOGLE_API_ERROR";
   boolean mResolvingError = false;
   AppState appState;
-  GoogleFitListener googleFitListener;
 
   abstract void onPermissionsDenied();
+
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+
+    // calling this function ensures that gym data is fetched if need be
+    appState = ((MyApplication) getApplicationContext()).fetchGymData(this);
+  }
+
+  @Override
+  public void onStart() {
+    super.onStart();
+
+    // We do this here so that whatever activity opens first (usually main) can setup google fit.
+    // All activities that could possibly need google fit should call this in onCreate()
+    if (appState.mClient == null) {
+      appState.mClient = new GoogleApiClient.Builder(getApplicationContext())
+          .addApi(Fitness.SESSIONS_API)
+          .addApi(Fitness.CONFIG_API)
+          .addApi(Fitness.HISTORY_API)
+          .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
+          .addScope(new Scope(Scopes.FITNESS_LOCATION_READ_WRITE))
+          .addScope(new Scope(Scopes.PROFILE))
+          .build();
+    }
+
+    appState.mClient.registerConnectionCallbacks(this);
+    appState.mClient.registerConnectionFailedListener(this);
+
+    if (!appState.mClient.isConnected()) {
+      appState.mClient.connect();
+    } else {
+      onConnected(null);
+    }
+  }
 
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -47,21 +82,21 @@ public abstract class MyActivity extends AppCompatActivity implements OnConnecti
 
   @Override
   public void onConnected(@Nullable Bundle bundle) {
-    appState.createDataTypes(new CreateDataTypesListener() {
-      @Override
-      public void onDataTypesCreated() {
-        if (googleFitListener != null) {
-          googleFitListener.onGoogleFitConnected();
+    if (appState.hasDataTypes()) {
+      onGoogleFitConnected();
+    } else {
+      appState.createDataTypes(new CreateDataTypesListener() {
+        @Override
+        public void onDataTypesCreated() {
+          onGoogleFitConnected();
         }
-      }
 
-      @Override
-      public void onDataTypesNotCreated() {
-        if (googleFitListener != null) {
-          googleFitListener.onGoogleFitFailed();
+        @Override
+        public void onDataTypesNotCreated() {
+          onGoogleFitFailed();
         }
-      }
-    });
+      });
+    }
   }
 
   @Override
@@ -85,28 +120,19 @@ public abstract class MyActivity extends AppCompatActivity implements OnConnecti
       }
     } else {
       showErrorDialog(result.getErrorCode());
-      googleFitListener.onGoogleFitFailed();
+      onGoogleFitFailed();
     }
   }
 
-  void setupGoogleFit(@Nullable GoogleFitListener googleFitListener) {
-    this.googleFitListener = googleFitListener;
+  @Override
+  public void onStop() {
+    super.onStop();
+    unregisterGoogleFitListener();
+  }
 
-    if (appState.mClient == null) {
-      appState.mClient = new GoogleApiClient.Builder(getApplicationContext())
-          .addApi(Fitness.SESSIONS_API)
-          .addApi(Fitness.CONFIG_API)
-          .addApi(Fitness.HISTORY_API)
-          .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
-          .addScope(new Scope(Scopes.FITNESS_LOCATION_READ_WRITE))
-          .addScope(new Scope(Scopes.PROFILE))
-          .addConnectionCallbacks(this)
-          .addOnConnectionFailedListener(this)
-          .build();
-      appState.mClient.connect();
-    } else if (appState.mClient.isConnected()) {
-      onConnected(null);
-    }
+  void unregisterGoogleFitListener() {
+    appState.mClient.unregisterConnectionCallbacks(this);
+    appState.mClient.unregisterConnectionFailedListener(this);
   }
 
   private void showErrorDialog(int errorCode) {
@@ -121,5 +147,4 @@ public abstract class MyActivity extends AppCompatActivity implements OnConnecti
   public void onDialogDismissed() {
     mResolvingError = false;
   }
-
 }

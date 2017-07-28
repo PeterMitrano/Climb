@@ -16,7 +16,6 @@ import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.DataSource;
 import com.google.android.gms.fitness.data.DataType;
 import com.google.android.gms.fitness.data.Field;
-import com.google.android.gms.fitness.data.Session;
 import com.google.android.gms.fitness.request.DataDeleteRequest;
 import com.google.android.gms.fitness.request.SessionInsertRequest;
 import com.google.android.gms.fitness.request.SessionReadRequest;
@@ -33,13 +32,6 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class MyApplication extends Application {
-
-  interface SessionCardListener {
-
-    void onDeleteSession(Session session, int index);
-
-    void onShowSessionDetails(Session session, ArrayList<DataSet> dataSets, int index);
-  }
 
   interface GoogleFitListener {
 
@@ -224,9 +216,9 @@ public class MyApplication extends Application {
       sends.clear();
     }
 
-    void refreshGyms(final @Nullable FetchGymDataListener listener) {
+    void refreshGyms(final @Nullable FetchGymDataListener fetchGymDataListener) {
       // this provider request makes an network request, so it must be run async
-      new FetchGymDataTask(this, getApplicationContext(), listener).execute();
+      new FetchGymDataTask(this, getApplicationContext(), fetchGymDataListener).execute();
     }
 
     void createDataTypes(@NonNull final CreateDataTypesListener createDataTypesListener) {
@@ -237,5 +229,8 @@ public class MyApplication extends Application {
       return metadataType != null && routeDataType != null;
     }
 
+    void reconnect() {
+      mClient.clearDefaultAccountAndReconnect();
+    }
   }
 }

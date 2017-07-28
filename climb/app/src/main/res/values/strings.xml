@@ -39,4 +39,8 @@
   <string name="problems_sent_label">Problems Sent</string>
   <string name="calories_burned_label">Calories Burned</string>
   <string name="edit_item_title">Edit</string>
+  <string name="no_gyms_found_subtitle">Check your internet connection or try again later.</string>
+  <string name="no_gyms_found_title">Couldn\'t Connect to our Gym Database</string>
+  <string name="session_save_failure">Failed to store your session in Google Fit</string>
+  <string name="retry">Retry</string>
 </resources>
