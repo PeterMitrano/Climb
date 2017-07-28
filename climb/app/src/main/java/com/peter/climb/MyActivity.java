@@ -59,8 +59,6 @@ public abstract class MyActivity extends AppCompatActivity implements OnConnecti
 
     if (!appState.mClient.isConnected()) {
       appState.mClient.connect();
-    } else {
-      onConnected(null);
     }
   }
 
