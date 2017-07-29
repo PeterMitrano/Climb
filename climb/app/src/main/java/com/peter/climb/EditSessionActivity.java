@@ -21,6 +21,7 @@ public class EditSessionActivity extends AppCompatActivity {
   private Bundle bundle;
   private ArrayList<DataSet> dataSets;
   private RightAlignedHintEdit hoursEdit;
+  private RightAlignedHintEdit minutesEdit;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -28,7 +29,7 @@ public class EditSessionActivity extends AppCompatActivity {
     setContentView(R.layout.activity_edit_session);
 
     hoursEdit = (RightAlignedHintEdit) findViewById(R.id.hours_edit);
-    hoursEdit.setHintText("hr");
+    minutesEdit = (RightAlignedHintEdit) findViewById(R.id.minutes_edit);
 
     ActionBar actionBar = getSupportActionBar();
 

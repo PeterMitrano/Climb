@@ -6,10 +6,9 @@
   <declare-styleable name="RightAlignedHintEdit">
     <attr format="color" name="hintColor" />
     <attr format="color" name="focusColor" />
-    <attr name="android:paddingBottom" />
-    <attr name="android:paddingLeft" />
-    <attr name="android:paddingRight" />
-    <attr name="android:paddingTop" />
-    <attr name="android:inputType" />
+    <attr format="color" name="unfocusColor" />
+    <attr format="dimension" name="editWidth" />
+    <attr format="dimension" name="editHeight" />
+    <attr name="android:hint" />
   </declare-styleable>
 </resources>
