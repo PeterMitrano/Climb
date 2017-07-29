@@ -49,8 +49,24 @@
 
     <activity
       android:name=".SessionDetailsActivity"
-      android:theme="@style/AppTheme.NoActionBar" />
-    <activity android:name=".EditSessionActivity" />
+      android:parentActivityName=".MainActivity"
+      android:theme="@style/AppTheme.NoActionBar">
+
+      <meta-data
+        android:name="android.support.PARENT_ACTIVITY"
+        android:value=".MainActivity" />
+    </activity>
+
+    <activity
+      android:name=".EditSessionActivity"
+      android:theme="@style/AppTheme"
+      android:parentActivityName=".SessionDetailsActivity">
+
+      <meta-data
+        android:name="android.support.PARENT_ACTIVITY"
+        android:value=".SessionDetailsActivity" />
+    </activity>
+
   </application>
 
 </manifest>

@@ -3,7 +3,7 @@
   xmlns:app="http://schemas.android.com/apk/res-auto">
 
   <item
-    android:id="@+id/close_edit_session_item"
+    android:id="@+id/save_session_item"
     android:title="@string/save"
     app:showAsAction="always" />
 
