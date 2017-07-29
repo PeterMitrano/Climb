@@ -64,8 +64,6 @@ public class SessionDetailsActivity extends MyActivity {
     super.onActivityResult(requestCode, resultCode, intent);
     if (requestCode == EDIT_SESSION_CODE && resultCode == RESULT_OK) {
       showFromIntent(intent);
-    } else {
-      noSessionDetails();
     }
   }
 
@@ -97,8 +95,6 @@ public class SessionDetailsActivity extends MyActivity {
       if (actionBar != null) {
         actionBar.setDisplayHomeAsUpEnabled(true);
       }
-    } else {
-      noSessionDetails();
     }
   }
 

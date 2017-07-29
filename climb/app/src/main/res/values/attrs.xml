@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <declare-styleable name="GymMapView">
-        <attr name="floor_color" format="color" />
-    </declare-styleable>
+  <declare-styleable name="GymMapView">
+    <attr format="color" name="floor_color" />
+  </declare-styleable>
+  <declare-styleable name="RightAlignedHintEdit">
+    <attr format="color" name="hintColor" />
+    <attr format="color" name="focusColor" />
+    <attr name="android:paddingBottom" />
+    <attr name="android:paddingLeft" />
+    <attr name="android:paddingRight" />
+    <attr name="android:paddingTop" />
+    <attr name="android:inputType" />
+  </declare-styleable>
 </resources>

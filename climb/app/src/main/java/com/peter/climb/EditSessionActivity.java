@@ -12,6 +12,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.Session;
+import com.peter.climb.Views.RightAlignedHintEdit;
 import java.util.ArrayList;
 
 public class EditSessionActivity extends AppCompatActivity {
@@ -19,11 +20,15 @@ public class EditSessionActivity extends AppCompatActivity {
   private Session session;
   private Bundle bundle;
   private ArrayList<DataSet> dataSets;
+  private RightAlignedHintEdit hoursEdit;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_edit_session);
+
+    hoursEdit = (RightAlignedHintEdit) findViewById(R.id.hours_edit);
+    hoursEdit.setHintText("hr");
 
     ActionBar actionBar = getSupportActionBar();
 

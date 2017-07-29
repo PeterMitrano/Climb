@@ -47,4 +47,7 @@
   <string name="sign_in">Sign In</string>
   <string name="save">save</string>
   <string name="no_session_details">No Session Details</string>
+  <string name="small_gym_icon_description">Small Gym Icon</string>
+  <string name="sends_label">Sends</string>
+  <string name="active_time_icon_description">Active Time Icon</string>
 </resources>
