@@ -2,6 +2,9 @@ package com.peter.climb;
 
 import android.graphics.Color;
 import com.google.android.gms.fitness.data.Session;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -31,10 +34,12 @@ public class Utils {
     return millisDurationHMS(milliseconds);
   }
 
+  static long activeTime(Session session) {
+    return session.getEndTime(TimeUnit.MILLISECONDS) - session.getStartTime(TimeUnit.MILLISECONDS);
+  }
+
   static String activeTimeStringHM(Session session) {
-    long milliseconds =
-        session.getEndTime(TimeUnit.MILLISECONDS) - session.getStartTime(TimeUnit.MILLISECONDS);
-    return millisDurationHM(milliseconds);
+    return millisDurationHM(activeTime(session));
   }
 
   /**
@@ -55,14 +60,38 @@ public class Utils {
     return String.format(Locale.getDefault(), "%dh %dm %ds", hours, minutes, seconds);
   }
 
+  static int millisToHours(long millis) {
+    return (int) ((millis / (1000 * 60 * 60)) % 24);
+  }
+
+  static int millisToMinutes(long millis) {
+    return (int) ((millis / (1000 * 60)) % 60);
+  }
+
   static String millisDurationHM(long millis) {
-    int minutes = (int) ((millis / (1000 * 60)) % 60);
-    int hours = (int) ((millis / (1000 * 60 * 60)) % 24);
+    int hours = millisToHours(millis);
+    int minutes = millisToMinutes(millis);
 
     if (hours == 0 && minutes == 0) {
       minutes = 1;
     }
 
+    return HMToString(hours, minutes);
+  }
+
+  static String HMToString(int hours, int minutes) {
     return String.format(Locale.getDefault(), "%dh %dm", hours, minutes);
+  }
+
+  static String HMDDate(int year, int month, int day) {
+    Calendar cal = Calendar.getInstance();
+    cal.set(year, month, day);
+    SimpleDateFormat formatter = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
+    return formatter.format(cal.getTime());
+  }
+
+  static String millsDate(long millis) {
+    SimpleDateFormat formatter = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
+    return formatter.format(new Date(millis));
   }
 }

@@ -101,4 +101,9 @@ public class RightAlignedHintEdit extends LinearLayout {
     setEditWidth(editWidth);
     edit.setWidth(editWidth);
   }
+
+  public void setText(String text) {
+    edit.setText(text);
+    invalidate();
+  }
 }

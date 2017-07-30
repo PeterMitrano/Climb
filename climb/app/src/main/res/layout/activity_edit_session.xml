@@ -7,7 +7,7 @@
   tools:context="com.peter.climb.EditSessionActivity">
 
   <LinearLayout
-    android:id="@+id/details_layout"
+    android:id="@+id/edit_session_layout"
     android:layout_width="0dp"
     android:layout_height="0dp"
     android:layout_margin="16dp"
@@ -31,9 +31,10 @@
         android:scaleType="centerCrop" />
 
       <Spinner
-        android:id="@+id/spinner"
+        android:id="@+id/gym_spinner"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp" />
 
     </LinearLayout>
 
@@ -41,7 +42,37 @@
       android:id="@+id/date_time_layout"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
+      android:layout_marginTop="8dp"
+      android:layout_marginBottom="8dp"
+      android:layout_marginStart="72dp"
       android:orientation="horizontal">
+
+      <EditText
+        android:id="@+id/date_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingBottom="16dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:editable="false"
+        android:focusable="false"
+        android:inputType="none"
+        android:text="@string/init_date"
+        tools:ignore="LabelFor,TextFields" />
+
+      <EditText
+        android:id="@+id/time_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:paddingBottom="16dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:editable="false"
+        android:focusable="false"
+        android:inputType="none"
+        android:text="@string/init_time"
+        tools:ignore="LabelFor" />
 
     </LinearLayout>
 
@@ -63,8 +94,8 @@
       <com.peter.climb.Views.RightAlignedHintEdit
         android:id="@+id/hours_edit"
         android:layout_width="wrap_content"
-        android:layout_marginStart="48dp"
         android:layout_height="match_parent"
+        android:layout_marginStart="48dp"
         android:padding="4dp"
         android:hint="@string/hr"
         app:editWidth="48dp" />
