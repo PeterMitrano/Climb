@@ -29,6 +29,7 @@ public class SessionViewHolder extends RecyclerView.ViewHolder implements
   private Session session;
   public CardListener cardListener;
   private ArrayList<DataSet> datasets;
+  private DataSet metadata;
 
   public SessionViewHolder(View itemView) {
     super(itemView);
@@ -64,12 +65,13 @@ public class SessionViewHolder extends RecyclerView.ViewHolder implements
 
   @Override
   public void onClick(View v) {
-    cardListener.onShowSessionDetails(session, datasets, getAdapterPosition());
+    cardListener.onShowSessionDetails(session, datasets, metadata, getAdapterPosition());
   }
 
-  public void setSession(Session session, ArrayList<DataSet> datasets) {
+  public void setSession(Session session, ArrayList<DataSet> datasets, DataSet metadata) {
     this.session = session;
     this.datasets = datasets;
+    this.metadata = metadata;
   }
 
 }

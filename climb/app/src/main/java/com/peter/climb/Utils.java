@@ -1,6 +1,8 @@
 package com.peter.climb;
 
 import android.graphics.Color;
+import com.google.android.gms.fitness.data.DataSet;
+import com.google.android.gms.fitness.data.DataType;
 import com.google.android.gms.fitness.data.Session;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -93,5 +95,16 @@ public class Utils {
   static String millsDate(long millis) {
     SimpleDateFormat formatter = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
     return formatter.format(new Date(millis));
+  }
+
+  static int sendCount(Iterable<DataSet> dataSets, DataType routeType) {
+    int c = 0;
+    for (DataSet dataSet: dataSets) {
+      if (dataSet.getDataType().equals(routeType)) {
+        c += dataSet.getDataPoints().size();
+      }
+
+    }
+    return c;
   }
 }

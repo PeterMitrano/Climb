@@ -22,7 +22,8 @@ public class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
 
     void onDeleteSession(Session session, int index);
 
-    void onShowSessionDetails(Session session, ArrayList<DataSet> dataSets, int index);
+    void onShowSessionDetails(Session session, ArrayList<DataSet> dataSets, DataSet metadata,
+        int index);
 
     void onRefreshGyms();
 
@@ -123,13 +124,10 @@ public class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
     if (viewType == SESSION_CARD_TYPE) {
       SessionViewHolder sessionViewHolder = (SessionViewHolder) holder;
       Session session = (Session) dataset.get(position);
-      List<DataSet> routeTypeDataSets = sessionReadResult.getDataSet(session, appState.routeDataType);
-      ArrayList<DataSet> dataSetsArrayList = new ArrayList<>(routeTypeDataSets);
-      int numberOfSends = 0;
-
-      for (DataSet routeTypeDataSet : routeTypeDataSets) {
-          numberOfSends += routeTypeDataSet.getDataPoints().size();
-      }
+      List<DataSet> dataSets = sessionReadResult.getDataSet(session, appState.routeDataType);
+      ArrayList<DataSet> dataSetsArrayList = new ArrayList<>(dataSets);
+      DataSet metadata = sessionReadResult.getDataSet(session, appState.metadataType).get(0);
+      int numberOfSends = Utils.sendCount(dataSetsArrayList, appState.routeDataType);
 
       String activeTimeString = Utils.activeTimeStringHM(session);
 
@@ -140,7 +138,7 @@ public class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
       sessionViewHolder.dateTimeText.setText(activeTimeString);
       sessionViewHolder.cardListener = this.cardListener;
       sessionViewHolder.toolbar.setTitle(toolbarTitle);
-      sessionViewHolder.setSession(session, dataSetsArrayList);
+      sessionViewHolder.setSession(session, dataSetsArrayList, metadata);
     } else if (viewType == NO_GYMS_FOUND_CARD_TYPE) {
       NoGymsFoundViewHolder noGymsFoundViewHolder = (NoGymsFoundViewHolder) holder;
       noGymsFoundViewHolder.cardListener = this.cardListener;

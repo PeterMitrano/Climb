@@ -54,4 +54,6 @@
   <string name="min">min</string>
   <string name="sends">sends</string>
   <string name="init_date">Jan 1, 1970</string>
+  <string name="discard_changes">Discard changes?</string>
+  <string name="discard">discard</string>
 </resources>

@@ -65,11 +65,12 @@ public class MyApplication extends Application {
     GoogleApiClient mClient = null;
     Gyms gyms = null;
     Gym currentGym;
+    Field uuidField;
     Field gradeField;
     Field nameField;
     Field wallField;
     Field colorField;
-    Field gymField;
+    Field gymNameField;
     Field imageUrlField;
 
     private AppState() {
@@ -131,7 +132,8 @@ public class MyApplication extends Application {
       DataPoint metadata = metadataset.createDataPoint();
       metadata.setTimeInterval(System.currentTimeMillis(), System.currentTimeMillis(), TimeUnit.MILLISECONDS);
       metadata.getValue(imageUrlField).setString(currentGym.getLargeIconUrl());
-      metadata.getValue(gymField).setString(currentGym.getName());
+      metadata.getValue(gymNameField).setString(currentGym.getName());
+      metadata.getValue(uuidField).setString(currentGym.getUuid());
       metadataset.add(metadata);
 
       // iterate over the save route information and create all the datapoints

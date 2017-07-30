@@ -65,8 +65,9 @@ dependencies {
     compile 'com.google.android.gms:play-services-fitness:11.0.2'
     compile 'com.google.android.gms:play-services-auth:11.0.2'
     compile 'com.google.protobuf:protobuf-lite:3.0.0'
-    compile 'org.apache.commons:commons-text:1.1'
     compile 'com.android.support:support-v4:25.3.1'
+    compile 'de.hdodenhof:circleimageview:2.1.0'
+    compile 'org.apache.commons:commons-text:1.1'
     testCompile 'junit:junit:4.12'
 }
 

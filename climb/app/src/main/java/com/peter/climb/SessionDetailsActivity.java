@@ -29,6 +29,7 @@ public class SessionDetailsActivity extends MyActivity {
 
   static final String SENDS_KEY = "sends_key";
   static final String DATASETS_KEY = "datasets_key";
+  static final String METADATA_KEY = "metadata_key";
   public static final int EDIT_SESSION_CODE = 1005;
 
   private LinearLayout layout;
@@ -38,6 +39,7 @@ public class SessionDetailsActivity extends MyActivity {
   private LinearLayout sendsLayout;
   private LinearLayout detailsLayout;
   private ArrayList<DataSet> dataSets;
+  private DataSet metadata;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +77,7 @@ public class SessionDetailsActivity extends MyActivity {
     } else if (item.getItemId() == R.id.edit_session_item) {
       Intent intent = new Intent(this, EditSessionActivity.class);
       intent.putExtra(SENDS_KEY, session);
+      intent.putExtra(METADATA_KEY, metadata);
       intent.putParcelableArrayListExtra(DATASETS_KEY, dataSets);
       startActivityForResult(intent, EDIT_SESSION_CODE);
       return true;
@@ -86,6 +89,7 @@ public class SessionDetailsActivity extends MyActivity {
   private void showFromIntent(Intent intent) {
     session = intent.getParcelableExtra(SENDS_KEY);
     dataSets = intent.getParcelableArrayListExtra(DATASETS_KEY);
+    metadata = intent.getParcelableExtra(METADATA_KEY);
 
     if (session != null && dataSets != null) {
       toolbar.setTitle(session.getDescription());
@@ -117,6 +121,7 @@ public class SessionDetailsActivity extends MyActivity {
 
     try {
       int c = Color.parseColor(color);
+      c = Utils.manipulateColor(c, 0.6f);
       sendName.setTextColor(c);
     } catch (IllegalArgumentException | StringIndexOutOfBoundsException e) {
       sendName.setTextColor(Color.DKGRAY);

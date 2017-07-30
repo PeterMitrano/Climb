@@ -1,6 +1,7 @@
 package com.peter.climb;
 
 import static com.peter.climb.SessionDetailsActivity.DATASETS_KEY;
+import static com.peter.climb.SessionDetailsActivity.METADATA_KEY;
 import static com.peter.climb.SessionDetailsActivity.SENDS_KEY;
 
 import android.app.SearchManager;
@@ -270,9 +271,11 @@ public class MainActivity extends MyActivity implements OnNavigationItemSelected
   }
 
   @Override
-  public void onShowSessionDetails(Session session, ArrayList<DataSet> dataSets, int index) {
+  public void onShowSessionDetails(Session session, ArrayList<DataSet> dataSets, DataSet metadata,
+      int index) {
     Intent intent = new Intent(this, SessionDetailsActivity.class);
     intent.putExtra(SENDS_KEY, session);
+    intent.putExtra(METADATA_KEY, metadata);
     intent.putParcelableArrayListExtra(DATASETS_KEY, dataSets);
     startActivity(intent);
   }

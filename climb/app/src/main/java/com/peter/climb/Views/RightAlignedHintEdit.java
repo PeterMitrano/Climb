@@ -21,6 +21,8 @@ public class RightAlignedHintEdit extends LinearLayout {
   private int unfocusColor;
   private int focusColor;
 
+  private int textColor;
+
   private int editWidth;
 
   private String hintText;
@@ -45,6 +47,7 @@ public class RightAlignedHintEdit extends LinearLayout {
       unfocusColor = a.getColor(R.styleable.RightAlignedHintEdit_unfocusColor, Color.GRAY);
       editWidth = (int) a.getDimension(R.styleable.RightAlignedHintEdit_editWidth, 0f);
       hintText = a.getString(R.styleable.RightAlignedHintEdit_android_hint);
+      textColor = a.getColor(R.styleable.RightAlignedHintEdit_android_textColor, Color.WHITE);
     } finally {
       a.recycle();
     }
@@ -80,9 +83,24 @@ public class RightAlignedHintEdit extends LinearLayout {
     return hintText;
   }
 
+  public int getTextColor() {
+    return textColor;
+  }
+
+  public void setTextColor(int textColor) {
+    this.textColor = textColor;
+    edit.setTextColor(textColor);
+    hint.setTextColor(textColor);
+    invalidate();
+  }
   public void setHintText(String hintText) {
     this.hintText = hintText;
     hint.setText(this.hintText);
+    invalidate();
+  }
+
+  public void setText(String text) {
+    edit.setText(text);
     invalidate();
   }
 
@@ -99,11 +117,7 @@ public class RightAlignedHintEdit extends LinearLayout {
 
     setHintText(hintText);
     setEditWidth(editWidth);
+    setTextColor(textColor);
     edit.setWidth(editWidth);
-  }
-
-  public void setText(String text) {
-    edit.setText(text);
-    invalidate();
   }
 }

@@ -11,6 +11,7 @@ message Gym {
   string name = 1;
   string large_icon_url = 2;
   repeated Floor floors = 3;
+  string uuid = 4;
 }
 
 message Floor {

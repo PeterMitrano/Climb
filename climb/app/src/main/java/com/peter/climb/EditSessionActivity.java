@@ -1,20 +1,25 @@
 package com.peter.climb;
 
 import static com.peter.climb.SessionDetailsActivity.DATASETS_KEY;
+import static com.peter.climb.SessionDetailsActivity.METADATA_KEY;
 import static com.peter.climb.SessionDetailsActivity.SENDS_KEY;
 
 import android.app.DatePickerDialog;
 import android.app.DatePickerDialog.OnDateSetListener;
 import android.app.TimePickerDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -22,28 +27,33 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TimePicker;
 import android.widget.Toast;
+import com.android.volley.toolbox.ImageLoader;
+import com.google.android.gms.fitness.data.DataPoint;
 import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.Session;
 import com.peter.Climb.Msgs.Gym;
 import com.peter.Climb.Msgs.Gyms;
 import com.peter.climb.Views.RightAlignedHintEdit;
+import de.hdodenhof.circleimageview.CircleImageView;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
-public class EditSessionActivity extends MyActivity {
+public class EditSessionActivity extends MyActivity implements OnItemSelectedListener {
 
-  private Session session;
   private Bundle bundle;
-  private ArrayList<DataSet> dataSets;
+  private ArrayAdapter<String> gymSpinerAdapter;
+  private ArrayList<DataSet> routeDataSets;
+  private CircleImageView gymImageView;
+  private DataSet metadata;
   private EditText dateView;
   private EditText timeView;
+  private LinearLayout layout;
   private RightAlignedHintEdit hoursEdit;
   private RightAlignedHintEdit minutesEdit;
   private RightAlignedHintEdit sendsEdit;
-  private LinearLayout layout;
+  private Session session;
   private Spinner gymSpinner;
-  private ArrayAdapter<String> gymSpinerAdapter;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -57,10 +67,12 @@ public class EditSessionActivity extends MyActivity {
     dateView = (EditText) findViewById(R.id.date_view);
     timeView = (EditText) findViewById(R.id.time_view);
     gymSpinner = (Spinner) findViewById(R.id.gym_spinner);
+    gymImageView = (CircleImageView) findViewById(R.id.edit_gym_spinner_icon);
 
     gymSpinerAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.gym_spinner_item,
         R.id.gym_spinner_name);
     gymSpinner.setAdapter(gymSpinerAdapter);
+    gymSpinner.setOnItemSelectedListener(this);
     ActionBar actionBar = getSupportActionBar();
 
     if (actionBar != null) {
@@ -72,7 +84,10 @@ public class EditSessionActivity extends MyActivity {
     bundle = getIntent().getExtras();
     if (bundle != null) {
       session = bundle.getParcelable(SENDS_KEY);
-      dataSets = bundle.getParcelableArrayList(DATASETS_KEY);
+      metadata = bundle.getParcelable(METADATA_KEY);
+      routeDataSets = bundle.getParcelableArrayList(DATASETS_KEY);
+
+      final int sendCount = Utils.sendCount(routeDataSets, appState.routeDataType);
       final long startTime = session.getStartTime(TimeUnit.MILLISECONDS);
       final long activeTime = Utils.activeTime(session);
       final int startHour = Utils.millisToHours(startTime);
@@ -113,10 +128,13 @@ public class EditSessionActivity extends MyActivity {
         }
       });
 
-      hoursEdit.setText(String.valueOf(Utils.millisToHours(activeTime)));
-      minutesEdit.setText(String.valueOf(Utils.millisToMinutes(activeTime)));
+      int activeHours = Utils.millisToHours(activeTime);
+      int activeMinutes = Math.min(1, Utils.millisToMinutes(activeTime));
+      hoursEdit.setText(String.valueOf(activeHours));
+      minutesEdit.setText(String.valueOf(activeMinutes));
       timeView.setText(startHour + ":" + startMinute);
       dateView.setText(Utils.millsDate(startTime));
+      sendsEdit.setText(String.valueOf(sendCount));
     }
   }
 
@@ -131,13 +149,21 @@ public class EditSessionActivity extends MyActivity {
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     if (item.getItemId() == android.R.id.home) {
-      setResult(RESULT_CANCELED);
-      finish();
+      AlertDialog.Builder builder = new AlertDialog.Builder(this);
+      builder.setMessage(R.string.discard_changes)
+          .setPositiveButton(R.string.discard, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+              setResult(RESULT_CANCELED);
+              finish();
+            }
+          })
+          .setNegativeButton(R.string.cancel, null);
+      builder.create().show();
       return true;
     } else if (item.getItemId() == R.id.save_session_item) {
       Intent intent = getIntent();
       intent.putExtra(SENDS_KEY, session);
-      intent.putParcelableArrayListExtra(DATASETS_KEY, dataSets);
+      intent.putParcelableArrayListExtra(DATASETS_KEY, routeDataSets);
       setResult(RESULT_OK, intent);
       finish();
       return true;
@@ -157,11 +183,22 @@ public class EditSessionActivity extends MyActivity {
 
   @Override
   public void onGymsFound(Gyms gyms) {
-    // fill spinner
+    DataPoint metadataPt = metadata.getDataPoints().get(0);
+
     for (Gym gym : gyms.getGymsList()) {
       gymSpinerAdapter.add(gym.getName());
     }
     gymSpinerAdapter.notifyDataSetChanged();
+
+//    gymSpinner.setSelection();
+    String url = metadataPt.getValue(appState.imageUrlField).asString();
+    ImageLoader.ImageListener listener = ImageLoader.getImageListener(
+        gymImageView,
+        0,
+        R.drawable.ic_error_black_24dp);
+    RequestorSingleton.getInstance(
+        getApplicationContext()).getImageLoader().get(url, listener);
+
   }
 
   @Override
@@ -180,5 +217,25 @@ public class EditSessionActivity extends MyActivity {
       }
     });
     snack.show();
+  }
+
+  @Override
+  public void onNothingSelected(AdapterView<?> parent) {
+  }
+
+  @Override
+  public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+    if (appState.gyms != null) {
+      if (position < appState.gyms.getGymsCount()) {
+        Gym gym = appState.gyms.getGyms(position);
+        String url = gym.getLargeIconUrl();
+        ImageLoader.ImageListener listener = ImageLoader.getImageListener(
+            gymImageView,
+            0,
+            R.drawable.ic_error_black_24dp);
+        RequestorSingleton.getInstance(
+            getApplicationContext()).getImageLoader().get(url, listener);
+      }
+    }
   }
 }

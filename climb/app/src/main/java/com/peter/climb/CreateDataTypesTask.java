@@ -37,15 +37,17 @@ class CreateDataTypesTask extends AsyncTask<Void, Void, DataTypeResult[]> {
     appState.nameField = Field.zzm("Name", Field.FORMAT_STRING);
     appState.wallField = Field.zzm("Wall", Field.FORMAT_STRING);
     appState.colorField = Field.zzm("Color", Field.FORMAT_STRING);
-    appState.gymField = Field.zzm("Gym", Field.FORMAT_STRING);
+    appState.gymNameField = Field.zzm("Gym", Field.FORMAT_STRING);
     appState.imageUrlField = Field.zzm("Image URL", Field.FORMAT_STRING);
+    appState.uuidField = Field.zzm("UUID", Field.FORMAT_STRING);
 
     // Build a request to create a new data type
     DataTypeCreateRequest metadataTypeRequest = new DataTypeCreateRequest.Builder()
         // The prefix of your data type name must match your app's package name
         .setName(packageName + ".metadata_data_type")
-        .addField(appState.gymField)
+        .addField(appState.gymNameField)
         .addField(appState.imageUrlField)
+        .addField(appState.uuidField)
         .build();
 
     // Build a request to create a new data type

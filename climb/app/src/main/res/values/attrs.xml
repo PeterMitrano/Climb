@@ -10,5 +10,6 @@
     <attr format="dimension" name="editWidth" />
     <attr format="dimension" name="editHeight" />
     <attr name="android:hint" />
+    <attr name="android:textColor" />
   </declare-styleable>
 </resources>
