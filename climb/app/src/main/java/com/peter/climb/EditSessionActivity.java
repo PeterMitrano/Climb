@@ -15,6 +15,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -42,6 +43,7 @@ public class EditSessionActivity extends MyActivity {
   private RightAlignedHintEdit sendsEdit;
   private LinearLayout layout;
   private Spinner gymSpinner;
+  private ArrayAdapter<String> gymSpinerAdapter;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +57,10 @@ public class EditSessionActivity extends MyActivity {
     dateView = (EditText) findViewById(R.id.date_view);
     timeView = (EditText) findViewById(R.id.time_view);
     gymSpinner = (Spinner) findViewById(R.id.gym_spinner);
+
+    gymSpinerAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.gym_spinner_item,
+        R.id.gym_spinner_name);
+    gymSpinner.setAdapter(gymSpinerAdapter);
     ActionBar actionBar = getSupportActionBar();
 
     if (actionBar != null) {
@@ -153,7 +159,9 @@ public class EditSessionActivity extends MyActivity {
   public void onGymsFound(Gyms gyms) {
     // fill spinner
     for (Gym gym : gyms.getGymsList()) {
+      gymSpinerAdapter.add(gym.getName());
     }
+    gymSpinerAdapter.notifyDataSetChanged();
   }
 
   @Override

@@ -33,7 +33,7 @@
       <Spinner
         android:id="@+id/gym_spinner"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
         android:layout_marginStart="24dp" />
 
     </LinearLayout>
@@ -54,7 +54,6 @@
         android:paddingBottom="16dp"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
-        android:editable="false"
         android:focusable="false"
         android:inputType="none"
         android:text="@string/init_date"
@@ -68,7 +67,6 @@
         android:paddingBottom="16dp"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
-        android:editable="false"
         android:focusable="false"
         android:inputType="none"
         android:text="@string/init_time"
@@ -136,7 +134,8 @@
 
     </LinearLayout>
 
-    <View style="@style/Divider" />
+    <View style="@style/Divider"
+      android:layout_marginTop="8dp"/>
 
   </LinearLayout>
 </android.support.constraint.ConstraintLayout>
