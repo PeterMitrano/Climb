@@ -250,7 +250,8 @@ proto.Gym.toObject = function(includeInstance, msg) {
     name: msg.getName(),
     largeIconUrl: msg.getLargeIconUrl(),
     floorsList: jspb.Message.toObjectList(msg.getFloorsList(),
-    proto.Floor.toObject, includeInstance)
+    proto.Floor.toObject, includeInstance),
+    uuid: msg.getUuid()
   };
 
   if (includeInstance) {
@@ -300,6 +301,10 @@ proto.Gym.deserializeBinaryFromReader = function(msg, reader) {
       reader.readMessage(value,proto.Floor.deserializeBinaryFromReader);
       msg.getFloorsList().push(value);
       msg.setFloorsList(msg.getFloorsList());
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setUuid(value);
       break;
     default:
       reader.skipField();
@@ -359,6 +364,13 @@ proto.Gym.prototype.serializeBinaryToWriter = function (writer) {
       3,
       f,
       proto.Floor.serializeBinaryToWriter
+    );
+  }
+  f = this.getUuid();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
+      f
     );
   }
 };
@@ -423,6 +435,21 @@ proto.Gym.prototype.setFloorsList = function(value) {
 
 proto.Gym.prototype.clearFloorsList = function() {
   this.setFloorsList([]);
+};
+
+
+/**
+ * optional string uuid = 4;
+ * @return {string}
+ */
+proto.Gym.prototype.getUuid = function() {
+  return /** @type {string} */ (jspb.Message.getFieldProto3(this, 4, ""));
+};
+
+
+/** @param {string} value  */
+proto.Gym.prototype.setUuid = function(value) {
+  jspb.Message.setField(this, 4, value);
 };
 
 

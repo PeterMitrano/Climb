@@ -12,6 +12,6 @@ gulp.task('default', function() {
 
 gulp.task('protoc', () => {
   return gulp.src('').pipe(shell([
-    '/opt/protoc-3.0/bin/protoc --js_out=import_style=commonjs,binary:js/ proto/Gym.proto',
+    '/opt/protoc-3.0/bin/protoc --js_out=import_style=commonjs,binary:public/js/ proto/Gym.proto',
   ]));
 });

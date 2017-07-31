@@ -89,19 +89,40 @@ function fakeGyms() {
     p6.setX(2);
     p6.setY(2);
 
+    let p7 = new msgs.Point2D();
+    p7.setX(2);
+    p7.setY(1);
+
+    let p8 = new msgs.Point2D();
+    p8.setX(1);
+    p8.setY(2);
+
     let polygon = new msgs.Polygon();
     polygon.setColor('#ff00ff');
     polygon.setPointsList([p0, p4, p5]);
 
     let route0 = new msgs.Route();
-    route0.setName('Lappnor Project');
-    route0.setPosition(p6);
-    route0.setGrade(17);
+    route0.setName('Millenium Falcon');
+    route0.setPosition(p7);
+    route0.setGrade(9);
+    route0.setColor('#E53935');
+
+    let route1 = new msgs.Route();
+    route1.setName('La Dura Dura');
+    route1.setPosition(p8);
+    route1.setGrade(16);
+    route1.setColor('#5E35B1');
+
+    let route2 = new msgs.Route();
+    route2.setName('Burden of Dreams');
+    route2.setPosition(p6);
+    route2.setGrade(17);
+    route2.setColor('#43A047');
 
     let wall = new msgs.Wall();
     wall.setName('The Dawn Wall');
     wall.setPolygon(polygon);
-    wall.setRoutesList([route0]);
+    wall.setRoutesList([route0, route1, route2]);
 
     let floor_polygon = new msgs.Polygon();
     floor_polygon.setColor('#ff0f0f');
@@ -116,6 +137,7 @@ function fakeGyms() {
     ascend = new msgs.Gym();
     ascend.setFloorsList([floor]);
     ascend.setName('Ascend PGH');
+    ascend.setUuid('34e71c83-2d3e-424b-9fe9-57cd5fd1fbbb');
     ascend.setLargeIconUrl(
         'https://www.ascendpgh.com/sites/all/themes/ascend_foundation/images/Ascend-Mobile-Logo.png');
 
@@ -158,6 +180,7 @@ function fakeGyms() {
     route0.setName('Action Complete');
     route0.setPosition(p6);
     route0.setGrade(16);
+    route0.setColor('#FDD835');
 
     let wall = new msgs.Wall();
     wall.setName('Wave');
@@ -177,6 +200,7 @@ function fakeGyms() {
     climb_north = new msgs.Gym();
     climb_north.setFloorsList([floor]);
     climb_north.setName('Climb North');
+    climb_north.setUuid('b3d62be5-2d33-491b-8540-4e3cf77f64cd');
     climb_north.setLargeIconUrl(
         'https://pbs.twimg.com/profile_images/543849641700118528/TIfCknj8_400x400.jpeg');
 

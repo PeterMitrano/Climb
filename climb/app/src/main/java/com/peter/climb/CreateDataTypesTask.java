@@ -44,7 +44,7 @@ class CreateDataTypesTask extends AsyncTask<Void, Void, DataTypeResult[]> {
     // Build a request to create a new data type
     DataTypeCreateRequest metadataTypeRequest = new DataTypeCreateRequest.Builder()
         // The prefix of your data type name must match your app's package name
-        .setName(packageName + ".metadata_data_type")
+        .setName(packageName + ".metadata_data_type_000")
         .addField(appState.gymNameField)
         .addField(appState.imageUrlField)
         .addField(appState.uuidField)
@@ -53,7 +53,7 @@ class CreateDataTypesTask extends AsyncTask<Void, Void, DataTypeResult[]> {
     // Build a request to create a new data type
     DataTypeCreateRequest routeTypeRequest = new DataTypeCreateRequest.Builder()
         // The prefix of your data type name must match your app's package name
-        .setName(packageName + ".route_data_type")
+        .setName(packageName + ".route_data_type_000")
         .addField(appState.gradeField)
         .addField(appState.nameField)
         .addField(appState.wallField)

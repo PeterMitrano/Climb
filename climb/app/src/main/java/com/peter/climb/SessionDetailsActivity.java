@@ -121,7 +121,7 @@ public class SessionDetailsActivity extends MyActivity {
 
     try {
       int c = Color.parseColor(color);
-      c = Utils.manipulateColor(c, 0.6f);
+      c = Utils.manipulateColor(c, 0.7f);
       sendName.setTextColor(c);
     } catch (IllegalArgumentException | StringIndexOutOfBoundsException e) {
       sendName.setTextColor(Color.DKGRAY);

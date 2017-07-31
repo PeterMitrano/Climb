@@ -184,13 +184,18 @@ public class EditSessionActivity extends MyActivity implements OnItemSelectedLis
   @Override
   public void onGymsFound(Gyms gyms) {
     DataPoint metadataPt = metadata.getDataPoints().get(0);
+    String uuid = metadataPt.getValue(appState.uuidField).asString();
 
+    int i = 0;
     for (Gym gym : gyms.getGymsList()) {
       gymSpinerAdapter.add(gym.getName());
+      if (gym.getUuid().equals(uuid)) {
+        gymSpinner.setSelection(i);
+      }
+      ++i;
     }
     gymSpinerAdapter.notifyDataSetChanged();
 
-//    gymSpinner.setSelection();
     String url = metadataPt.getValue(appState.imageUrlField).asString();
     ImageLoader.ImageListener listener = ImageLoader.getImageListener(
         gymImageView,
