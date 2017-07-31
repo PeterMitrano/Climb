@@ -45,7 +45,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-public class MainActivity extends MyActivity implements OnNavigationItemSelectedListener,
+public class MainActivity extends ActivityWrapper implements OnNavigationItemSelectedListener,
     CardListener, OnClickListener {
 
   public static final int SESSION_NOTIFICATION_ID = 1002;

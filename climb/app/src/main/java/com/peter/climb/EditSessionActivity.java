@@ -39,7 +39,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
-public class EditSessionActivity extends MyActivity implements OnItemSelectedListener {
+public class EditSessionActivity extends ActivityWrapper implements OnItemSelectedListener {
 
   private Bundle bundle;
   private ArrayAdapter<String> gymSpinerAdapter;
@@ -161,6 +161,8 @@ public class EditSessionActivity extends MyActivity implements OnItemSelectedLis
       builder.create().show();
       return true;
     } else if (item.getItemId() == R.id.save_session_item) {
+      // gather current state of UI and update the dataset
+      int gymIndex = gymSpinner.getSelectedItemPosition();
       Intent intent = getIntent();
       intent.putExtra(SENDS_KEY, session);
       intent.putParcelableArrayListExtra(DATASETS_KEY, routeDataSets);

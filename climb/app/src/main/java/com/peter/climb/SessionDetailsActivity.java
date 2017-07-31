@@ -25,7 +25,7 @@ import com.peter.Climb.Msgs.Gyms;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-public class SessionDetailsActivity extends MyActivity {
+public class SessionDetailsActivity extends ActivityWrapper {
 
   static final String SENDS_KEY = "sends_key";
   static final String DATASETS_KEY = "datasets_key";

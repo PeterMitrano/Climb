@@ -24,7 +24,7 @@ import com.peter.climb.Views.GymMapView;
 import com.peter.climb.Views.GymMapView.AddRouteListener;
 import com.peter.climb.SessionInfoFragment.SessionInfoListener;
 
-public class MapActivity extends MyActivity implements AddRouteListener, SessionInfoListener {
+public class MapActivity extends ActivityWrapper implements AddRouteListener, SessionInfoListener {
 
   private View decor_view;
   private GymMapView gymMapView;

@@ -19,7 +19,7 @@ import com.peter.climb.FetchGymDataTask.FetchGymDataListener;
 import com.peter.climb.MyApplication.AppState;
 import com.peter.climb.MyApplication.GoogleFitListener;
 
-public abstract class MyActivity extends AppCompatActivity implements OnConnectionFailedListener,
+public abstract class ActivityWrapper extends AppCompatActivity implements OnConnectionFailedListener,
     ConnectionCallbacks, GoogleFitListener, FetchGymDataListener {
 
   public static final int REQUEST_RESOLVE_ERROR = 1001;
