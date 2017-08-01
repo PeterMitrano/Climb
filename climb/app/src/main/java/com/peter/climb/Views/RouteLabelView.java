@@ -25,6 +25,9 @@ public class RouteLabelView extends View {
   private static final float PADDING = 10f;
   private static final float GRADE_NAME_PADDING = 2f;
   private static final float SENDS_RECT_PADDING = 2f;
+  private static final String SUPER_STATE_KEY = "route_label_view_super_state_key";
+  public static final String SEND_COUNT_KEY = "route_label_send_count_key";
+
   private int routeGrade;
   private Msgs.Point2D position;
   private String routeName;
@@ -45,12 +48,12 @@ public class RouteLabelView extends View {
   private int routeColor;
   private List<RouteClickedListener> routeClickedListeners;
   private boolean routeOwnsEvent;
-  private int sends;
+  private int sendCount;
 
   public RouteLabelView(Context context) {
     super(context);
 
-    sends = 0;
+    sendCount = 0;
 
     routeClickedListeners = new ArrayList<>();
 
@@ -86,7 +89,7 @@ public class RouteLabelView extends View {
     float cy = this.position.getY() * metersToPixels;
 
     String gradeString = toGradeString(routeGrade);
-    String sendsString = String.valueOf(sends);
+    String sendsString = String.valueOf(sendCount);
     gradePaint.getTextBounds(gradeString, 0, gradeString.length(), gradeRect);
     namePaint.getTextBounds(routeName, 0, routeName.length(), nameRect);
     sendCountPaint.getTextBounds(sendsString, 0, sendsString.length(), sendsRect);
@@ -123,7 +126,7 @@ public class RouteLabelView extends View {
           gradePaint);
     }
 
-    if (sends > 0) {
+    if (sendCount > 0) {
       canvas.drawCircle(sendCountCx, sendCountCy, sendCountRadius, sendCountBubblePaint);
       canvas.drawText(sendsString, sendCountCx - sendsRect.exactCenterX(),
           sendCountCy - sendsRect.exactCenterY(), sendCountPaint);
@@ -216,9 +219,18 @@ public class RouteLabelView extends View {
     return false;
   }
 
+  void setSendCount(int sendCount) {
+    this.sendCount = sendCount;
+    invalidate();
+  }
+
+  int getSendCount() {
+    return this.sendCount;
+  }
+
   private void onRouteClicked() {
     markerPaint.setColor(routeColor);
-    sends++;
+    sendCount++;
 
     invalidate();
 

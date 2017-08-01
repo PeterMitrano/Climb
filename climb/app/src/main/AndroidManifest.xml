@@ -14,9 +14,7 @@
     android:supportsRtl="true"
     android:theme="@style/AppTheme">
     <activity
-      android:configChanges="orientation"
       android:name=".MainActivity"
-      android:screenOrientation="portrait"
       android:theme="@style/AppTheme.NoActionBar">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
@@ -32,10 +30,8 @@
         android:resource="@xml/searchable" />
     </activity>
     <activity
-      android:configChanges="orientation"
       android:name=".MapActivity"
       android:parentActivityName=".MainActivity"
-      android:screenOrientation="portrait"
       android:theme="@style/AppTheme.NoActionBar">
       <meta-data
         android:name="android.support.PARENT_ACTIVITY"

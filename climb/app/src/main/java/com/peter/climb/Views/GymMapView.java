@@ -8,8 +8,11 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.view.AbsSavedState;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.ViewGroup;
@@ -28,6 +31,9 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
   public static final int GYM_FLOOR_OUTLINE_STROKE_WIDTH = 16;
   private static final int GYM_FLOOR_OUTLINE_COLOR = 0xff3d3d3d;
   private static final float MIN_ZOOM_FACTOR = 0.85f;
+  private static final String SUPER_STATE_KEY = "gym_map_view_super_state_key";
+  private static final String SCALE_KEY = "gym_map_view_scale_key";
+  private static final String SEND_COUNTS_KEY = "send_counts_key";
   private List<WallView> wallViews;
 
   private List<RouteLabelView> routeLabelViews;
@@ -49,6 +55,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
   private List<Route> routes;
   private List<AddRouteListener> addRouteListeners;
   private HashMap<Route, Wall> routeWallMap;
+  private Bundle savedState;
 
   public interface AddRouteListener {
 
@@ -90,6 +97,32 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     updateScale();
     invalidate();
     invalidateChildren();
+  }
+
+  @Override
+  public Parcelable onSaveInstanceState() {
+    Bundle bundle = new Bundle();
+
+    ArrayList<Integer> sendCounts = new ArrayList<>();
+    for (RouteLabelView routeLabelView : routeLabelViews) {
+      sendCounts.add(routeLabelView.getSendCount());
+    }
+
+    bundle.putIntegerArrayList(SEND_COUNTS_KEY, sendCounts);
+    bundle.putParcelable(SUPER_STATE_KEY, super.onSaveInstanceState());
+    bundle.putFloat(SCALE_KEY, scaleFactor);
+    return bundle;
+  }
+
+  @Override
+  public void onRestoreInstanceState(Parcelable state) {
+    if (state instanceof Bundle) {
+      savedState = (Bundle) state;
+
+      scaleFactor = savedState.getFloat(SCALE_KEY);
+      AbsSavedState superState = savedState.getParcelable(SUPER_STATE_KEY);
+      super.onRestoreInstanceState(superState);
+    }
   }
 
   @Override
@@ -224,6 +257,18 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     return true;
   }
 
+  @Override
+  public void onRouteClicked(RouteLabelView view) {
+    // indicate the route has been added
+    int index = routeLabelViews.indexOf(view);
+    Route route = routes.get(index);
+
+    for (AddRouteListener listener : addRouteListeners) {
+      Wall wall = routeWallMap.get(route);
+      listener.onAddRoute(route, wall);
+    }
+  }
+
   private void updateScale() {
     float gymAspectRatio = gym.getFloors(floor).getHeight() / gym.getFloors(floor).getWidth();
     float screenAspectRatio = (float) getHeight() / getWidth();
@@ -289,7 +334,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
       for (Wall wall : gym.getFloors(floor).getWallsList()) {
         WallView wallView = new WallView(getContext());
         wallView.setWall(wall);
-
+        wallView.setSaveEnabled(true);
         wallViews.add(wallView);
         addView(wallView);
         wallView.layout(0, 0, getWidth(), getHeight());
@@ -306,6 +351,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
           routeLabelView.setPosition(route.getPosition());
           routeLabelView.setRouteColor(route.getColor());
           routeLabelView.addRouteClickedListener(this);
+          routeLabelView.setSaveEnabled(true);
           routeLabelViews.add(routeLabelView);
           routes.add(route);
           routeWallMap.put(route, wall);
@@ -313,8 +359,17 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
           routeLabelView.layout(0, 0, getWidth(), getHeight());
         }
       }
-    }
 
+      if (savedState != null) {
+        ArrayList<Integer> sendCounts = savedState.getIntegerArrayList(SEND_COUNTS_KEY);
+        if (sendCounts != null) {
+          for (int i = 0; i < sendCounts.size(); i++) {
+            int sendCount = sendCounts.get(i);
+            routeLabelViews.get(i).setSendCount(sendCount);
+          }
+        }
+      }
+    }
   }
 
   private void init() {
@@ -341,18 +396,6 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
 
   public void addAddRouteListener(AddRouteListener listener) {
     addRouteListeners.add(listener);
-  }
-
-  @Override
-  public void onRouteClicked(RouteLabelView view) {
-    // indicate the route has been added
-    int index = routeLabelViews.indexOf(view);
-    Route route = routes.get(index);
-
-    for (AddRouteListener listener : addRouteListeners) {
-      Wall wall = routeWallMap.get(route);
-      listener.onAddRoute(route, wall);
-    }
   }
 
   private class MapScaleGestureListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {

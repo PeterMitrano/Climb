@@ -50,7 +50,7 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
 
   public static final int SESSION_NOTIFICATION_ID = 1002;
   public static final int START_SESSION_REQUEST_CODE = 1004;
-  public static final String PREFS_NAME = "MyPrefsFile";
+  public static final String PREFS_NAME = "ClimbPreferences";
   public static final String START_SESSION_ACTION = "start_session_action";
 
   private static final String GYM_ID_PREF_KEY = "gym_id_pref_key";
