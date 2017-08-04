@@ -36,6 +36,7 @@ public class MyApplication extends Application {
   interface GoogleFitListener {
 
     void onGoogleFitConnected();
+
     void onGoogleFitFailed();
   }
 
@@ -100,6 +101,17 @@ public class MyApplication extends Application {
       sends.add(new Send(route, wall, System.currentTimeMillis()));
     }
 
+    void removeRouteFromSession(Route route, Wall wall) {
+      for (int i = 0; i < sends.size(); ) {
+        Send send = sends.get(i);
+        if (send.getRoute() == route) {
+          sends.remove(i);
+        } else {
+          ++i;
+        }
+      }
+    }
+
     boolean isSessionEmpty() {
       return sends.isEmpty();
     }
@@ -130,7 +142,8 @@ public class MyApplication extends Application {
       DataSet metadataset = DataSet.create(metadataSource);
 
       DataPoint metadata = metadataset.createDataPoint();
-      metadata.setTimeInterval(System.currentTimeMillis(), System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+      metadata.setTimeInterval(System.currentTimeMillis(), System.currentTimeMillis(),
+          TimeUnit.MILLISECONDS);
       metadata.getValue(imageUrlField).setString(currentGym.getLargeIconUrl());
       metadata.getValue(gymNameField).setString(currentGym.getName());
       metadata.getValue(uuidField).setString(currentGym.getUuid());

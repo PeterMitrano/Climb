@@ -11,8 +11,10 @@ class Send {
   private final String routeColor;
   private final String routeName;
   private final String wallName;
+  private final Route route;
 
   Send(Route route, Wall wall, long timeMillis) {
+    this.route = route;
     this.grade = route.getGrade();
     this.timeMillis = timeMillis;
     this.routeColor = route.getColor();
@@ -20,12 +22,8 @@ class Send {
     this.wallName = wall.getName();
   }
 
-  Send(int grade, long timeMillis, String routeColor, String routeName, String wallName) {
-    this.grade = grade;
-    this.timeMillis = timeMillis;
-    this.routeColor = routeColor;
-    this.routeName = routeName;
-    this.wallName = wallName;
+  Route getRoute() {
+    return route;
   }
 
   int getGrade() {

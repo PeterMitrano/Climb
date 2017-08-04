@@ -22,9 +22,9 @@ import com.peter.Climb.Msgs.Route;
 import com.peter.Climb.Msgs.Wall;
 import com.peter.climb.SessionInfoFragment.SessionInfoListener;
 import com.peter.climb.Views.GymMapView;
-import com.peter.climb.Views.GymMapView.AddRouteListener;
+import com.peter.climb.Views.GymMapView.RouteListener;
 
-public class MapActivity extends ActivityWrapper implements AddRouteListener, SessionInfoListener {
+public class MapActivity extends ActivityWrapper implements RouteListener, SessionInfoListener {
 
   private View decor_view;
   private GymMapView gymMapView;
@@ -73,6 +73,11 @@ public class MapActivity extends ActivityWrapper implements AddRouteListener, Se
   @Override
   public void onAddRoute(Route route, Wall wall) {
     appState.addRouteIntoSession(route, wall);
+  }
+
+  @Override
+  public void onRemoveRoute(Route route, Wall wall) {
+    appState.removeRouteFromSession(route, wall);
   }
 
   private void dismissNotificationAndFinish(int resultCode) {

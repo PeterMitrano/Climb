@@ -55,13 +55,15 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
   private int floorColor;
   private int floor = 0;
   private List<Route> routes;
-  private List<AddRouteListener> addRouteListeners;
+  private List<RouteListener> routeListeners;
   private HashMap<Route, Wall> routeWallMap;
   private Bundle savedState;
 
-  public interface AddRouteListener {
+  public interface RouteListener {
 
     void onAddRoute(Route route, Wall wall);
+
+    void onRemoveRoute(Route route, Wall wall);
   }
 
   public GymMapView(Context context) {
@@ -267,9 +269,21 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     int index = routeLabelViews.indexOf(view);
     Route route = routes.get(index);
 
-    for (AddRouteListener listener : addRouteListeners) {
+    for (RouteListener listener : routeListeners) {
       Wall wall = routeWallMap.get(route);
       listener.onAddRoute(route, wall);
+    }
+  }
+
+  @Override
+  public void onRouteLongPressed(RouteLabelView view) {
+    // indicate the route has been removed
+    int index = routeLabelViews.indexOf(view);
+    Route route = routes.get(index);
+
+    for (RouteListener listener : routeListeners) {
+      Wall wall = routeWallMap.get(route);
+      listener.onRemoveRoute(route, wall);
     }
   }
 
@@ -402,14 +416,14 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     wallViews = new ArrayList<>();
     routeLabelViews = new ArrayList<>();
     routes = new ArrayList<>();
-    addRouteListeners = new ArrayList<>();
+    routeListeners = new ArrayList<>();
     routeWallMap = new HashMap<>();
 
     scaleGestureDetector = new ScaleGestureDetector(getContext(), new MapScaleGestureListener());
   }
 
-  public void addAddRouteListener(AddRouteListener listener) {
-    addRouteListeners.add(listener);
+  public void addAddRouteListener(RouteListener listener) {
+    routeListeners.add(listener);
   }
 
   private class MapScaleGestureListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {

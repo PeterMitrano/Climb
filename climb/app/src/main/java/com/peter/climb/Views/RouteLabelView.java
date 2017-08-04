@@ -8,6 +8,7 @@ import android.graphics.Rect;
 import android.support.v4.content.ContextCompat;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import com.peter.Climb.Msgs;
 import com.peter.climb.R;
 import com.peter.climb.Utils;
@@ -49,6 +50,7 @@ public class RouteLabelView extends View {
   private List<RouteClickedListener> routeClickedListeners;
   private boolean routeOwnsEvent;
   private int sendCount;
+  private long eventStartTime;
 
   public RouteLabelView(Context context) {
     super(context);
@@ -175,7 +177,7 @@ public class RouteLabelView extends View {
 
     gradePaint.setTextSize(GRADE_FONT_SIZE * inverseScaleFactor);
     namePaint.setTextSize(NAME_FONT_SIZE * inverseScaleFactor);
-    sendCountPaint.setTextSize(SEND_COUNT_FONT_SIZE * inverseScaleFactor);
+    sendCountPaint.setTextSize(SEND_COUNT_FONT_SIZE);
     invalidate();
   }
 
@@ -190,13 +192,19 @@ public class RouteLabelView extends View {
           markerPaint.setColor(highlightedColor);
           invalidate();
           routeOwnsEvent = true;
+          eventStartTime = System.currentTimeMillis();
           return true;
         }
         break;
       }
       case MotionEvent.ACTION_UP: {
         if (within(ev.getX(), ev.getY()) && routeOwnsEvent && scaleFactor > SHOW_GRADE_SCALE) {
-          onRouteClicked();
+          long eventDuration = System.currentTimeMillis() - eventStartTime;
+          if (eventDuration > ViewConfiguration.getLongPressTimeout()) {
+            onRouteLongPressed();
+          } else {
+            onRouteClicked();
+          }
         }
 
         // release ownership of this event
@@ -234,12 +242,26 @@ public class RouteLabelView extends View {
     markerPaint.setColor(routeColor);
     sendCount++;
 
-    invalidate();
-
     // Dispatch to parents who are listening
     for (RouteClickedListener listener : routeClickedListeners) {
       listener.onRouteClicked(this);
     }
+
+    invalidate();
+  }
+
+  private void onRouteLongPressed() {
+    markerPaint.setColor(routeColor);
+    if (sendCount > 0) {
+      sendCount--;
+
+      // Dispatch to parents who are listening
+      for (RouteClickedListener listener : routeClickedListeners) {
+        listener.onRouteLongPressed(this);
+      }
+    }
+
+    invalidate();
   }
 
   private boolean within(float x, float y) {
@@ -253,5 +275,7 @@ public class RouteLabelView extends View {
   interface RouteClickedListener {
 
     void onRouteClicked(RouteLabelView view);
+
+    void onRouteLongPressed(RouteLabelView view);
   }
 }
