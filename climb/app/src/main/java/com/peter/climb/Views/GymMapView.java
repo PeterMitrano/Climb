@@ -27,13 +27,15 @@ import java.util.List;
 
 public class GymMapView extends ViewGroup implements RouteClickedListener {
 
-  public static final float MAX_ZOOM_FACTOR = 4.0f;
+  public static final float MAX_ZOOM_FACTOR = 10.0f;
   public static final int GYM_FLOOR_OUTLINE_STROKE_WIDTH = 16;
   private static final int GYM_FLOOR_OUTLINE_COLOR = 0xff3d3d3d;
   private static final float MIN_ZOOM_FACTOR = 0.85f;
   private static final String SUPER_STATE_KEY = "gym_map_view_super_state_key";
   private static final String SCALE_KEY = "gym_map_view_scale_key";
   private static final String SEND_COUNTS_KEY = "send_counts_key";
+  private static final String POS_X_KEY = "pos_x_key";
+  private static final String POS_Y_KEY = "pos_y_key";
   private List<WallView> wallViews;
 
   private List<RouteLabelView> routeLabelViews;
@@ -109,8 +111,10 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     }
 
     bundle.putIntegerArrayList(SEND_COUNTS_KEY, sendCounts);
-    bundle.putParcelable(SUPER_STATE_KEY, super.onSaveInstanceState());
     bundle.putFloat(SCALE_KEY, scaleFactor);
+    bundle.putFloat(POS_X_KEY, posX);
+    bundle.putFloat(POS_Y_KEY, posY);
+    bundle.putParcelable(SUPER_STATE_KEY, super.onSaveInstanceState());
     return bundle;
   }
 
@@ -119,7 +123,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     if (state instanceof Bundle) {
       savedState = (Bundle) state;
 
-      scaleFactor = savedState.getFloat(SCALE_KEY);
+      scaleFactor = savedState.getFloat(SCALE_KEY, scaleFactor);
       AbsSavedState superState = savedState.getParcelable(SUPER_STATE_KEY);
       super.onRestoreInstanceState(superState);
     }
@@ -216,8 +220,8 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
           final float dx = x - lastTouchX;
           final float dy = y - lastTouchY;
 
-          posX = posX + dx;
-          posY = posY + dy;
+          posX = posX + dx / scaleFactor;
+          posY = posY + dy / scaleFactor;
 
           invalidate();
           invalidateChildren();
@@ -283,6 +287,13 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
 
     posX = (getWidth() - gym.getFloors(floor).getWidth() * metersToPixels) / 2;
     posY = (getHeight() - gym.getFloors(floor).getHeight() * metersToPixels) / 2;
+
+//    if (savedState == null) {
+//    }
+//    else {
+//      posX = savedState.getFloat(POS_X_KEY, posX);
+//      posY = savedState.getFloat(POS_Y_KEY, posY);
+//    }
 
     updateFloorRect();
 
@@ -360,21 +371,24 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
         }
       }
 
-      if (savedState != null) {
-        ArrayList<Integer> sendCounts = savedState.getIntegerArrayList(SEND_COUNTS_KEY);
-        if (sendCounts != null) {
-          for (int i = 0; i < sendCounts.size(); i++) {
-            int sendCount = sendCounts.get(i);
-            routeLabelViews.get(i).setSendCount(sendCount);
-          }
+      ArrayList<Integer> sendCounts = savedState.getIntegerArrayList(SEND_COUNTS_KEY);
+      if (sendCounts != null) {
+        for (int i = 0; i < sendCounts.size(); i++) {
+          int sendCount = sendCounts.get(i);
+          routeLabelViews.get(i).setSendCount(sendCount);
         }
+      }
+
+      for (RouteLabelView labelView : routeLabelViews) {
+        labelView.setScaleFactor(scaleFactor);
       }
     }
   }
 
   private void init() {
-    // start all the way zoomed out
     scaleFactor = 0.9f;
+
+    savedState = new Bundle();
 
     gymFloorRect = new RectF();
     gymFloorPaint = new Paint(Paint.ANTI_ALIAS_FLAG);

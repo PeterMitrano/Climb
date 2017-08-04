@@ -49,6 +49,11 @@ public class MapActivity extends ActivityWrapper implements AddRouteListener, Se
   }
 
   @Override
+  public void onBackPressed() {
+    endSession();
+  }
+
+  @Override
   public void onWindowFocusChanged(boolean hasFocus) {
     super.onWindowFocusChanged(hasFocus);
 //    if (hasFocus) {
@@ -104,6 +109,10 @@ public class MapActivity extends ActivityWrapper implements AddRouteListener, Se
 
   @Override
   public void onSessionEnded() {
+    endSession();
+  }
+
+  public void endSession() {
     if (appState.isSessionEmpty()) {
       AlertDialog.Builder builder = new AlertDialog.Builder(this);
       builder.setMessage(R.string.empty_session_message)

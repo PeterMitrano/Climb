@@ -16,13 +16,13 @@ import java.util.List;
 
 public class RouteLabelView extends View {
 
-  private static final float GRADE_FONT_SIZE = 10f;
-  private static final float NAME_FONT_SIZE = 6f;
+  private static final float GRADE_FONT_SIZE = 14f;
+  private static final float NAME_FONT_SIZE = 10f;
   private static final float SEND_COUNT_FONT_SIZE = 4f;
-  private static final float SHOW_GRADE_SCALE = 1.6f;
-  private static final float SHOW_NAME_SCALE = 2.6f;
+  private static final float SHOW_GRADE_SCALE = 1.5f;
+  private static final float SHOW_NAME_SCALE = 3f;
   private static final float MIN_SIZE = 10f;
-  private static final float PADDING = 10f;
+  private static final float PADDING = 6f;
   private static final float GRADE_NAME_PADDING = 2f;
   private static final float SENDS_RECT_PADDING = 2f;
   private static final String SUPER_STATE_KEY = "route_label_view_super_state_key";
@@ -171,9 +171,11 @@ public class RouteLabelView extends View {
   public void setScaleFactor(float scaleFactor) {
     this.scaleFactor = scaleFactor;
 
-    gradePaint.setTextSize(GRADE_FONT_SIZE * scaleFactor);
-    namePaint.setTextSize(NAME_FONT_SIZE * scaleFactor);
-    sendCountPaint.setTextSize(SEND_COUNT_FONT_SIZE * scaleFactor);
+    float inverseScaleFactor = (float) Math.pow(scaleFactor, -0.2);
+
+    gradePaint.setTextSize(GRADE_FONT_SIZE * inverseScaleFactor);
+    namePaint.setTextSize(NAME_FONT_SIZE * inverseScaleFactor);
+    sendCountPaint.setTextSize(SEND_COUNT_FONT_SIZE * inverseScaleFactor);
     invalidate();
   }
 
