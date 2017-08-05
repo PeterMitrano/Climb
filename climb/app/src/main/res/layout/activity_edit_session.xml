@@ -99,7 +99,8 @@
         android:padding="4dp"
         android:hint="@string/hr"
         android:textColor="@color/offWhite"
-        app:editWidth="48dp" />
+        app:editWidth="48dp"
+        app:focusColor="@color/colorAccentDark" />
 
       <com.peter.climb.Views.RightAlignedHintEdit
         android:id="@+id/minutes_edit"
@@ -109,7 +110,8 @@
         android:padding="4dp"
         android:hint="@string/min"
         android:textColor="@color/offWhite"
-        app:editWidth="48dp" />
+        app:editWidth="48dp"
+        app:focusColor="@color/colorAccentDark" />
 
     </LinearLayout>
 
@@ -135,7 +137,8 @@
         android:padding="4dp"
         android:hint="@string/sends"
         android:textColor="@color/offWhite"
-        app:editWidth="56dp" />
+        app:editWidth="56dp"
+        app:focusColor="@color/colorAccentDark" />
 
     </LinearLayout>
 

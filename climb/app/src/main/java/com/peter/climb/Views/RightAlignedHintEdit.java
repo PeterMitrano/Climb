@@ -7,12 +7,14 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.view.View;
+import android.view.View.OnFocusChangeListener;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.peter.climb.R;
 
-public class RightAlignedHintEdit extends LinearLayout {
+public class RightAlignedHintEdit extends LinearLayout implements OnFocusChangeListener {
 
   private static final float UNDERBAR_HEIGHT = 4;
   private String inputType;
@@ -109,6 +111,7 @@ public class RightAlignedHintEdit extends LinearLayout {
 
     inflate(getContext(), R.layout.right_aligned_hint_edit, this);
     edit = (EditText) findViewById(R.id.edit);
+    edit.setOnFocusChangeListener(this);
     hint = (TextView) findViewById(R.id.hint);
 
     underbarRect = new RectF();
@@ -119,5 +122,19 @@ public class RightAlignedHintEdit extends LinearLayout {
     setEditWidth(editWidth);
     setTextColor(textColor);
     edit.setWidth(editWidth);
+  }
+
+  @Override
+  public void onFocusChange(View v, boolean hasFocus) {
+    if (v.getId() == R.id.edit) {
+      if (hasFocus) {
+        underbarRectPaint.setColor(focusColor);
+      }
+      else {
+        underbarRectPaint.setColor(unfocusColor);
+      }
+
+      invalidate();
+    }
   }
 }
