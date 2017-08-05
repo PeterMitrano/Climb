@@ -42,7 +42,6 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
   private Gym gym;
   private ScaleGestureDetector scaleGestureDetector;
   private Paint gymFloorPaint;
-  private Paint gymFloorOutlinePaint;
   private RectF gymFloorRect;
   private float metersToPixels;
   private float scaleFactor = 1f;
@@ -58,13 +57,6 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
   private List<RouteListener> routeListeners;
   private HashMap<Route, Wall> routeWallMap;
   private Bundle savedState;
-
-  public interface RouteListener {
-
-    void onAddRoute(Route route, Wall wall);
-
-    void onRemoveRoute(Route route, Wall wall);
-  }
 
   public GymMapView(Context context) {
     super(context);
@@ -104,84 +96,9 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
   }
 
   @Override
-  public Parcelable onSaveInstanceState() {
-    Bundle bundle = new Bundle();
-
-    ArrayList<Integer> sendCounts = new ArrayList<>();
-    for (RouteLabelView routeLabelView : routeLabelViews) {
-      sendCounts.add(routeLabelView.getSendCount());
-    }
-
-    bundle.putIntegerArrayList(SEND_COUNTS_KEY, sendCounts);
-    bundle.putFloat(SCALE_KEY, scaleFactor);
-    bundle.putFloat(POS_X_KEY, posX);
-    bundle.putFloat(POS_Y_KEY, posY);
-    bundle.putParcelable(SUPER_STATE_KEY, super.onSaveInstanceState());
-    return bundle;
-  }
-
-  @Override
-  public void onRestoreInstanceState(Parcelable state) {
-    if (state instanceof Bundle) {
-      savedState = (Bundle) state;
-
-      scaleFactor = savedState.getFloat(SCALE_KEY, scaleFactor);
-      AbsSavedState superState = savedState.getParcelable(SUPER_STATE_KEY);
-      super.onRestoreInstanceState(superState);
-    }
-  }
-
-  @Override
   protected void onLayout(boolean changed, int l, int t, int r, int b) {
     // Do nothing. Do not call the superclass method--that would start a layout pass
     // on this view's children. We lays out its children in onSizeChanged().
-  }
-
-  @Override
-  protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-    super.onSizeChanged(w, h, oldw, oldh);
-
-    // this is an unavoidable check. we must be able to draw without the gym ready
-    if (gym != null) {
-      updateScale();
-
-      for (WallView wallView : wallViews) {
-        wallView.layout(0, 0, w, h);
-      }
-
-      for (RouteLabelView labelView : routeLabelViews) {
-        labelView.layout(0, 0, w, h);
-      }
-    }
-  }
-
-
-  @Override
-  protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-    // Try for a width based on our minimum
-    int minW = getPaddingLeft() + getPaddingRight() + getSuggestedMinimumWidth();
-    int w = Math.max(minW, MeasureSpec.getSize(widthMeasureSpec));
-
-    int minH = getPaddingTop() + getPaddingBottom() + getSuggestedMinimumHeight();
-    int h = Math.max(minH, MeasureSpec.getSize(heightMeasureSpec));
-
-    setMeasuredDimension(w, h);
-  }
-
-  @Override
-  protected void onDraw(Canvas canvas) {
-    super.onDraw(canvas);
-    canvas.scale(scaleFactor, scaleFactor, getWidth() / 2, getHeight() / 2);
-    canvas.translate(posX, posY);
-    canvas.drawRect(gymFloorRect, gymFloorPaint);
-  }
-
-  @Override
-  protected void dispatchDraw(Canvas canvas) {
-    super.dispatchDraw(canvas);
-
-    // We can draw on top of children here
-    canvas.drawRect(gymFloorRect, gymFloorOutlinePaint);
   }
 
   @Override
@@ -261,6 +178,72 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
       }
     }
     return true;
+  }
+
+  @Override
+  protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+    super.onSizeChanged(w, h, oldw, oldh);
+
+    // this is an unavoidable check. we must be able to draw without the gym ready
+    if (gym != null) {
+      updateScale();
+
+      for (WallView wallView : wallViews) {
+        wallView.layout(0, 0, w, h);
+      }
+
+      for (RouteLabelView labelView : routeLabelViews) {
+        labelView.layout(0, 0, w, h);
+      }
+    }
+  }
+
+  @Override
+  protected void onDraw(Canvas canvas) {
+    super.onDraw(canvas);
+    canvas.scale(scaleFactor, scaleFactor, getWidth() / 2, getHeight() / 2);
+    canvas.translate(posX, posY);
+    canvas.drawRect(gymFloorRect, gymFloorPaint);
+  }
+
+  @Override
+  public Parcelable onSaveInstanceState() {
+    Bundle bundle = new Bundle();
+
+    ArrayList<Integer> sendCounts = new ArrayList<>();
+    for (RouteLabelView routeLabelView : routeLabelViews) {
+      sendCounts.add(routeLabelView.getSendCount());
+    }
+
+    bundle.putIntegerArrayList(SEND_COUNTS_KEY, sendCounts);
+    bundle.putFloat(SCALE_KEY, scaleFactor);
+    bundle.putFloat(POS_X_KEY, posX);
+    bundle.putFloat(POS_Y_KEY, posY);
+    bundle.putParcelable(SUPER_STATE_KEY, super.onSaveInstanceState());
+    return bundle;
+  }
+
+  @Override
+  public void onRestoreInstanceState(Parcelable state) {
+    if (state instanceof Bundle) {
+      savedState = (Bundle) state;
+
+      scaleFactor = savedState.getFloat(SCALE_KEY, scaleFactor);
+      AbsSavedState superState = savedState.getParcelable(SUPER_STATE_KEY);
+      super.onRestoreInstanceState(superState);
+    }
+  }
+
+  @Override
+  protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+    // Try for a width based on our minimum
+    int minW = getPaddingLeft() + getPaddingRight() + getSuggestedMinimumWidth();
+    int w = Math.max(minW, MeasureSpec.getSize(widthMeasureSpec));
+
+    int minH = getPaddingTop() + getPaddingBottom() + getSuggestedMinimumHeight();
+    int h = Math.max(minH, MeasureSpec.getSize(heightMeasureSpec));
+
+    setMeasuredDimension(w, h);
   }
 
   @Override
@@ -408,11 +391,6 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     gymFloorPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     gymFloorPaint.setColor(floorColor);
 
-    gymFloorOutlinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    gymFloorOutlinePaint.setStyle(Paint.Style.STROKE);
-    gymFloorOutlinePaint.setStrokeWidth(GYM_FLOOR_OUTLINE_STROKE_WIDTH);
-    gymFloorOutlinePaint.setColor(GYM_FLOOR_OUTLINE_COLOR);
-
     wallViews = new ArrayList<>();
     routeLabelViews = new ArrayList<>();
     routes = new ArrayList<>();
@@ -424,6 +402,13 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
 
   public void addAddRouteListener(RouteListener listener) {
     routeListeners.add(listener);
+  }
+
+  public interface RouteListener {
+
+    void onAddRoute(Route route, Wall wall);
+
+    void onRemoveRoute(Route route, Wall wall);
   }
 
   private class MapScaleGestureListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {

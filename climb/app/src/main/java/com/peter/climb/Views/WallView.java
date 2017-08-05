@@ -12,10 +12,14 @@ import com.peter.Climb.Msgs;
 public class WallView extends View {
 
   final private Paint wallPaint;
+  final private Paint wallShadowPaint;
   private Msgs.Wall wall;
 
   private Path wallPath;
+  private Path wallShadowPath;
   private float metersToPixels = 1.f;
+  private final float shadowOffsetX = 1;
+  private final float shadowOffsetY = 1;
 
   public WallView(Context context) {
     super(context);
@@ -23,25 +27,19 @@ public class WallView extends View {
     wallPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     wallPaint.setStyle(Style.FILL);
 
-    wallPath = new Path();
+    wallShadowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    wallShadowPaint.setStyle(Style.FILL);
+    wallShadowPaint.setColor(0x22000000);
 
-    setElevation(1);
+    wallPath = new Path();
+    wallShadowPath = new Path();
   }
 
   @Override
   public void onDraw(Canvas canvas) {
     super.onDraw(canvas);
 
-    for (Msgs.Point2D p : this.wall.getPolygon().getPointsList()) {
-      float px = metersToPixels * p.getX();
-      float py = metersToPixels * p.getY();
-      if (wallPath.isEmpty()) {
-        wallPath.moveTo(px, py);
-      } else {
-        wallPath.lineTo(px, py);
-      }
-    }
-
+    canvas.drawPath(wallShadowPath, wallShadowPaint);
     canvas.drawPath(wallPath, wallPaint);
   }
 
@@ -63,13 +61,25 @@ public class WallView extends View {
       } catch (IllegalArgumentException | StringIndexOutOfBoundsException e) {
         wallPaint.setColor(Color.GRAY);
       }
+
+      for (Msgs.Point p : this.wall.getPolygon().getPointsList()) {
+        float px = metersToPixels * p.getX();
+        float py = metersToPixels * p.getY();
+        if (wallPath.isEmpty()) {
+          wallPath.moveTo(px, py);
+          wallShadowPath.moveTo(px + shadowOffsetX, py + shadowOffsetY);
+        } else {
+          wallPath.lineTo(px, py);
+          wallShadowPath.lineTo(px + shadowOffsetX, py + shadowOffsetY);
+        }
+      }
     }
   }
 
   public void setMetersToPixels(float metersToPixels) {
     this.metersToPixels = metersToPixels;
 
-    wallPath = new Path();
+    onDataChanged();
     invalidate();
   }
 }

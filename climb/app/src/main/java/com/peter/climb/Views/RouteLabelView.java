@@ -3,8 +3,11 @@ package com.peter.climb.Views;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.Shader;
+import android.graphics.Shader.TileMode;
 import android.support.v4.content.ContextCompat;
 import android.view.MotionEvent;
 import android.view.View;
@@ -26,20 +29,20 @@ public class RouteLabelView extends View {
   private static final float PADDING = 6f;
   private static final float GRADE_NAME_PADDING = 2f;
   private static final float SENDS_RECT_PADDING = 2f;
-  private static final String SUPER_STATE_KEY = "route_label_view_super_state_key";
-  public static final String SEND_COUNT_KEY = "route_label_send_count_key";
-
-  private int routeGrade;
-  private Msgs.Point2D position;
-  private String routeName;
   private final Paint gradePaint;
   private final Paint namePaint;
   private final Paint markerPaint;
+  private final Paint bottomShadowMarkerPaint;
+  private final Paint leftShadowMarkerPaint;
   private final Paint sendCountBubblePaint;
   private final Paint sendCountPaint;
   private final Rect gradeRect;
   private final Rect nameRect;
   private final Rect sendsRect;
+  private final Paint rightShadowMarkerPaint;
+  private final Paint topShadowMarkerPaint;
+  private int routeGrade;
+  private Msgs.Point position;
   private float metersToPixels;
   private float scaleFactor = 1.f;
   private float x1;
@@ -51,16 +54,31 @@ public class RouteLabelView extends View {
   private boolean routeOwnsEvent;
   private int sendCount;
   private long eventStartTime;
+  private float cx;
+  private float cy;
+  private String gradeString;
+  private String routeName;
+  private String sendsString;
 
   public RouteLabelView(Context context) {
     super(context);
 
+    // initialize fields
     sendCount = 0;
+    gradeString = "";
+    routeName = "";
+    sendsString = "";
+    position = Msgs.Point.newBuilder().build();
 
     routeClickedListeners = new ArrayList<>();
 
     markerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     markerPaint.setColor(Color.LTGRAY);
+
+    topShadowMarkerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    bottomShadowMarkerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    leftShadowMarkerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    rightShadowMarkerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     gradeRect = new Rect();
     nameRect = new Rect();
@@ -77,45 +95,20 @@ public class RouteLabelView extends View {
 
     sendCountPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     sendCountPaint.setColor(Color.WHITE);
-
-    setElevation(2);
-
-    setWillNotDraw(false);
   }
 
   @Override
   public void onDraw(Canvas canvas) {
     super.onDraw(canvas);
 
-    float cx = this.position.getX() * metersToPixels;
-    float cy = this.position.getY() * metersToPixels;
-
-    String gradeString = toGradeString(routeGrade);
-    String sendsString = String.valueOf(sendCount);
-    gradePaint.getTextBounds(gradeString, 0, gradeString.length(), gradeRect);
-    namePaint.getTextBounds(routeName, 0, routeName.length(), nameRect);
-    sendCountPaint.getTextBounds(sendsString, 0, sendsString.length(), sendsRect);
-
-    float labelW = MIN_SIZE;
-    float labelH = MIN_SIZE;
-    if (scaleFactor > SHOW_NAME_SCALE) {
-      labelW = Math.max(Math.max(gradeRect.width(), nameRect.width()), MIN_SIZE) + PADDING;
-      labelH =
-          Math.max(gradeRect.height() + nameRect.height(), MIN_SIZE) + PADDING + GRADE_NAME_PADDING;
-    } else if (scaleFactor > SHOW_GRADE_SCALE) {
-      labelW = Math.max(gradeRect.width(), MIN_SIZE) + PADDING;
-      labelH = Math.max(gradeRect.height(), MIN_SIZE) + PADDING;
-    }
-
-    x1 = cx - labelW / 2f;
-    y1 = cy - labelH / 2f;
-    x2 = cx + labelW / 2f;
-    y2 = cy + labelH / 2f;
-
     float sendCountRadius = Math.max(sendsRect.width(), sendsRect.height()) + SENDS_RECT_PADDING;
     float sendCountCx = x2;
     float sendCountCy = y1;
 
+    canvas.drawRect(x1, y1 - 1f, x1, y1, topShadowMarkerPaint);
+    canvas.drawRect(x1, y2, x2, y2 + 2f, bottomShadowMarkerPaint);
+    canvas.drawRect(x1 - 1f, y1, x1, y2, leftShadowMarkerPaint);
+    canvas.drawRect(x2, y1, x2 + 1f, y2, rightShadowMarkerPaint);
     canvas.drawRect(x1, y1, x2, y2, markerPaint);
 
     if (scaleFactor > SHOW_NAME_SCALE) {
@@ -135,23 +128,33 @@ public class RouteLabelView extends View {
     }
   }
 
+  @org.jetbrains.annotations.Contract(pure = true)
   private String toGradeString(int routeGrade) {
     return "V" + routeGrade;
   }
 
-  public void setPosition(Msgs.Point2D position) {
+  public Msgs.Point getPosition() {
+    return this.position;
+  }
+
+  public void setPosition(Msgs.Point position) {
     this.position = position;
-    invalidate();
+    onDataChanged();
   }
 
   public void setRouteName(String routeName) {
     this.routeName = routeName;
-    invalidate();
+    onDataChanged();
+  }
+
+  public int getRouteGrade() {
+    return this.routeGrade;
   }
 
   public void setRouteGrade(int routeGrade) {
     this.routeGrade = routeGrade;
-    invalidate();
+    gradeString = toGradeString(routeGrade);
+    onDataChanged();
   }
 
   public void setRouteColor(String color) {
@@ -163,11 +166,12 @@ public class RouteLabelView extends View {
       markerPaint.setColor(Color.LTGRAY);
     }
 
-    invalidate();
+    onDataChanged();
   }
 
   public void setMetersToPixels(float metersToPixels) {
     this.metersToPixels = metersToPixels;
+    onDataChanged();
   }
 
   public void setScaleFactor(float scaleFactor) {
@@ -178,6 +182,49 @@ public class RouteLabelView extends View {
     gradePaint.setTextSize(GRADE_FONT_SIZE * inverseScaleFactor);
     namePaint.setTextSize(NAME_FONT_SIZE * inverseScaleFactor);
     sendCountPaint.setTextSize(SEND_COUNT_FONT_SIZE);
+    onDataChanged();
+  }
+
+  private void onDataChanged() {
+    cx = this.position.getX() * metersToPixels;
+    cy = this.position.getY() * metersToPixels;
+
+    sendsString = String.valueOf(sendCount);
+    sendCountPaint.getTextBounds(sendsString, 0, sendsString.length(), sendsRect);
+    namePaint.getTextBounds(routeName, 0, routeName.length(), nameRect);
+    gradePaint.getTextBounds(gradeString, 0, gradeString.length(), gradeRect);
+
+    float labelW = MIN_SIZE;
+    float labelH = MIN_SIZE;
+    if (scaleFactor > SHOW_NAME_SCALE) {
+      labelW = Math.max(Math.max(gradeRect.width(), nameRect.width()), MIN_SIZE) + PADDING;
+      labelH =
+          Math.max(gradeRect.height() + nameRect.height(), MIN_SIZE) + PADDING + GRADE_NAME_PADDING;
+    } else if (scaleFactor > SHOW_GRADE_SCALE) {
+      labelW = Math.max(gradeRect.width(), MIN_SIZE) + PADDING;
+      labelH = Math.max(gradeRect.height(), MIN_SIZE) + PADDING;
+    }
+
+    x1 = cx - labelW / 2f;
+    y1 = cy - labelH / 2f;
+    x2 = cx + labelW / 2f;
+    y2 = cy + labelH / 2f;
+
+    int SHADOW_START = 0x11000000;
+    int SHADOW_END = 0x00000000;
+    Shader topShader = new LinearGradient(0, y1 - 1f, 0, y1, SHADOW_END, SHADOW_START,
+        TileMode.CLAMP);
+    Shader bottomShader = new LinearGradient(0, y2, 0, y2 + 2f, SHADOW_START, SHADOW_END,
+        TileMode.CLAMP);
+    Shader leftShader = new LinearGradient(x1 - 1f, 0, x1, 0, SHADOW_END, SHADOW_START,
+        TileMode.CLAMP);
+    Shader rightShader = new LinearGradient(x1, 0, x1 + 1f, 0, SHADOW_START, SHADOW_END,
+        TileMode.CLAMP);
+    bottomShadowMarkerPaint.setShader(bottomShader);
+    leftShadowMarkerPaint.setShader(leftShader);
+    rightShadowMarkerPaint.setShader(rightShader);
+    topShadowMarkerPaint.setShader(topShader);
+
     invalidate();
   }
 
@@ -229,13 +276,13 @@ public class RouteLabelView extends View {
     return false;
   }
 
-  void setSendCount(int sendCount) {
-    this.sendCount = sendCount;
-    invalidate();
-  }
-
   int getSendCount() {
     return this.sendCount;
+  }
+
+  void setSendCount(int sendCount) {
+    this.sendCount = sendCount;
+    onDataChanged();
   }
 
   private void onRouteClicked() {
@@ -247,7 +294,7 @@ public class RouteLabelView extends View {
       listener.onRouteClicked(this);
     }
 
-    invalidate();
+    onDataChanged();
   }
 
   private void onRouteLongPressed() {
@@ -261,7 +308,7 @@ public class RouteLabelView extends View {
       }
     }
 
-    invalidate();
+    onDataChanged();
   }
 
   private boolean within(float x, float y) {
