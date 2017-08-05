@@ -101,7 +101,7 @@ public class RouteLabelView extends View {
   public void onDraw(Canvas canvas) {
     super.onDraw(canvas);
 
-    float sendCountRadius = Math.max(sendsRect.width(), sendsRect.height()) + SENDS_RECT_PADDING;
+    float sendCountRadius = sendsString.length() * 2 + SENDS_RECT_PADDING;
     float sendCountCx = x2;
     float sendCountCy = y1;
 
@@ -123,8 +123,9 @@ public class RouteLabelView extends View {
 
     if (sendCount > 0) {
       canvas.drawCircle(sendCountCx, sendCountCy, sendCountRadius, sendCountBubblePaint);
-      canvas.drawText(sendsString, sendCountCx - sendsRect.exactCenterX(),
-          sendCountCy - sendsRect.exactCenterY(), sendCountPaint);
+      float offsetX = 0.5f + (sendsString.length() * .5f);
+      canvas.drawText(sendsString, sendCountCx - offsetX,
+          sendCountCy + 1.5f, sendCountPaint);
     }
   }
 
@@ -191,6 +192,7 @@ public class RouteLabelView extends View {
 
     sendsString = String.valueOf(sendCount);
     sendCountPaint.getTextBounds(sendsString, 0, sendsString.length(), sendsRect);
+//    Log.e(getClass().toString(), sendsRect.exactCenterX() + " , " + sendsRect.exactCenterY());
     namePaint.getTextBounds(routeName, 0, routeName.length(), nameRect);
     gradePaint.getTextBounds(gradeString, 0, gradeString.length(), gradeRect);
 
@@ -287,11 +289,14 @@ public class RouteLabelView extends View {
 
   private void onRouteClicked() {
     markerPaint.setColor(routeColor);
-    sendCount++;
+    if (sendCount < 99) {
+      sendCount++;
 
-    // Dispatch to parents who are listening
-    for (RouteClickedListener listener : routeClickedListeners) {
-      listener.onRouteClicked(this);
+      // Dispatch to parents who are listening
+      for (RouteClickedListener listener : routeClickedListeners) {
+        listener.onRouteClicked(this);
+      }
+
     }
 
     onDataChanged();
