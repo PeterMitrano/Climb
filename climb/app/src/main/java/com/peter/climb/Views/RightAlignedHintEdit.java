@@ -7,8 +7,10 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.text.InputFilter;
+import android.text.InputType;
 import android.text.Spanned;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.View.OnFocusChangeListener;
 import android.widget.EditText;
@@ -19,9 +21,10 @@ import com.peter.climb.R;
 public class RightAlignedHintEdit extends LinearLayout implements OnFocusChangeListener {
 
   private static final float UNDERBAR_HEIGHT = 4;
+  private static final String SUPER_STATE_KEY = "super_state_key";
+  private static final java.lang.String VALUE_KEY = "value_key";
 
   private float maxValue;
-  private String inputType;
   private EditText edit;
   private TextView hint;
   private int unfocusColor;
@@ -56,6 +59,7 @@ public class RightAlignedHintEdit extends LinearLayout implements OnFocusChangeL
       a.recycle();
     }
     init();
+
   }
 
   @Override
@@ -112,9 +116,31 @@ public class RightAlignedHintEdit extends LinearLayout implements OnFocusChangeL
   private void init() {
     setWillNotDraw(false);
 
-    inflate(getContext(), R.layout.right_aligned_hint_edit, this);
-    edit = (EditText) findViewById(R.id.edit);
-    hint = (TextView) findViewById(R.id.hint);
+    float scale = getResources().getDisplayMetrics().density;
+
+    int layoutPaddingTop = (int) (8 * scale);
+    int layoutPaddingLeft = (int) (4 * scale);
+    int layoutPaddingRight = (int) (4 * scale);
+    int layoutPaddingBottom = (int) (8 * scale);
+    setPadding(layoutPaddingLeft, layoutPaddingTop, layoutPaddingRight, layoutPaddingBottom);
+    setOrientation(LinearLayout.HORIZONTAL);
+
+    edit = new EditText(getContext());
+    edit.setBackgroundColor(0x00000000);
+    edit.setInputType(InputType.TYPE_NUMBER_FLAG_SIGNED);
+
+    int paddingTop = (int) (16 * scale);
+    edit.setPadding(0, paddingTop, 0, 0);
+    edit.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+    edit.setId(View.generateViewId());
+
+    hint = new TextView(getContext());
+    hint.setLabelFor(edit.getId());
+    hint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+    hint.setId(View.generateViewId());
+
+    addView(edit);
+    addView(hint);
 
     underbarRect = new RectF();
     underbarRectPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -130,7 +156,7 @@ public class RightAlignedHintEdit extends LinearLayout implements OnFocusChangeL
 
   @Override
   public void onFocusChange(View v, boolean hasFocus) {
-    if (v.getId() == R.id.edit) {
+    if (v.getId() == edit.getId()) {
       if (hasFocus) {
         underbarRectPaint.setColor(focusColor);
       } else {
