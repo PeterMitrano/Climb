@@ -7,16 +7,19 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.RectF;
+import android.graphics.Paint.Style;
+import android.graphics.Path;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.AbsSavedState;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.ViewGroup;
 import com.peter.Climb.Msgs.Gym;
+import com.peter.Climb.Msgs.Point;
 import com.peter.Climb.Msgs.Route;
 import com.peter.Climb.Msgs.Wall;
 import com.peter.climb.R;
@@ -42,7 +45,6 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
   private Gym gym;
   private ScaleGestureDetector scaleGestureDetector;
   private Paint gymFloorPaint;
-  private RectF gymFloorRect;
   private float metersToPixels;
   private float scaleFactor = 1f;
   private float lastTouchX;
@@ -57,6 +59,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
   private List<RouteListener> routeListeners;
   private HashMap<Route, Wall> routeWallMap;
   private Bundle savedState;
+  private Path floorPath;
 
   public GymMapView(Context context) {
     super(context);
@@ -203,7 +206,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     super.onDraw(canvas);
     canvas.scale(scaleFactor, scaleFactor, getWidth() / 2, getHeight() / 2);
     canvas.translate(posX, posY);
-    canvas.drawRect(gymFloorRect, gymFloorPaint);
+    canvas.drawPath(floorPath, gymFloorPaint);
   }
 
   @Override
@@ -330,7 +333,6 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
   private void updateFloorRect() {
     float w = gym.getFloors(floor).getWidth() * metersToPixels;
     float h = gym.getFloors(floor).getHeight() * metersToPixels;
-    gymFloorRect.set(0, 0, w, h);
   }
 
   private void onDataChanged() {
@@ -379,6 +381,17 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
       for (RouteLabelView labelView : routeLabelViews) {
         labelView.setScaleFactor(scaleFactor);
       }
+
+      for (Point p : gym.getFloors(floor).getPolygon().getPointsList()) {
+        float px = metersToPixels * p.getX();
+        float py = metersToPixels * p.getY();
+        if (floorPath.isEmpty()) {
+          Log.e(getClass().toString(), px + ", " + py);
+          floorPath.moveTo(px, py);
+        } else {
+          floorPath.lineTo(px, py);
+        }
+      }
     }
   }
 
@@ -387,9 +400,11 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
 
     savedState = new Bundle();
 
-    gymFloorRect = new RectF();
     gymFloorPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    gymFloorPaint.setStyle(Style.FILL);
     gymFloorPaint.setColor(floorColor);
+
+    floorPath = new Path();
 
     wallViews = new ArrayList<>();
     routeLabelViews = new ArrayList<>();

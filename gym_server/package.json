@@ -2,8 +2,10 @@
   "name": "gym_server",
   "version": "1.0.0",
   "description": "server for gym information + webapp for building gyms",
+  "repository": "https://github.com/PeterMitrano/Climb.git",
   "main": "index.js",
   "dependencies": {
+    "aws-sdk": "^2.94.0",
     "body-parser": "^1.17.2",
     "express": "^4.15.3",
     "express-handlebars": "^3.0.0",
@@ -11,8 +13,7 @@
     "google-protobuf": "^3.3.0",
     "gulp": "^3.9.1",
     "gulp-browserify": "^0.5.1",
-    "gulp-rename": "^1.2.2",
-    "gulp-shell": "^0.6.3"
+    "gulp-rename": "^1.2.2"
   },
   "author": "Peter Mitrano",
   "license": "WTFPL",

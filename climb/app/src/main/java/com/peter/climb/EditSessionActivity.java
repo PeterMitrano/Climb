@@ -101,7 +101,7 @@ public class EditSessionActivity extends ActivityWrapper implements OnItemSelect
               new TimePickerDialog.OnTimeSetListener() {
                 @Override
                 public void onTimeSet(TimePicker timePicker, int h, int m) {
-                  EditSessionActivity.this.timeView.setText(h + ":" + m);
+                  EditSessionActivity.this.timeView.setText(Utils.timeStr(h, m));
                 }
               }, startHour, startMinute, true);
           timePickerDialog.show();
@@ -129,10 +129,10 @@ public class EditSessionActivity extends ActivityWrapper implements OnItemSelect
       });
 
       int activeHours = Utils.millisToHours(activeTime);
-      int activeMinutes = Math.min(1, Utils.millisToMinutes(activeTime));
+      int activeMinutes = Math.max(1, Utils.millisToMinutes(activeTime));
       hoursEdit.setText(String.valueOf(activeHours));
       minutesEdit.setText(String.valueOf(activeMinutes));
-      timeView.setText(startHour + ":" + startMinute);
+      timeView.setText(Utils.timeStr(startHour, startMinute));
       dateView.setText(Utils.millsDate(startTime));
       sendsEdit.setText(String.valueOf(sendCount));
     }
