@@ -8,7 +8,7 @@ const app = express();
 
 const port = 8081;
 const client_id = '41352784373-92ucj15fdse277kre1458uorhd0vlacl.apps.googleusercontent.com';
-const table_name = 'Gyms';
+const table_name = 'gyms';
 const user_id_key = 'user_id_key';
 
 app.use(body_parser.urlencoded({extended: false}));
@@ -19,6 +19,11 @@ if (process.env.DEBUG) {
     endpoint: 'http://localhost:8000',
     accessKeyId: 'accessKeyId',
     secretAccessKey: 'secretAccessKey',
+  });
+}
+else {
+  AWS.config.update({
+    region: 'us-east-1',
   });
 }
 
@@ -60,7 +65,7 @@ app.use('/gyms', function(request, response) {
               };
               dynamo_client.query(params).promise().then(function(data) {
                 console.log(data.Items);
-                response.status(204).send("Unimplemented");
+                response.status(204).send('Unimplemented');
               });
             }
           });
