@@ -20,20 +20,20 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 
-public class GymSuggestionProvider extends ContentProvider {
+public class GymsContentProvider extends ContentProvider {
 
   public static final String[] PROJECTION = new String[]{BaseColumns._ID,
       SearchManager.SUGGEST_COLUMN_TEXT_1, SearchManager.SUGGEST_COLUMN_INTENT_DATA,
       SearchManager.SUGGEST_COLUMN_INTENT_EXTRA_DATA};
 
-  private static final String AUTHORITY = "com.peter.climb.GymSuggestionProvider";
+  private static final String AUTHORITY = "com.peter.climb.GymsContentProvider";
   public static final Uri CONTENT_URI =
       Uri.parse("content://" + AUTHORITY + "/gyms");
 
   public static final int PROTOBUF_BLOB_COLUMN = 3;
   private static final int MAX_RESULTS = 5;
 
-  public GymSuggestionProvider() {
+  public GymsContentProvider() {
   }
 
   @Override
@@ -47,7 +47,7 @@ public class GymSuggestionProvider extends ContentProvider {
       @Nullable String[] selectionArgs, @Nullable String sortOrder) {
     String query = uri.getLastPathSegment().toLowerCase();
 
-    String url = "http://gym-server-dev.us-east-1.elasticbeanstalk.com/gyms";
+    String url = "http://192.168.0.11:8081/gyms";
     RequestFuture<String> future = RequestFuture.newFuture();
     StringRequest gymDataRequest = new StringRequest(url, future, future);
     RequestorSingleton.getInstance(getContext()).addToRequestQueue(gymDataRequest);

@@ -34,7 +34,7 @@ class FetchGymDataTask extends AsyncTask<Void, Integer, Gyms> {
   @Override
   protected Msgs.Gyms doInBackground(Void... params) {
     Cursor cursor = applicationContext.getContentResolver()
-        .query(GymSuggestionProvider.CONTENT_URI, GymSuggestionProvider.PROJECTION, null, null,
+        .query(GymsContentProvider.CONTENT_URI, GymsContentProvider.PROJECTION, null, null,
             null);
 
     if (null == cursor) {
@@ -45,7 +45,7 @@ class FetchGymDataTask extends AsyncTask<Void, Integer, Gyms> {
         Msgs.Gyms.Builder gyms_builder = Msgs.Gyms.newBuilder();
         while (cursor.moveToNext()) {
           // Gets the protobuf blob from the column.
-          byte data[] = cursor.getBlob(GymSuggestionProvider.PROTOBUF_BLOB_COLUMN);
+          byte data[] = cursor.getBlob(GymsContentProvider.PROTOBUF_BLOB_COLUMN);
           Msgs.Gym gym = Msgs.Gym.parseFrom(data);
           gyms_builder.addGyms(gym);
         }

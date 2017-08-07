@@ -43,7 +43,7 @@ dynamodb.createTable(params).promise().then(function(data) {
         'gym': gym_string,
       },
     };
-    put_params.Item[user_id_key] = "" + Math.floor(Math.random() * 1000);
+    put_params.Item[user_id_key] = '' + Math.floor(Math.random() * 1000);
 
     // insert into db
     return dynamo_client.put(put_params).promise();
@@ -63,6 +63,7 @@ dynamodb.createTable(params).promise().then(function(data) {
 }).catch(console.log.bind(console));
 
 function fakeGyms() {
+  let gyms = new msgs.Gyms();
   let ascend, climb_north;
 
   {
@@ -209,10 +210,24 @@ function fakeGyms() {
     climb_north.setLargeIconUrl(
         'https://pbs.twimg.com/profile_images/543849641700118528/TIfCknj8_400x400.jpeg');
 
+    let l = [ascend, climb_north];
+    for (let i = 0; i < 100; ++i) {
+      g = new msgs.Gym();
+      g.setFloorsList([floor]);
+      g.setName('fake_gym_' + i);
+      g.setUuid(uuidv4());
+      g.setLargeIconUrl('http://via.placeholder.com/400x400');
+      l.push(g);
+    }
+    gyms.setGymsList(l);
   }
 
-  let gyms = new msgs.Gyms();
-  gyms.setGymsList([climb_north, ascend]);
-
   return gyms;
+}
+
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    let r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
 }

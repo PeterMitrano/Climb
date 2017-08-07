@@ -39,9 +39,9 @@
     </activity>
 
     <provider
-      android:authorities="com.peter.climb.GymSuggestionProvider"
+      android:authorities="com.peter.climb.GymsContentProvider"
       android:exported="false"
-      android:name=".GymSuggestionProvider" />
+      android:name=".GymsContentProvider" />
 
     <activity
       android:name=".SessionDetailsActivity"
