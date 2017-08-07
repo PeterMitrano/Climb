@@ -47,7 +47,7 @@ public class GymsContentProvider extends ContentProvider {
       @Nullable String[] selectionArgs, @Nullable String sortOrder) {
     String query = uri.getLastPathSegment().toLowerCase();
 
-    String url = "http://192.168.0.11:8081/gyms";
+    String url = "http://gym-server-dev.us-east-1.elasticbeanstalk.com/gyms";
     RequestFuture<String> future = RequestFuture.newFuture();
     StringRequest gymDataRequest = new StringRequest(url, future, future);
     RequestorSingleton.getInstance(getContext()).addToRequestQueue(gymDataRequest);
@@ -63,7 +63,7 @@ public class GymsContentProvider extends ContentProvider {
 
         if (selectionArgs != null && query.equals("search_suggest_query")) {
           String search_text = selectionArgs[0];
-          return searchResultsCursor(gyms, search_text);
+          return searchResultsCursor(gyms, search_text, MAX_RESULTS);
         } else {
           return allResultsCursor(gyms);
         }
@@ -78,20 +78,20 @@ public class GymsContentProvider extends ContentProvider {
   }
 
   private Cursor allResultsCursor(Msgs.Gyms gyms) {
-    return searchResultsCursor(gyms, "");
+    return searchResultsCursor(gyms, "", -1);
   }
 
-  private Cursor searchResultsCursor(Msgs.Gyms gyms, String search_text) {
+  private Cursor searchResultsCursor(Msgs.Gyms gyms, String searchText, int maxResults) {
     MatrixCursor matrixCursor = new MatrixCursor(PROJECTION);
     TreeMap<Integer, Object[]> sorted_rows = new TreeMap<>();
 
     int i = 0;
     for (Msgs.Gym gym : gyms.getGymsList()) {
-      if (search_text.isEmpty()) {
+      if (searchText.isEmpty()) {
         sorted_rows.put(i, new Object[]{i, gym.getName(), i, gym.toByteArray()});
       } else {
         int distance = LevenshteinDistance.getDefaultInstance()
-            .apply(search_text, gym.getName());
+            .apply(searchText, gym.getName());
         sorted_rows.put(distance, new Object[]{i, gym.getName(), i, gym.toByteArray()});
       }
       i++;
@@ -101,7 +101,7 @@ public class GymsContentProvider extends ContentProvider {
     for (Object row[] : sorted_rows.values()) {
       matrixCursor.addRow(row);
       i++;
-      if (i == MAX_RESULTS) {
+      if (i == maxResults) {
         break;
       }
     }
