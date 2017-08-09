@@ -14,21 +14,11 @@ import com.peter.climb.Views.NoGymsFoundViewHolder;
 import com.peter.climb.Views.NotSignedInViewHolder;
 import com.peter.climb.Views.SessionViewHolder;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
-
-  public interface CardListener {
-
-    void onDeleteSession(Session session, int index);
-
-    void onShowSessionDetails(Session session, ArrayList<DataSet> dataSets, DataSet metadata,
-        int index);
-
-    void onRefreshGyms();
-
-    void signIn();
-  }
 
   private static final Integer NO_SESSIONS_CARD_TYPE = 1;
   private static final Integer SESSION_CARD_TYPE = 2;
@@ -68,6 +58,7 @@ public class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
     clearSessionFromDataSet();
     List<Session> sessions = sessionReadResult.getSessions();
 
+    Collections.sort(sessions, new SessionSorter());
     for (Session session : sessions) {
       dataset.add(session);
     }
@@ -149,11 +140,6 @@ public class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
   }
 
   @Override
-  public int getItemCount() {
-    return dataset.size();
-  }
-
-  @Override
   public int getItemViewType(int position) {
     Object datum = dataset.get(position);
     if (datum instanceof Session) {
@@ -161,6 +147,11 @@ public class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
     } else {
       return (int) datum;
     }
+  }
+
+  @Override
+  public int getItemCount() {
+    return dataset.size();
   }
 
   private boolean hasSessions() {
@@ -237,6 +228,36 @@ public class CardsAdapter extends RecyclerView.Adapter<ViewHolder> {
     if (dataset.contains(NOT_SIGNED_IN_CARD_TYPE)) {
       dataset.remove(NOT_SIGNED_IN_CARD_TYPE);
       notifyDataSetChanged();
+    }
+  }
+
+  public interface CardListener {
+
+    void onDeleteSession(Session session, int index);
+
+    void onShowSessionDetails(Session session, ArrayList<DataSet> dataSets, DataSet metadata,
+        int index);
+
+    void onRefreshGyms();
+
+    void signIn();
+  }
+
+  private class SessionSorter implements java.util.Comparator<Session> {
+
+    @Override
+    public int compare(Session s1, Session s2) {
+      if (s1 == null || s2 == null) {
+        throw new NullPointerException();
+      }
+      long dt = s2.getStartTime(TimeUnit.MILLISECONDS) - s1.getStartTime(TimeUnit.MILLISECONDS);
+      if (dt > 0L) {
+        return 1;
+      } else if (dt == 0L) {
+        return 0;
+      } else {
+        return -1;
+      }
     }
   }
 }
