@@ -20,14 +20,13 @@ import java.util.ArrayList;
 public class SessionViewHolder extends RecyclerView.ViewHolder implements
     OnMenuItemClickListener, OnClickListener {
 
-  private final LinearLayout layout;
   public final Toolbar toolbar;
-  final CardView card;
   public final TextView sessionTitleText;
   public final TextView dateTimeText;
-
-  private Session session;
+  final CardView card;
+  private final LinearLayout layout;
   public CardListener cardListener;
+  private Session session;
   private ArrayList<DataSet> datasets;
   private DataSet metadata;
 

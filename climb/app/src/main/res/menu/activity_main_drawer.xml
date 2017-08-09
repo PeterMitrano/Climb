@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-  <group
-    android:id="@+id/group_important"
-    android:checkableBehavior="single">
+  <group android:checkableBehavior="single">
 
     <item
       android:id="@+id/app_settings"
@@ -17,17 +15,13 @@
 
   </group>
 
-  <group
-    android:id="@+id/group_unimportant"
-    android:checkableBehavior="single">
+  <group android:checkableBehavior="single">
 
     <item
-      android:id="@+id/send_feedback"
       android:icon="@drawable/ic_feedback_black_24dp"
       android:title="@string/send_feedback" />
 
     <item
-      android:id="@+id/help"
       android:icon="@drawable/ic_help_black_24dp"
       android:title="@string/help" />
 

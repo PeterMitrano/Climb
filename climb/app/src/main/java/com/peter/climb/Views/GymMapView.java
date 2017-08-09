@@ -30,8 +30,8 @@ import java.util.List;
 
 public class GymMapView extends ViewGroup implements RouteClickedListener {
 
-  public static final float MAX_ZOOM_FACTOR = 10.0f;
   public static final int GYM_FLOOR_OUTLINE_STROKE_WIDTH = 16;
+  private static final float MAX_ZOOM_FACTOR = 10.0f;
   private static final int GYM_FLOOR_OUTLINE_COLOR = 0xff3d3d3d;
   private static final float MIN_ZOOM_FACTOR = 0.85f;
   private static final String SUPER_STATE_KEY = "gym_map_view_super_state_key";
@@ -184,8 +184,8 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
   }
 
   @Override
-  protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-    super.onSizeChanged(w, h, oldw, oldh);
+  protected void onSizeChanged(int w, int h, int oldW, int oldH) {
+    super.onSizeChanged(w, h, oldW, oldH);
 
     // this is an unavoidable check. we must be able to draw without the gym ready
     if (gym != null) {
@@ -295,8 +295,6 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
 //      posY = savedState.getFloat(POS_Y_KEY, posY);
 //    }
 
-    updateFloorRect();
-
     for (WallView wallView : wallViews) {
       wallView.setMetersToPixels(metersToPixels);
     }
@@ -328,11 +326,6 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     float new_point[] = new float[2];
     transform.mapPoints(new_point, point);
     return new_point;
-  }
-
-  private void updateFloorRect() {
-    float w = gym.getFloors(floor).getWidth() * metersToPixels;
-    float h = gym.getFloors(floor).getHeight() * metersToPixels;
   }
 
   private void onDataChanged() {

@@ -30,7 +30,7 @@ public class SessionDetailsActivity extends ActivityWrapper {
   static final String SENDS_KEY = "sends_key";
   static final String DATASETS_KEY = "datasets_key";
   static final String METADATA_KEY = "metadata_key";
-  public static final int EDIT_SESSION_CODE = 1005;
+  private static final int EDIT_SESSION_CODE = 1005;
 
   private LinearLayout layout;
   private ImageView appBarImage;
@@ -42,31 +42,10 @@ public class SessionDetailsActivity extends ActivityWrapper {
   private DataSet metadata;
 
   @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_session_details);
-
-    layout = (LinearLayout) findViewById(R.id.layout);
-    appBarImage = (ImageView) findViewById(R.id.app_bar_image);
-    toolbar = (Toolbar) findViewById(R.id.toolbar);
-    detailsLayout = (LinearLayout) findViewById(R.id.details_layout);
-    sendsLayout = (LinearLayout) findViewById(R.id.sends_layout);
-
-    showFromIntent(getIntent());
-  }
-
-  @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     MenuInflater inflater = getMenuInflater();
     inflater.inflate(R.menu.session_details_toolbar_menu, menu);
     return true;
-  }
-
-  protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-    super.onActivityResult(requestCode, resultCode, intent);
-    if (requestCode == EDIT_SESSION_CODE && resultCode == RESULT_OK) {
-      showFromIntent(intent);
-    }
   }
 
   @Override
@@ -108,7 +87,7 @@ public class SessionDetailsActivity extends ActivityWrapper {
         addDetail(R.drawable.ic_close_black_24dp, R.string.no_session_details, ""));
   }
 
-  View addSend(String name, String grade, String time, String color) {
+  private View addSend(String name, String grade, String time, String color) {
     @SuppressLint("InflateParams")
     ConstraintLayout sendItem = (ConstraintLayout) getLayoutInflater()
         .inflate(R.layout.session_send_item, null);
@@ -130,7 +109,7 @@ public class SessionDetailsActivity extends ActivityWrapper {
     return sendItem;
   }
 
-  View addDetail(int icon, int label, String text) {
+  private View addDetail(int icon, int label, String text) {
     ConstraintLayout detailItem = (ConstraintLayout) getLayoutInflater()
         .inflate(R.layout.session_detail_item, null);
     ImageView detailIcon = (ImageView) detailItem.findViewById(R.id.session_detail_icon);
@@ -155,6 +134,27 @@ public class SessionDetailsActivity extends ActivityWrapper {
       }
     });
     snack.show();
+  }
+
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_session_details);
+
+    layout = (LinearLayout) findViewById(R.id.layout);
+    appBarImage = (ImageView) findViewById(R.id.app_bar_image);
+    toolbar = (Toolbar) findViewById(R.id.toolbar);
+    detailsLayout = (LinearLayout) findViewById(R.id.details_layout);
+    sendsLayout = (LinearLayout) findViewById(R.id.sends_layout);
+
+    showFromIntent(getIntent());
+  }
+
+  protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+    super.onActivityResult(requestCode, resultCode, intent);
+    if (requestCode == EDIT_SESSION_CODE && resultCode == RESULT_OK) {
+      showFromIntent(intent);
+    }
   }
 
   @Override

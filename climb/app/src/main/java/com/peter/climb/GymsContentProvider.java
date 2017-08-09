@@ -25,12 +25,10 @@ public class GymsContentProvider extends ContentProvider {
   public static final String[] PROJECTION = new String[]{BaseColumns._ID,
       SearchManager.SUGGEST_COLUMN_TEXT_1, SearchManager.SUGGEST_COLUMN_INTENT_DATA,
       SearchManager.SUGGEST_COLUMN_INTENT_EXTRA_DATA};
-
+  public static final int PROTOBUF_BLOB_COLUMN = 3;
   private static final String AUTHORITY = "com.peter.climb.GymsContentProvider";
   public static final Uri CONTENT_URI =
       Uri.parse("content://" + AUTHORITY + "/gyms");
-
-  public static final int PROTOBUF_BLOB_COLUMN = 3;
   private static final int MAX_RESULTS = 5;
 
   public GymsContentProvider() {
@@ -77,6 +75,30 @@ public class GymsContentProvider extends ContentProvider {
     return null;
   }
 
+  @Nullable
+  @Override
+  public String getType(@NonNull Uri uri) {
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
+    return null;
+  }
+
+  @Override
+  public int delete(@NonNull Uri uri, @Nullable String selection,
+      @Nullable String[] selectionArgs) {
+    return 0;
+  }
+
+  @Override
+  public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection,
+      @Nullable String[] selectionArgs) {
+    return 0;
+  }
+
   private Cursor allResultsCursor(Msgs.Gyms gyms) {
     return searchResultsCursor(gyms, "", -1);
   }
@@ -107,29 +129,5 @@ public class GymsContentProvider extends ContentProvider {
     }
 
     return matrixCursor;
-  }
-
-  @Nullable
-  @Override
-  public String getType(@NonNull Uri uri) {
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
-    return null;
-  }
-
-  @Override
-  public int delete(@NonNull Uri uri, @Nullable String selection,
-      @Nullable String[] selectionArgs) {
-    return 0;
-  }
-
-  @Override
-  public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection,
-      @Nullable String[] selectionArgs) {
-    return 0;
   }
 }

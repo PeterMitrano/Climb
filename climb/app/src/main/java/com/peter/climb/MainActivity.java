@@ -49,9 +49,9 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
     CardListener, OnClickListener {
 
   public static final int SESSION_NOTIFICATION_ID = 1002;
-  public static final int START_SESSION_REQUEST_CODE = 1004;
-  public static final String PREFS_NAME = "ClimbPreferences";
-  public static final String START_SESSION_ACTION = "start_session_action";
+  private static final int START_SESSION_REQUEST_CODE = 1004;
+  private static final String PREFS_NAME = "ClimbPreferences";
+  private static final String START_SESSION_ACTION = "start_session_action";
 
   private static final String GYM_ID_PREF_KEY = "gym_id_pref_key";
 
@@ -61,63 +61,6 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
 
   private CardsAdapter cardsAdapter;
   private int searchedGymId;
-
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_main);
-
-    Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-    setSupportActionBar(toolbar);
-
-    appBarImage = (ImageView) findViewById(R.id.app_bar_image);
-    cardsRecycler = (RecyclerView) findViewById(R.id.sessions_recycler);
-    startSessionButton = (FloatingActionButton) findViewById(R.id.start_session_button);
-    NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-
-    cardsAdapter = new CardsAdapter(appState);
-    cardsAdapter.setCardListener(this);
-    cardsRecycler.setAdapter(cardsAdapter);
-
-    startSessionButton.setEnabled(false);
-    startSessionButton.setOnClickListener(this);
-
-    DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-    ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-        this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-    drawer.addDrawerListener(toggle);
-    toggle.syncState();
-
-    navigationView.setNavigationItemSelectedListener(this);
-
-    Intent intent = getIntent();
-    String action = intent.getAction();
-    searchedGymId = AppState.NO_GYM_ID;
-    if (action.equals(Intent.ACTION_MAIN)) {
-      // connect to google fit API
-      if (!appState.mClient.isConnected()) {
-        appState.mClient.connect();
-      }
-    } else if (action.equals(Intent.ACTION_SEARCH)) {
-      // check if this request came from a search for a specific gym
-      Uri uri = getIntent().getData();
-      try {
-        searchedGymId = Integer.parseInt(uri.getLastPathSegment().toLowerCase());
-
-        // save this search as the current setting
-        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putInt(GYM_ID_PREF_KEY, searchedGymId);
-        editor.apply();
-      } catch (NumberFormatException e) {
-        e.printStackTrace();
-        Snackbar.make(cardsRecycler, "Invalid search result", Snackbar.LENGTH_SHORT).show();
-      }
-
-      // update the recycler
-      updateSessionsRecycler();
-    }
-  }
 
   @Override
   public void onAttachedToWindow() {
@@ -189,6 +132,63 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
     mResolvingError = false;
     cardsAdapter.hideNoSessions();
     cardsAdapter.showNotSignedIn();
+  }
+
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_main);
+
+    Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+    setSupportActionBar(toolbar);
+
+    appBarImage = (ImageView) findViewById(R.id.app_bar_image);
+    cardsRecycler = (RecyclerView) findViewById(R.id.sessions_recycler);
+    startSessionButton = (FloatingActionButton) findViewById(R.id.start_session_button);
+    NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+
+    cardsAdapter = new CardsAdapter(appState);
+    cardsAdapter.setCardListener(this);
+    cardsRecycler.setAdapter(cardsAdapter);
+
+    startSessionButton.setEnabled(false);
+    startSessionButton.setOnClickListener(this);
+
+    DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+    ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+        this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+    drawer.addDrawerListener(toggle);
+    toggle.syncState();
+
+    navigationView.setNavigationItemSelectedListener(this);
+
+    Intent intent = getIntent();
+    String action = intent.getAction();
+    searchedGymId = AppState.NO_GYM_ID;
+    if (action.equals(Intent.ACTION_MAIN)) {
+      // connect to google fit API
+      if (!appState.mClient.isConnected()) {
+        appState.mClient.connect();
+      }
+    } else if (action.equals(Intent.ACTION_SEARCH)) {
+      // check if this request came from a search for a specific gym
+      Uri uri = getIntent().getData();
+      try {
+        searchedGymId = Integer.parseInt(uri.getLastPathSegment().toLowerCase());
+
+        // save this search as the current setting
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putInt(GYM_ID_PREF_KEY, searchedGymId);
+        editor.apply();
+      } catch (NumberFormatException e) {
+        e.printStackTrace();
+        Snackbar.make(cardsRecycler, "Invalid search result", Snackbar.LENGTH_SHORT).show();
+      }
+
+      // update the recycler
+      updateSessionsRecycler();
+    }
   }
 
   @Override

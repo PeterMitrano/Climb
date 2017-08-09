@@ -32,23 +32,6 @@ public class MapActivity extends ActivityWrapper implements RouteListener, Sessi
   private boolean notifyOnConnect = false;
 
   @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_map);
-
-    appState = ((MyApplication) getApplicationContext()).fetchGymData(this);
-
-    decor_view = getWindow().getDecorView();
-
-    sessionInfoFragment = (SessionInfoFragment) getSupportFragmentManager()
-        .findFragmentById(R.id.session_info_fragment);
-    sessionInfoFragment.setSessionInfoListener(this);
-
-    gymMapView = (GymMapView) findViewById(R.id.map_view);
-    gymMapView.addAddRouteListener(this);
-  }
-
-  @Override
   public void onBackPressed() {
     endSession();
   }
@@ -117,7 +100,7 @@ public class MapActivity extends ActivityWrapper implements RouteListener, Sessi
     endSession();
   }
 
-  public void endSession() {
+  private void endSession() {
     if (appState.isSessionEmpty()) {
       AlertDialog.Builder builder = new AlertDialog.Builder(this);
       builder.setMessage(R.string.empty_session_message)
@@ -182,6 +165,23 @@ public class MapActivity extends ActivityWrapper implements RouteListener, Sessi
       }
     });
     snack.show();
+  }
+
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_map);
+
+    appState = ((MyApplication) getApplicationContext()).fetchGymData(this);
+
+    decor_view = getWindow().getDecorView();
+
+    sessionInfoFragment = (SessionInfoFragment) getSupportFragmentManager()
+        .findFragmentById(R.id.session_info_fragment);
+    sessionInfoFragment.setSessionInfoListener(this);
+
+    gymMapView = (GymMapView) findViewById(R.id.map_view);
+    gymMapView.addAddRouteListener(this);
   }
 
   @Override

@@ -14,15 +14,8 @@ import com.peter.climb.MyApplication.AppState;
 class FetchGymDataTask extends AsyncTask<Void, Integer, Gyms> {
 
   private final Context applicationContext;
-  private FetchGymDataListener fetchGymDataListener;
   private final AppState appState;
-
-  interface FetchGymDataListener {
-
-    void onGymsFound(Msgs.Gyms gyms);
-
-    void onNoGymsFound();
-  }
+  private FetchGymDataListener fetchGymDataListener;
 
   FetchGymDataTask(AppState appState, Context applicationContext,
       @Nullable FetchGymDataListener fetchGymDataListener) {
@@ -76,5 +69,12 @@ class FetchGymDataTask extends AsyncTask<Void, Integer, Gyms> {
         fetchGymDataListener.onNoGymsFound();
       }
     }
+  }
+
+  interface FetchGymDataListener {
+
+    void onGymsFound(Msgs.Gyms gyms);
+
+    void onNoGymsFound();
   }
 }

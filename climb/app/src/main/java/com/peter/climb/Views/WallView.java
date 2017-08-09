@@ -13,13 +13,12 @@ public class WallView extends View {
 
   final private Paint wallPaint;
   final private Paint wallShadowPaint;
+  private final float shadowOffsetX = 1;
+  private final float shadowOffsetY = 1;
   private Msgs.Wall wall;
-
   private Path wallPath;
   private Path wallShadowPath;
   private float metersToPixels = 1.f;
-  private final float shadowOffsetX = 1;
-  private final float shadowOffsetY = 1;
 
   public WallView(Context context) {
     super(context);

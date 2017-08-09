@@ -33,18 +33,18 @@ import java.util.concurrent.TimeUnit;
 
 public class MyApplication extends Application {
 
-  interface GoogleFitListener {
-
-    void onGoogleFitConnected();
-
-    void onGoogleFitFailed();
-  }
-
   final private AppState state = new AppState();
 
   public AppState fetchGymData(@Nullable FetchGymDataListener fetchGymDataListener) {
     state.refreshGyms(fetchGymDataListener);
     return state;
+  }
+
+  interface GoogleFitListener {
+
+    void onGoogleFitConnected();
+
+    void onGoogleFitFailed();
   }
 
   class AppState {

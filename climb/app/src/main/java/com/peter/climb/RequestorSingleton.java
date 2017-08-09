@@ -12,8 +12,8 @@ class RequestorSingleton {
 
   private static RequestorSingleton mInstance;
   private static Context mCtx;
-  private RequestQueue mRequestQueue;
   final private ImageLoader mImageLoader;
+  private RequestQueue mRequestQueue;
 
   private RequestorSingleton(Context context) {
     mCtx = context;
@@ -43,7 +43,7 @@ class RequestorSingleton {
     return mInstance;
   }
 
-  RequestQueue getRequestQueue() {
+  private RequestQueue getRequestQueue() {
     if (mRequestQueue == null) {
       // getApplicationContext() is key, it keeps you from leaking the
       // Activity or BroadcastReceiver if someone passes one in.

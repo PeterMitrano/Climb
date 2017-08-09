@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 public class EditSessionActivity extends ActivityWrapper implements OnItemSelectedListener {
 
   private Bundle bundle;
-  private ArrayAdapter<String> gymSpinerAdapter;
+  private ArrayAdapter<String> gymSpinnerAdapter;
   private ArrayList<DataSet> routeDataSets;
   private CircleImageView gymImageView;
   private DataSet metadata;
@@ -54,6 +54,94 @@ public class EditSessionActivity extends ActivityWrapper implements OnItemSelect
   private RightAlignedHintEdit sendsEdit;
   private Session session;
   private Spinner gymSpinner;
+
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    MenuInflater inflater = getMenuInflater();
+    inflater.inflate(R.menu.edit_session_toolbar_menu, menu);
+
+    return true;
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    if (item.getItemId() == android.R.id.home) {
+      AlertDialog.Builder builder = new AlertDialog.Builder(this);
+      builder.setMessage(R.string.discard_changes)
+          .setPositiveButton(R.string.discard, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+              setResult(RESULT_CANCELED);
+              finish();
+            }
+          })
+          .setNegativeButton(R.string.cancel, null);
+      builder.create().show();
+      return true;
+    } else if (item.getItemId() == R.id.save_session_item) {
+      // gather current state of UI and update the dataset
+      int gymIndex = gymSpinner.getSelectedItemPosition();
+      Intent intent = getIntent();
+      intent.putExtra(SENDS_KEY, session);
+      intent.putParcelableArrayListExtra(DATASETS_KEY, routeDataSets);
+      setResult(RESULT_OK, intent);
+      finish();
+      return true;
+    }
+
+    return super.onOptionsItemSelected(item);
+  }
+
+  @Override
+  public void onGoogleFitConnected() {
+  }
+
+  @Override
+  public void onGoogleFitFailed() {
+    Toast.makeText(this, "Failed to parse Google Fit Session", Toast.LENGTH_SHORT).show();
+  }
+
+  @Override
+  public void onGymsFound(Gyms gyms) {
+    DataPoint metadataPt = metadata.getDataPoints().get(0);
+    String uuid = metadataPt.getValue(appState.uuidField).asString();
+
+    int i = 0;
+    for (Gym gym : gyms.getGymsList()) {
+      gymSpinnerAdapter.add(gym.getName());
+      if (gym.getUuid().equals(uuid)) {
+        gymSpinner.setSelection(i);
+      }
+      ++i;
+    }
+    gymSpinnerAdapter.notifyDataSetChanged();
+
+    String url = metadataPt.getValue(appState.imageUrlField).asString();
+    ImageLoader.ImageListener listener = ImageLoader.getImageListener(
+        gymImageView,
+        0,
+        R.drawable.ic_error_black_24dp);
+    RequestorSingleton.getInstance(
+        getApplicationContext()).getImageLoader().get(url, listener);
+
+  }
+
+  @Override
+  public void onNoGymsFound() {
+  }
+
+  @Override
+  void onPermissionsDenied() {
+    Snackbar snack = Snackbar
+        .make(layout, R.string.no_fit_permission_msg, Snackbar.LENGTH_INDEFINITE);
+    snack.setAction(R.string.ask_again, new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        appState.mClient.reconnect();
+        mResolvingError = false;
+      }
+    });
+    snack.show();
+  }
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -69,9 +157,9 @@ public class EditSessionActivity extends ActivityWrapper implements OnItemSelect
     gymSpinner = (Spinner) findViewById(R.id.gym_spinner);
     gymImageView = (CircleImageView) findViewById(R.id.edit_gym_spinner_icon);
 
-    gymSpinerAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.gym_spinner_item,
+    gymSpinnerAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.gym_spinner_item,
         R.id.gym_spinner_name);
-    gymSpinner.setAdapter(gymSpinerAdapter);
+    gymSpinner.setAdapter(gymSpinnerAdapter);
     gymSpinner.setOnItemSelectedListener(this);
     ActionBar actionBar = getSupportActionBar();
 
@@ -139,98 +227,6 @@ public class EditSessionActivity extends ActivityWrapper implements OnItemSelect
   }
 
   @Override
-  public boolean onCreateOptionsMenu(Menu menu) {
-    MenuInflater inflater = getMenuInflater();
-    inflater.inflate(R.menu.edit_session_toolbar_menu, menu);
-
-    return true;
-  }
-
-  @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    if (item.getItemId() == android.R.id.home) {
-      AlertDialog.Builder builder = new AlertDialog.Builder(this);
-      builder.setMessage(R.string.discard_changes)
-          .setPositiveButton(R.string.discard, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-              setResult(RESULT_CANCELED);
-              finish();
-            }
-          })
-          .setNegativeButton(R.string.cancel, null);
-      builder.create().show();
-      return true;
-    } else if (item.getItemId() == R.id.save_session_item) {
-      // gather current state of UI and update the dataset
-      int gymIndex = gymSpinner.getSelectedItemPosition();
-      Intent intent = getIntent();
-      intent.putExtra(SENDS_KEY, session);
-      intent.putParcelableArrayListExtra(DATASETS_KEY, routeDataSets);
-      setResult(RESULT_OK, intent);
-      finish();
-      return true;
-    }
-
-    return super.onOptionsItemSelected(item);
-  }
-
-  @Override
-  public void onGoogleFitConnected() {
-  }
-
-  @Override
-  public void onGoogleFitFailed() {
-    Toast.makeText(this, "Failed to parse Google Fit Session", Toast.LENGTH_SHORT).show();
-  }
-
-  @Override
-  public void onGymsFound(Gyms gyms) {
-    DataPoint metadataPt = metadata.getDataPoints().get(0);
-    String uuid = metadataPt.getValue(appState.uuidField).asString();
-
-    int i = 0;
-    for (Gym gym : gyms.getGymsList()) {
-      gymSpinerAdapter.add(gym.getName());
-      if (gym.getUuid().equals(uuid)) {
-        gymSpinner.setSelection(i);
-      }
-      ++i;
-    }
-    gymSpinerAdapter.notifyDataSetChanged();
-
-    String url = metadataPt.getValue(appState.imageUrlField).asString();
-    ImageLoader.ImageListener listener = ImageLoader.getImageListener(
-        gymImageView,
-        0,
-        R.drawable.ic_error_black_24dp);
-    RequestorSingleton.getInstance(
-        getApplicationContext()).getImageLoader().get(url, listener);
-
-  }
-
-  @Override
-  public void onNoGymsFound() {
-  }
-
-  @Override
-  void onPermissionsDenied() {
-    Snackbar snack = Snackbar
-        .make(layout, R.string.no_fit_permission_msg, Snackbar.LENGTH_INDEFINITE);
-    snack.setAction(R.string.ask_again, new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        appState.mClient.reconnect();
-        mResolvingError = false;
-      }
-    });
-    snack.show();
-  }
-
-  @Override
-  public void onNothingSelected(AdapterView<?> parent) {
-  }
-
-  @Override
   public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
     if (appState.gyms != null) {
       if (position < appState.gyms.getGymsCount()) {
@@ -244,5 +240,9 @@ public class EditSessionActivity extends ActivityWrapper implements OnItemSelect
             getApplicationContext()).getImageLoader().get(url, listener);
       }
     }
+  }
+
+  @Override
+  public void onNothingSelected(AdapterView<?> parent) {
   }
 }

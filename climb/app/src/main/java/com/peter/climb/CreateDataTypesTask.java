@@ -14,14 +14,6 @@ class CreateDataTypesTask extends AsyncTask<Void, Void, DataTypeResult[]> {
 
   private final CreateDataTypesListener createDataTypesListener;
   private final String packageName;
-
-  interface CreateDataTypesListener {
-
-    void onDataTypesCreated();
-
-    void onDataTypesNotCreated();
-  }
-
   private final AppState appState;
 
   CreateDataTypesTask(AppState appState, String packageName,
@@ -78,5 +70,12 @@ class CreateDataTypesTask extends AsyncTask<Void, Void, DataTypeResult[]> {
     } else {
       createDataTypesListener.onDataTypesNotCreated();
     }
+  }
+
+  interface CreateDataTypesListener {
+
+    void onDataTypesCreated();
+
+    void onDataTypesNotCreated();
   }
 }

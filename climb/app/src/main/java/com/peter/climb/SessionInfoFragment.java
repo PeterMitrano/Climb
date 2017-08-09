@@ -15,14 +15,8 @@ import java.util.TimerTask;
 
 public class SessionInfoFragment extends Fragment implements OnClickListener {
 
-  interface SessionInfoListener {
-
-    void onSessionEnded();
-  }
-
   private TextView timerView;
   private AppState appState;
-
   private SessionInfoListener sessionInfoListener;
 
   public SessionInfoFragment() {
@@ -62,7 +56,6 @@ public class SessionInfoFragment extends Fragment implements OnClickListener {
     this.sessionInfoListener = sessionInfoListener;
   }
 
-
   void startSessionTimer() {
     new Timer().scheduleAtFixedRate(new TimerTask() {
       @Override
@@ -85,5 +78,11 @@ public class SessionInfoFragment extends Fragment implements OnClickListener {
       }
 
     }, 0, 1000);
+  }
+
+
+  interface SessionInfoListener {
+
+    void onSessionEnded();
   }
 }

@@ -21,7 +21,6 @@
       android:orientation="vertical">
 
       <TextView
-        android:id="@+id/not_signed_in_title_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
@@ -33,7 +32,6 @@
         android:textSize="18sp" />
 
       <TextView
-        android:id="@+id/not_signed_in_subtitle_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"

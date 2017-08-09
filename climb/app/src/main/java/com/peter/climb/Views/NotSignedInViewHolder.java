@@ -14,8 +14,8 @@ public class NotSignedInViewHolder extends RecyclerView.ViewHolder {
   public NotSignedInViewHolder(View itemView) {
     super(itemView);
 
-    Button signInButtton = (Button) itemView.findViewById(R.id.sign_in_button);
-    signInButtton.setOnClickListener(new OnClickListener() {
+    Button signInButton = (Button) itemView.findViewById(R.id.sign_in_button);
+    signInButton.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
         if (v.getId() == R.id.sign_in_button) {

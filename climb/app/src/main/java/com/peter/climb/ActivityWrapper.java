@@ -19,7 +19,8 @@ import com.peter.climb.FetchGymDataTask.FetchGymDataListener;
 import com.peter.climb.MyApplication.AppState;
 import com.peter.climb.MyApplication.GoogleFitListener;
 
-public abstract class ActivityWrapper extends AppCompatActivity implements OnConnectionFailedListener,
+public abstract class ActivityWrapper extends AppCompatActivity implements
+    OnConnectionFailedListener,
     ConnectionCallbacks, GoogleFitListener, FetchGymDataListener {
 
   public static final int REQUEST_RESOLVE_ERROR = 1001;
@@ -51,6 +52,12 @@ public abstract class ActivityWrapper extends AppCompatActivity implements OnCon
 
     appState.mClient.registerConnectionCallbacks(this);
     appState.mClient.registerConnectionFailedListener(this);
+  }
+
+  @Override
+  public void onStop() {
+    super.onStop();
+    unregisterGoogleFitListener();
   }
 
   @Override
@@ -111,12 +118,6 @@ public abstract class ActivityWrapper extends AppCompatActivity implements OnCon
       showErrorDialog(result.getErrorCode());
       onGoogleFitFailed();
     }
-  }
-
-  @Override
-  public void onStop() {
-    super.onStop();
-    unregisterGoogleFitListener();
   }
 
   void unregisterGoogleFitListener() {

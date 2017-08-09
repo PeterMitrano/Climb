@@ -7,13 +7,11 @@
   tools:context="com.peter.climb.MainActivity">
 
   <android.support.design.widget.AppBarLayout
-    android:id="@+id/app_bar"
     android:layout_width="match_parent"
     android:layout_height="@dimen/app_bar_height"
     android:theme="@style/AppTheme.AppBarOverlay">
 
     <android.support.design.widget.CollapsingToolbarLayout
-      android:id="@+id/collapsing_toolbar"
       android:layout_width="match_parent"
       android:layout_height="match_parent"
       android:fitsSystemWindows="true"
@@ -48,9 +46,7 @@
 
   </android.support.design.widget.AppBarLayout>
 
-  <include
-    android:id="@+id/include"
-    layout="@layout/content_main" />
+  <include layout="@layout/content_main" />
 
   <android.support.design.widget.FloatingActionButton
     android:id="@+id/start_session_button"
