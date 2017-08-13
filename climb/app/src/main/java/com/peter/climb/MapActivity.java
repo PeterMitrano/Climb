@@ -30,12 +30,14 @@ import java.util.Locale;
 
 public class MapActivity extends ActivityWrapper implements RouteListener, SessionInfoListener {
 
+  private static final int SEEKBAR_MAX = 200;
   private View decor_view;
   private GymMapView gymMapView;
   private SessionInfoFragment sessionInfoFragment;
   private SeekBar floorSeekbar;
   private TextView floorTitle;
   private boolean notifyOnConnect = false;
+  private int progressTicksPerFloor;
 
   @Override
   public void onBackPressed() {
@@ -93,16 +95,13 @@ public class MapActivity extends ActivityWrapper implements RouteListener, Sessi
 
     gymMapView.setGym(appState.getCurrentGym());
     int floorCount = appState.getCurrentGym().getFloorsCount();
-    floorSeekbar.setMax(floorCount - 1);
+    progressTicksPerFloor = Math.max(1, SEEKBAR_MAX / floorCount);
     if (floorCount == 1) {
       floorSeekbar.setEnabled(false);
-    }
-    else {
+    } else {
       floorSeekbar.setEnabled(true);
     }
-    floorTitle.setText(String
-        .format(Locale.getDefault(), "Floor %2d/%2d", gymMapView.getCurrentFloor() + 1,
-            floorCount));
+    setFloorText();
     sessionInfoFragment.startSessionTimer();
   }
 
@@ -202,19 +201,30 @@ public class MapActivity extends ActivityWrapper implements RouteListener, Sessi
     gymMapView.addAddRouteListener(this);
 
     floorSeekbar = (SeekBar) findViewById(R.id.floor_seekbar);
+    floorSeekbar.setMax(SEEKBAR_MAX);
     floorSeekbar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
       @Override
       public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-        gymMapView.setCurrentFloor(progress);
+        int floor = Math.min(progress, SEEKBAR_MAX - 1) / progressTicksPerFloor;
+        gymMapView.setCurrentFloor(floor);
+        setFloorText();
       }
 
       @Override
-      public void onStartTrackingTouch(SeekBar seekBar) {}
+      public void onStartTrackingTouch(SeekBar seekBar) {
+      }
 
       @Override
-      public void onStopTrackingTouch(SeekBar seekBar) {}
+      public void onStopTrackingTouch(SeekBar seekBar) {
+      }
     });
     floorTitle = (TextView) findViewById(R.id.floor_title);
+  }
+
+  private void setFloorText() {
+    int i = gymMapView.getCurrentFloor() + 1;
+    int floorsCount = appState.getCurrentGym().getFloorsCount();
+    floorTitle.setText(String.format(Locale.getDefault(), "Floor %2d/%2d", i, floorsCount));
   }
 
   @Override
