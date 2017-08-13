@@ -55,7 +55,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
   private int activePointerId;
 
   private int floorColor;
-  private int currentFloor = 0;
+  private int currentFloor;
   private List<Route> routes;
   private List<RouteListener> routeListeners;
   private HashMap<Route, Wall> routeWallMap;
@@ -86,6 +86,10 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
 
   public void setCurrentFloor(int currentFloor) {
     this.currentFloor = currentFloor;
+
+    onDataChanged();
+    invalidate();
+    invalidateChildren();
   }
 
   public int getFloorColor() {
@@ -344,10 +348,12 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
       removeAllViews();
 
       // add all the walls first
+      wallViews.clear();
       for (Wall wall : gym.getFloors(currentFloor).getWallsList()) {
         WallView wallView = new WallView(getContext());
         wallView.setWall(wall);
         wallView.setSaveEnabled(true);
+        wallView.setMetersToPixels(metersToPixels);
         wallViews.add(wallView);
         addView(wallView);
         wallView.layout(0, 0, getWidth(), getHeight());
@@ -365,6 +371,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
           routeLabelView.setRouteColor(route.getColor());
           routeLabelView.addRouteClickedListener(this);
           routeLabelView.setSaveEnabled(true);
+          routeLabelView.setMetersToPixels(metersToPixels);
           routeLabelViews.add(routeLabelView);
           routes.add(route);
           routeWallMap.put(route, wall);
@@ -373,18 +380,19 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
         }
       }
 
-      ArrayList<Integer> sendCounts = savedState.getIntegerArrayList(SEND_COUNTS_KEY);
-      if (sendCounts != null) {
-        for (int i = 0; i < sendCounts.size(); i++) {
-          int sendCount = sendCounts.get(i);
-          routeLabelViews.get(i).setSendCount(sendCount);
-        }
-      }
+//      ArrayList<Integer> sendCounts = savedState.getIntegerArrayList(SEND_COUNTS_KEY);
+//      if (sendCounts != null) {
+//        for (int i = 0; i < sendCounts.size(); i++) {
+//          int sendCount = sendCounts.get(i);
+//          routeLabelViews.get(i).setSendCount(sendCount);
+//        }
+//      }
 
       for (RouteLabelView labelView : routeLabelViews) {
         labelView.setScaleFactor(scaleFactor);
       }
 
+      floorPath.reset();
       for (Point p : gym.getFloors(currentFloor).getPolygon().getPointsList()) {
         float px = metersToPixels * p.getX();
         float py = metersToPixels * p.getY();
@@ -398,6 +406,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
   }
 
   private void init() {
+    currentFloor = 0;
     scaleFactor = 0.9f;
 
     savedState = new Bundle();

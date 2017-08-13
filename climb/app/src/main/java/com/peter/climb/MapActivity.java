@@ -109,7 +109,8 @@ public class MapActivity extends ActivityWrapper implements RouteListener, Sessi
   @Override
   public void onNoGymsFound() {
     // TODO: this is a serious case that needs to be handled.
-    Log.e(getClass().toString(), "well fuck...");
+    Log.e(getClass().toString(), "Failed to get Gym data, retrying...");
+    appState.refreshGyms(this);
   }
 
   @Override

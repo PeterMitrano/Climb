@@ -46,6 +46,7 @@ public class GymsContentProvider extends ContentProvider {
     String query = uri.getLastPathSegment().toLowerCase();
 
     String url = "http://gym-server-dev.us-east-1.elasticbeanstalk.com/gyms";
+//    String url = "http://192.168.1.14:8081/gyms";
     RequestFuture<String> future = RequestFuture.newFuture();
     StringRequest gymDataRequest = new StringRequest(url, future, future);
     RequestorSingleton.getInstance(getContext()).addToRequestQueue(gymDataRequest);

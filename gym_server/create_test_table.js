@@ -1,6 +1,7 @@
 const AWS = require('aws-sdk');
 
 if (process.env.DEBUG) {
+  console.log("USING DEBUG");
   AWS.config.update({
     region: 'region',
     endpoint: 'http://localhost:8000',

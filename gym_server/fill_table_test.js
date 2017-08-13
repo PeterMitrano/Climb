@@ -3,6 +3,7 @@ const msgs = require('./public/js/proto/Gym_pb.js');
 const AWS = require('aws-sdk');
 
 if (process.env.DEBUG) {
+  console.log("USING DEBUG");
   AWS.config.update({
     region: 'region',
     endpoint: 'http://localhost:8000',
@@ -18,7 +19,7 @@ else {
 
 let dynamo_client = new AWS.DynamoDB.DocumentClient();
 
-const table_name = 'gyms';
+const table_name = 'Gyms';
 const user_id_key = 'user_id_key';
 
 let gyms = fakeGyms();
@@ -92,6 +93,10 @@ function fakeGyms() {
     p8.setX(1);
     p8.setY(2);
 
+    let p9 = new msgs.Point2D();
+    p9.setX(0.5);
+    p9.setY(2.5);
+
     let polygon = new msgs.Polygon();
     polygon.setColor('#ff00ff');
     polygon.setPointsList([p0, p4, p5]);
@@ -114,6 +119,12 @@ function fakeGyms() {
     route2.setGrade(17);
     route2.setColor('#43A047');
 
+    let route3 = new msgs.Route();
+    route3.setName('');
+    route3.setPosition(p9);
+    route3.setGrade(5);
+    route3.setColor('#3F51B5');
+
     let wall = new msgs.Wall();
     wall.setName('The Dawn Wall');
     wall.setPolygon(polygon);
@@ -129,8 +140,27 @@ function fakeGyms() {
     floor.setHeight(10);
     floor.setPolygon(floor_polygon);
 
+    let polygon2 = new msgs.Polygon();
+    polygon2.setColor('#f00f0f');
+    polygon2.setPointsList([p0, p1, p4]);
+
+    let wall2 = new msgs.Wall();
+    wall2.setName('The Other Wall');
+    wall2.setPolygon(polygon2);
+    wall2.setRoutesList([route3]);
+
+    let floor_polygon2 = new msgs.Polygon();
+    floor_polygon2.setColor('#f0ff0f');
+    floor_polygon2.setPointsList([p0, p1, p3]);
+
+    let floor2 = new msgs.Floor();
+    floor2.setWallsList([wall2]);
+    floor2.setWidth(20);
+    floor2.setHeight(10);
+    floor2.setPolygon(floor_polygon2);
+
     ascend = new msgs.Gym();
-    ascend.setFloorsList([floor]);
+    ascend.setFloorsList([floor, floor2]);
     ascend.setName('Ascend PGH');
     ascend.setUuid('34e71c83-2d3e-424b-9fe9-57cd5fd1fbbb');
     ascend.setLargeIconUrl(
