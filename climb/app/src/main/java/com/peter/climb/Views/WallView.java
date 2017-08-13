@@ -32,6 +32,9 @@ public class WallView extends View {
 
     wallPath = new Path();
     wallShadowPath = new Path();
+
+    // scaling paths aren't supported with HW acceleration
+    setLayerType(View.LAYER_TYPE_SOFTWARE, null);
   }
 
   @Override

@@ -13,10 +13,10 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.AbsSavedState;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
+import android.view.View;
 import android.view.ViewGroup;
 import com.peter.Climb.Msgs.Gym;
 import com.peter.Climb.Msgs.Point;
@@ -31,7 +31,7 @@ import java.util.List;
 public class GymMapView extends ViewGroup implements RouteClickedListener {
 
   public static final int GYM_FLOOR_OUTLINE_STROKE_WIDTH = 16;
-  private static final float MAX_ZOOM_FACTOR = 10.0f;
+  private static final float MAX_ZOOM_FACTOR = 15.0f;
   private static final int GYM_FLOOR_OUTLINE_COLOR = 0xff3d3d3d;
   private static final float MIN_ZOOM_FACTOR = 0.85f;
   private static final String SUPER_STATE_KEY = "gym_map_view_super_state_key";
@@ -379,7 +379,6 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
         float px = metersToPixels * p.getX();
         float py = metersToPixels * p.getY();
         if (floorPath.isEmpty()) {
-          Log.e(getClass().toString(), px + ", " + py);
           floorPath.moveTo(px, py);
         } else {
           floorPath.lineTo(px, py);
@@ -406,6 +405,9 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     routeWallMap = new HashMap<>();
 
     scaleGestureDetector = new ScaleGestureDetector(getContext(), new MapScaleGestureListener());
+
+    // scaling paths aren't supported with HW acceleration
+    setLayerType(View.LAYER_TYPE_SOFTWARE, null);
   }
 
   public void addAddRouteListener(RouteListener listener) {
