@@ -48,4 +48,5 @@
   <string name="discard_changes">Discard changes?</string>
   <string name="discard">discard</string>
   <string name="send_count_icon_description">send count icon</string>
+  <string name="floor_title">Floor</string>
 </resources>

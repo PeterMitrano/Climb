@@ -14,6 +14,9 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
@@ -23,12 +26,15 @@ import com.peter.Climb.Msgs.Wall;
 import com.peter.climb.SessionInfoFragment.SessionInfoListener;
 import com.peter.climb.Views.GymMapView;
 import com.peter.climb.Views.GymMapView.RouteListener;
+import java.util.Locale;
 
 public class MapActivity extends ActivityWrapper implements RouteListener, SessionInfoListener {
 
   private View decor_view;
   private GymMapView gymMapView;
   private SessionInfoFragment sessionInfoFragment;
+  private SeekBar floorSeekbar;
+  private TextView floorTitle;
   private boolean notifyOnConnect = false;
 
   @Override
@@ -86,6 +92,17 @@ public class MapActivity extends ActivityWrapper implements RouteListener, Sessi
     }
 
     gymMapView.setGym(appState.getCurrentGym());
+    int floorCount = appState.getCurrentGym().getFloorsCount();
+    floorSeekbar.setMax(floorCount - 1);
+    if (floorCount == 1) {
+      floorSeekbar.setEnabled(false);
+    }
+    else {
+      floorSeekbar.setEnabled(true);
+    }
+    floorTitle.setText(String
+        .format(Locale.getDefault(), "Floor %2d/%2d", gymMapView.getCurrentFloor() + 1,
+            floorCount));
     sessionInfoFragment.startSessionTimer();
   }
 
@@ -182,6 +199,21 @@ public class MapActivity extends ActivityWrapper implements RouteListener, Sessi
 
     gymMapView = (GymMapView) findViewById(R.id.map_view);
     gymMapView.addAddRouteListener(this);
+
+    floorSeekbar = (SeekBar) findViewById(R.id.floor_seekbar);
+    floorSeekbar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+      @Override
+      public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+        gymMapView.setCurrentFloor(progress);
+      }
+
+      @Override
+      public void onStartTrackingTouch(SeekBar seekBar) {}
+
+      @Override
+      public void onStopTrackingTouch(SeekBar seekBar) {}
+    });
+    floorTitle = (TextView) findViewById(R.id.floor_title);
   }
 
   @Override

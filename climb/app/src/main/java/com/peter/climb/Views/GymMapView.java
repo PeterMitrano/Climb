@@ -53,8 +53,9 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
   private float posX;
   private float posY;
   private int activePointerId;
+
   private int floorColor;
-  private int floor = 0;
+  private int currentFloor = 0;
   private List<Route> routes;
   private List<RouteListener> routeListeners;
   private HashMap<Route, Wall> routeWallMap;
@@ -77,6 +78,14 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     }
 
     init();
+  }
+
+  public int getCurrentFloor() {
+    return currentFloor;
+  }
+
+  public void setCurrentFloor(int currentFloor) {
+    this.currentFloor = currentFloor;
   }
 
   public int getFloorColor() {
@@ -274,19 +283,20 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
   }
 
   private void updateScale() {
-    float gymAspectRatio = gym.getFloors(floor).getHeight() / gym.getFloors(floor).getWidth();
+    float gymAspectRatio =
+        gym.getFloors(currentFloor).getHeight() / gym.getFloors(currentFloor).getWidth();
     float screenAspectRatio = (float) getHeight() / getWidth();
 
     if (gymAspectRatio < screenAspectRatio) {
       // gym fills width
-      metersToPixels = getWidth() / gym.getFloors(floor).getWidth();
+      metersToPixels = getWidth() / gym.getFloors(currentFloor).getWidth();
     } else {
       // gym fills height
-      metersToPixels = getHeight() / gym.getFloors(floor).getHeight();
+      metersToPixels = getHeight() / gym.getFloors(currentFloor).getHeight();
     }
 
-    posX = (getWidth() - gym.getFloors(floor).getWidth() * metersToPixels) / 2;
-    posY = (getHeight() - gym.getFloors(floor).getHeight() * metersToPixels) / 2;
+    posX = (getWidth() - gym.getFloors(currentFloor).getWidth() * metersToPixels) / 2;
+    posY = (getHeight() - gym.getFloors(currentFloor).getHeight() * metersToPixels) / 2;
 
 //    if (savedState == null) {
 //    }
@@ -334,7 +344,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
       removeAllViews();
 
       // add all the walls first
-      for (Wall wall : gym.getFloors(floor).getWallsList()) {
+      for (Wall wall : gym.getFloors(currentFloor).getWallsList()) {
         WallView wallView = new WallView(getContext());
         wallView.setWall(wall);
         wallView.setSaveEnabled(true);
@@ -346,7 +356,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
       // then add the routes on top
       routeLabelViews.clear();
       routes.clear();
-      for (Wall wall : gym.getFloors(floor).getWallsList()) {
+      for (Wall wall : gym.getFloors(currentFloor).getWallsList()) {
         for (Route route : wall.getRoutesList()) {
           RouteLabelView routeLabelView = new RouteLabelView(getContext());
           routeLabelView.setRouteGrade(route.getGrade());
@@ -375,7 +385,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
         labelView.setScaleFactor(scaleFactor);
       }
 
-      for (Point p : gym.getFloors(floor).getPolygon().getPointsList()) {
+      for (Point p : gym.getFloors(currentFloor).getPolygon().getPointsList()) {
         float px = metersToPixels * p.getX();
         float py = metersToPixels * p.getY();
         if (floorPath.isEmpty()) {
