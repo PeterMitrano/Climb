@@ -92,7 +92,7 @@ public class MyApplication extends Application {
 
     void setCurrentGym(int currentGymId) {
       this.currentGymId = currentGymId;
-      if (currentGymId != NO_GYM_ID) {
+      if (currentGymId != NO_GYM_ID && currentGymId < gyms.getGymsCount()) {
         this.currentGym = gyms.getGyms(currentGymId);
       }
     }

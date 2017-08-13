@@ -18,7 +18,7 @@ else {
 let dynamodb = new AWS.DynamoDB();
 
 let params = {
-  TableName: 'Gyms',
+  TableName: 'gyms',
   KeySchema: [
     {AttributeName: 'gym', KeyType: 'HASH'},  //Partition key
   ],

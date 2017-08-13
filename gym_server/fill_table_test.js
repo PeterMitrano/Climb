@@ -19,7 +19,7 @@ else {
 
 let dynamo_client = new AWS.DynamoDB.DocumentClient();
 
-const table_name = 'Gyms';
+const table_name = 'gyms';
 const user_id_key = 'user_id_key';
 
 let gyms = fakeGyms();

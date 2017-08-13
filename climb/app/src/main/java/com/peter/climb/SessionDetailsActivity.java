@@ -92,6 +92,9 @@ public class SessionDetailsActivity extends ActivityWrapper {
     ConstraintLayout sendItem = (ConstraintLayout) getLayoutInflater()
         .inflate(R.layout.session_send_item, null);
     TextView sendName = (TextView) sendItem.findViewById(R.id.session_send_name);
+    if (name.isEmpty()) {
+      name = "no name";
+    }
     sendName.setText(name);
     TextView sendGrade = (TextView) sendItem.findViewById(R.id.session_send_grade);
     sendGrade.setText(grade);
