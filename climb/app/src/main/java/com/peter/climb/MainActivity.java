@@ -55,7 +55,7 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
 
   private static final String GYM_ID_PREF_KEY = "gym_id_pref_key";
 
-  private FloatingActionButton startSessionButton;
+  private FloatingActionButton floatingActionButton;
   private ImageView appBarImage;
   private RecyclerView cardsRecycler;
 
@@ -110,7 +110,13 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
       }
       case R.id.change_accounts: {
         if (appState.mClient.isConnected()) {
-          startSessionButton.setEnabled(false);
+          floatingActionButton.setImageResource(R.drawable.ic_eye_black_24dp);
+          if (appState.hasCurrentGym()) {
+            floatingActionButton.setEnabled(true);
+          }
+          else {
+            floatingActionButton.setEnabled(false);
+          }
           cardsAdapter.clearSessions();
           cardsAdapter.hideNoSessions();
           cardsAdapter.showNotSignedIn();
@@ -144,15 +150,16 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
 
     appBarImage = (ImageView) findViewById(R.id.app_bar_image);
     cardsRecycler = (RecyclerView) findViewById(R.id.sessions_recycler);
-    startSessionButton = (FloatingActionButton) findViewById(R.id.start_session_button);
+    floatingActionButton = (FloatingActionButton) findViewById(R.id.floating_action_button);
     NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
 
     cardsAdapter = new CardsAdapter(appState);
     cardsAdapter.setCardListener(this);
     cardsRecycler.setAdapter(cardsAdapter);
 
-    startSessionButton.setEnabled(false);
-    startSessionButton.setOnClickListener(this);
+    floatingActionButton.setImageResource(R.drawable.ic_eye_black_24dp);
+    floatingActionButton.setEnabled(false);
+    floatingActionButton.setOnClickListener(this);
 
     DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
     ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -213,14 +220,17 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
 
   @Override
   public void onClick(View v) {
-    if (v.getId() == R.id.start_session_button) {
+    if (v.getId() == R.id.floating_action_button) {
       unregisterGoogleFitListener();
 
       // if not, start a new session
       appState.startSession();
 
       Intent startSessionIntent = new Intent(this, MapActivity.class);
-      startSessionIntent.setAction(START_SESSION_ACTION);
+
+      if (appState.mClient.isConnected()) {
+        startSessionIntent.setAction(START_SESSION_ACTION);
+      }
       startActivityForResult(startSessionIntent, START_SESSION_REQUEST_CODE);
     }
   }
@@ -231,15 +241,26 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
     cardsAdapter.hideNotSignedIn();
     updateSessionsRecycler();
 
+    floatingActionButton.setImageResource(R.drawable.ic_timer_black_24dp);
     if (appState.hasCurrentGym()) {
-      startSessionButton.setEnabled(true);
+      floatingActionButton.setEnabled(true);
+    }
+    else {
+      floatingActionButton.setEnabled(false);
     }
   }
 
   @Override
   public void onGoogleFitFailed() {
     // these are really unlikely to happen, but it renders google fit api useless
-    startSessionButton.setEnabled(false);
+    floatingActionButton.setImageResource(R.drawable.ic_eye_black_24dp);
+    if (appState.hasCurrentGym()) {
+      floatingActionButton.setEnabled(true);
+    }
+    else {
+      floatingActionButton.setEnabled(false);
+    }
+
     cardsAdapter.clearSessions();
     Snackbar snack = Snackbar
         .make(cardsRecycler, "Failed to connect to google Fit.", Snackbar.LENGTH_INDEFINITE);
@@ -301,16 +322,24 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
       appState.setCurrentGym(searchedGymId);
       displayCurrentGym();
       if (appState.mClient.isConnected()) {
-        startSessionButton.setEnabled(true);
+        floatingActionButton.setImageResource(R.drawable.ic_timer_black_24dp);
+        floatingActionButton.setEnabled(true);
       }
-
+      else {
+        floatingActionButton.setImageResource(R.drawable.ic_eye_black_24dp);
+        floatingActionButton.setEnabled(true);
+      }
     } else if (prefGymId != AppState.NO_GYM_ID) {
       appState.setCurrentGym(prefGymId);
       displayCurrentGym();
       if (appState.mClient.isConnected()) {
-        startSessionButton.setEnabled(true);
+        floatingActionButton.setImageResource(R.drawable.ic_timer_black_24dp);
+        floatingActionButton.setEnabled(true);
       }
-
+      else {
+        floatingActionButton.setImageResource(R.drawable.ic_eye_black_24dp);
+        floatingActionButton.setEnabled(true);
+      }
     } else {
       displayNoCurrentGym();
     }
