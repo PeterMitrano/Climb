@@ -1,0 +1,71 @@
+{
+	"largeIconUrl": "http://via.placeholder.com/400x400",
+	"floors": [
+		{
+			"width": 20.0,
+			"height": 25.0,
+			"polygon": {
+				"color": "#ff0f0f",
+				"points": [
+					{},
+					{
+						"x": 0.0,
+						"y": 0.0
+					},
+					{
+						"x": 20.0,
+						"y": 0.0
+					},
+					{
+						"x": 20.0,
+						"y": 25.0
+					},
+					{
+						"x": 0.0,
+						"y": 25.0
+					}
+				]
+			},
+			"walls": [
+				{
+					"name": "Slab",
+					"polygon": {
+						"color": "#2222ee",
+						"points": [
+							{
+								"y": 20.0,
+								"x": 0.0
+							},
+							{
+								"y": 14.0,
+								"x": 0.0
+							},
+							{
+								"y": 14.0,
+								"x": 0.5
+							},
+							{
+								"y": 20.0,
+								"x": 0.5
+							}
+						]
+					},
+					"routes": [
+						{
+							"grade": 0,
+							"position": {
+								"y": 19.5,
+								"x": 0.25
+							},
+							"name": "Magikarp",
+							"color": "#FDD835"
+						}
+					]
+				}
+			]
+		}
+	],
+	"name": "WPI Cave",
+	"uuid": "af859571-5039-4e8e-b88d-d487c300d452"
+}
+
