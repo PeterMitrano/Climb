@@ -27,7 +27,7 @@ def add(args):
     gym_encoded = base64.standard_b64encode(gym_bytes)
 
     response = table.scan(
-        FilterExpression=Key('gym').eq(gym_encoded)
+            FilterExpression=Key('gym').eq(gym_encoded)
     )
 
     if len(response['Items']) > 0:
@@ -36,10 +36,10 @@ def add(args):
         print(json.dumps(response['Item'], indent=2))
     else:
         table.put_item(
-            Item={
-                'gym': gym_encoded,
-                'user_id_key': args.user,
-            }
+                Item={
+                    'gym'        : gym_encoded,
+                    'user_id_key': args.user,
+                }
         )
 
         print('Successfully added item')

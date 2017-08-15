@@ -23,10 +23,13 @@ def remove(args):
         json_string = MessageToJson(gym)
 
         should_remove = False
+        if not args.uuid and not args.user and args.all:
+            should_remove = True
+            print("removed by all:")
         if gym.uuid == args.uuid:
             should_remove = True
             print("removed by uuid:")
-        if user == args.user and gym.name == args.name:
+        if user == args.user and (gym.name == args.name or args.all):
             should_remove = True
             print("removed by name")
 

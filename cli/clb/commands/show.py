@@ -13,7 +13,7 @@ def show(args):
     table = dynamodb.Table(args.table)
     if args.user:
         response = table.scan(
-            FilterExpression=Attr('user_id_key').eq(args.user)
+                FilterExpression=Attr('user_id_key').eq(args.user)
         )
     else:
         response = table.scan()
