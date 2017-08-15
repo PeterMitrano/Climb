@@ -1,4 +1,7 @@
 import json
+import base64
+from proto import Gym
+from google.protobuf.json_format import MessageToJson
 import boto3
 from boto3.dynamodb.conditions import Attr
 
@@ -10,12 +13,17 @@ def show(args):
     if args.user:
         response = table.scan(
             FilterExpression=Attr('user_id_key').eq(args.user)
-
         )
     else:
         response = table.scan()
 
     items = response['Items']
-    print(json.dumps(items, indent=2))
+    for item in items:
+        gym = item['gym']
+        item_bytes = base64.standard_b64decode(gym)
+        gym = Gym()
+        gym.ParseFromString(item_bytes)
+        json_string = MessageToJson(gym)
+        print(json_string)
 
     return 0
