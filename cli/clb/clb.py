@@ -3,7 +3,7 @@
 import argparse
 import sys
 
-from commands import show, add
+from commands import show, add, remove
 
 
 def main():
@@ -22,6 +22,12 @@ def main():
     source_group.add_argument('-f', '--file', help='file to read JSON from')
     source_group.add_argument('-d', '--data', help='json string to read from')
     add_parser.set_defaults(func=add)
+
+    remove_parser = subparsers.add_parser('remove')
+    remove_parser.add_argument('-i', '--uuid', help='gym uuid')
+    remove_parser.add_argument('-u', '--user', help='user name. You should also specify gym name, or this will not remove anything')
+    remove_parser.add_argument('-n', '--name', help='gym name. case insensitive')
+    remove_parser.set_defaults(func=remove)
 
     args = parser.parse_args()
     args.func(args)
