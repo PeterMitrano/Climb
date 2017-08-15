@@ -9,7 +9,7 @@ from commands import show, add, remove
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', '--table', default='gyms', help='table name')
-    parser.add_argument('-d', '--database', default='http://localhost:8000', help='url for database')
+    parser.add_argument('-e', '--endpoint', default='http://localhost:8000', help='endpoint url for database')
 
     subparsers = parser.add_subparsers()
     show_parser = subparsers.add_parser('show')

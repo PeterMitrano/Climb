@@ -5,13 +5,12 @@ import boto3
 from boto3.dynamodb.conditions import Key
 from google.protobuf.json_format import MessageToJson
 from google.protobuf.json_format import Parse
-from google.protobuf.text_format import Merge
 
 from proto import Gym
 
 
 def add(args):
-    dynamodb = boto3.resource('dynamodb')
+    dynamodb = boto3.resource('dynamodb', endpoint_url=args.endpoint)
 
     table = dynamodb.Table(args.table)
 

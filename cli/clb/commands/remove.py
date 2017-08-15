@@ -7,7 +7,7 @@ from proto import Gym
 
 
 def remove(args):
-    dynamodb = boto3.resource('dynamodb')
+    dynamodb = boto3.resource('dynamodb', endpoint_url=args.endpoint)
 
     table = dynamodb.Table(args.table)
 
