@@ -1,9 +1,10 @@
-import json
 import base64
-from proto import Gym
-from google.protobuf.json_format import MessageToJson
+
 import boto3
 from boto3.dynamodb.conditions import Attr
+from google.protobuf.json_format import MessageToJson
+
+from proto import Gym
 
 
 def show(args):
