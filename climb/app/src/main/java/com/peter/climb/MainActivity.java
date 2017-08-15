@@ -51,7 +51,7 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
   public static final int SESSION_NOTIFICATION_ID = 1002;
   private static final int START_SESSION_REQUEST_CODE = 1004;
   private static final String PREFS_NAME = "ClimbPreferences";
-  private static final String START_SESSION_ACTION = "start_session_action";
+  static final String START_SESSION_ACTION = "start_session_action";
 
   private static final String GYM_ID_PREF_KEY = "gym_id_pref_key";
 
@@ -120,7 +120,7 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
           cardsAdapter.clearSessions();
           cardsAdapter.hideNoSessions();
           cardsAdapter.showNotSignedIn();
-          appState.reconnect();
+          appState.reconnect(true);
         } else {
           appState.mClient.connect();
         }
@@ -267,7 +267,7 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
     snack.setAction("Try Again", new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        appState.mClient.reconnect();
+        appState.reconnect();
       }
     });
     snack.show();
@@ -308,7 +308,7 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
 
   @Override
   public void signIn() {
-    appState.mClient.reconnect();
+    appState.reconnect();
   }
 
   @Override
@@ -375,7 +375,12 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
       });
     } else {
       Log.e(getClass().toString(), "not connected or missing datatypes");
-      cardsAdapter.showNoSessions();
+      if (appState.mClient.isConnected()) {
+        cardsAdapter.showNoSessions();
+      }
+      else {
+        cardsAdapter.showNotSignedIn();
+      }
     }
   }
 

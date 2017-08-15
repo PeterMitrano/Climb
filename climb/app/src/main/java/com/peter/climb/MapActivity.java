@@ -1,6 +1,6 @@
 package com.peter.climb;
 
-import static com.peter.climb.MyApplication.AppState.RESUME_FROM_NOTIFICATION_ACTION;
+import static com.peter.climb.MainActivity.START_SESSION_ACTION;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent.CanceledException;
@@ -38,6 +38,7 @@ public class MapActivity extends ActivityWrapper implements RouteListener, Sessi
   private TextView floorTitle;
   private boolean notifyOnConnect = false;
   private int progressTicksPerFloor;
+  private boolean justLooking;
 
   @Override
   public void onBackPressed() {
@@ -89,9 +90,7 @@ public class MapActivity extends ActivityWrapper implements RouteListener, Sessi
   @Override
   public void onGymsFound(Gyms gyms) {
     Intent intent = getIntent();
-    if (intent.getAction().equals(RESUME_FROM_NOTIFICATION_ACTION)) {
-      appState.restoreFromIntent(intent);
-    }
+    String action = intent.getAction();
 
     gymMapView.setGym(appState.getCurrentGym());
     int floorCount = appState.getCurrentGym().getFloorsCount();
@@ -102,7 +101,15 @@ public class MapActivity extends ActivityWrapper implements RouteListener, Sessi
       floorSeekbar.setEnabled(true);
     }
     setFloorText();
-    sessionInfoFragment.startSessionTimer();
+
+    if (action != null && action.equals(START_SESSION_ACTION)) {
+      justLooking = false;
+      // add sessionInfoFragment
+      sessionInfoFragment.startSessionTimer();
+    } else {
+      justLooking = true;
+      // remove sessionInfoFragment
+    }
   }
 
   @Override
@@ -118,7 +125,9 @@ public class MapActivity extends ActivityWrapper implements RouteListener, Sessi
   }
 
   private void endSession() {
-    if (appState.isSessionEmpty()) {
+    if (justLooking) {
+      dismissNotificationAndFinish(RESULT_OK);
+    } else if (appState.isSessionEmpty()) {
       AlertDialog.Builder builder = new AlertDialog.Builder(this);
       builder.setMessage(R.string.empty_session_message)
           .setPositiveButton(R.string.end_empty_session, new DialogInterface.OnClickListener() {
@@ -189,7 +198,7 @@ public class MapActivity extends ActivityWrapper implements RouteListener, Sessi
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_map);
 
-    appState = ((MyApplication) getApplicationContext()).fetchGymData(this);
+    progressTicksPerFloor = SEEKBAR_MAX;
 
     decor_view = getWindow().getDecorView();
 
@@ -218,13 +227,14 @@ public class MapActivity extends ActivityWrapper implements RouteListener, Sessi
       public void onStopTrackingTouch(SeekBar seekBar) {
       }
     });
+
     floorTitle = (TextView) findViewById(R.id.floor_title);
   }
 
   private void setFloorText() {
     int i = gymMapView.getCurrentFloor() + 1;
     int floorsCount = appState.getCurrentGym().getFloorsCount();
-    floorTitle.setText(String.format(Locale.getDefault(), "Floor %2d/%2d", i, floorsCount));
+    floorTitle.setText(String.format(Locale.getDefault(), "Floor %d / %d", i, floorsCount));
   }
 
   @Override

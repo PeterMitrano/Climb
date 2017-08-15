@@ -112,4 +112,9 @@ public class Utils {
     }
     return c;
   }
+
+  public static String m() {
+    final StackTraceElement[] ste = Thread.currentThread().getStackTrace();
+    return ste[5].getClassName() + "." + ste[5].getMethodName() + "(...)";
+  }
 }

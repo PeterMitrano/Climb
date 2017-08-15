@@ -27,7 +27,7 @@ public class SessionInfoFragment extends Fragment implements OnClickListener {
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
       Bundle savedInstanceState) {
     // here don't need google fit or gyms
-    appState = ((MyApplication) getActivity().getApplicationContext()).fetchGymData(null);
+    appState = ((MyApplication) getActivity().getApplicationContext()).getState();
 
     return inflater.inflate(R.layout.session_info, container, false);
   }

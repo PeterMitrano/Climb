@@ -2,7 +2,6 @@ package com.peter.climb;
 
 import android.app.Application;
 import android.content.Context;
-import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -35,6 +34,10 @@ public class MyApplication extends Application {
 
   final private AppState state = new AppState();
 
+  public AppState getState() {
+    return state;
+  }
+
   public AppState fetchGymData(@Nullable FetchGymDataListener fetchGymDataListener) {
     state.refreshGyms(fetchGymDataListener);
     return state;
@@ -51,7 +54,6 @@ public class MyApplication extends Application {
 
     static final String SESSION_START_TIME_EXTRA = "session_start_time_extra";
     static final String CURRENT_GYM_ID_EXTRA = "current_gym_id_extra";
-    static final String RESUME_FROM_NOTIFICATION_ACTION = "resume_from_notification_action";
     static final int NO_GYM_ID = -1;
     static final long NO_START_TIME = -1;
 
@@ -205,15 +207,6 @@ public class MyApplication extends Application {
       return System.currentTimeMillis() - startTimeMillis;
     }
 
-    void restoreFromIntent(Intent intent) {
-      long t = intent.getLongExtra(SESSION_START_TIME_EXTRA, -1);
-      int gym_id = intent.getIntExtra(CURRENT_GYM_ID_EXTRA, -1);
-      if (t != -1 && this.startTimeMillis == NO_START_TIME) {
-        this.startTimeMillis = t;
-        setCurrentGym(gym_id);
-      }
-    }
-
     void getSessionHistory(final long startTime, final long endTime,
         final ResultCallback<SessionReadResult> resultCallback) {
       SessionReadRequest readRequest = new SessionReadRequest.Builder()
@@ -245,7 +238,15 @@ public class MyApplication extends Application {
     }
 
     void reconnect() {
-      mClient.clearDefaultAccountAndReconnect();
+      reconnect(false);
+    }
+
+    void reconnect(boolean forceSignOut) {
+      if (forceSignOut) {
+        mClient.clearDefaultAccountAndReconnect();
+      } else {
+        mClient.reconnect();
+      }
     }
   }
 }

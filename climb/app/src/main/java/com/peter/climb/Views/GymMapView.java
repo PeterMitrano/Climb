@@ -316,6 +316,8 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
     for (RouteLabelView labelView : routeLabelViews) {
       labelView.setMetersToPixels(metersToPixels);
     }
+
+    onDataChanged();
   }
 
   private void invalidateChildren() {
@@ -380,13 +382,13 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
         }
       }
 
-//      ArrayList<Integer> sendCounts = savedState.getIntegerArrayList(SEND_COUNTS_KEY);
-//      if (sendCounts != null) {
-//        for (int i = 0; i < sendCounts.size(); i++) {
-//          int sendCount = sendCounts.get(i);
-//          routeLabelViews.get(i).setSendCount(sendCount);
-//        }
-//      }
+      ArrayList<Integer> sendCounts = savedState.getIntegerArrayList(SEND_COUNTS_KEY);
+      if (sendCounts != null) {
+        for (int i = 0; i < sendCounts.size(); i++) {
+          int sendCount = sendCounts.get(i);
+          routeLabelViews.get(i).setSendCount(sendCount);
+        }
+      }
 
       for (RouteLabelView labelView : routeLabelViews) {
         labelView.setScaleFactor(scaleFactor);
@@ -402,6 +404,7 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
           floorPath.lineTo(px, py);
         }
       }
+      floorPath.close();
     }
   }
 
