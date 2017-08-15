@@ -7,6 +7,7 @@ from google.protobuf.json_format import MessageToJson
 from google.protobuf.json_format import Parse
 
 from proto import Gym
+from utils import print_json
 
 
 def add(args):
@@ -27,22 +28,22 @@ def add(args):
     gym_encoded = base64.standard_b64encode(gym_bytes)
 
     response = table.scan(
-            FilterExpression=Key('gym').eq(gym_encoded)
+        FilterExpression=Key('gym').eq(gym_encoded)
     )
 
     if len(response['Items']) > 0:
         print("Item already exists:")
         response = table.get_item(Key={'gym': gym_encoded})
-        print(json.dumps(response['Item'], indent=2))
+        print_json(response['Item'], args.depth, args.user)
     else:
         table.put_item(
-                Item={
-                    'gym'        : gym_encoded,
-                    'user_id_key': args.user,
-                }
+            Item={
+                'gym': gym_encoded,
+                'user_id_key': args.user,
+            }
         )
 
         print('Successfully added item')
-        print(MessageToJson(gym))
+        print_json(gym, args.depth, args.user)
 
     return 0

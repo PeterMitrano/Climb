@@ -9,6 +9,7 @@ from commands import show, add, remove
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', '--table', default='gyms', help='table name')
+    parser.add_argument('-d', '--depth', type=int, default=-1, help='max depth to print for json')
     parser.add_argument('-e', '--endpoint', default='http://localhost:8000',
                         help='endpoint url for database')
 
@@ -31,7 +32,7 @@ def main():
                                help='user name. You should also specify gym name, or this will '
                                     'not remove anything')
     remove_parser.add_argument('-n', '--name', help='gym name. case insensitive')
-    remove_parser.add_argument('-a', '--all',
+    remove_parser.add_argument('-a', '--all', action="store_true",
                                help='if only all is supplied, it removes every item. If user is '
                                     'supplied, it removes all gyms owned by that user')
     remove_parser.set_defaults(func=remove)

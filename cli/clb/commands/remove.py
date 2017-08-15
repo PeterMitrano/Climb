@@ -1,9 +1,9 @@
 import base64
 
 import boto3
-from google.protobuf.json_format import MessageToJson
 
 from proto import Gym
+from utils import print_json
 
 
 def remove(args):
@@ -20,7 +20,6 @@ def remove(args):
         item_bytes = base64.standard_b64decode(gym_encoded)
         gym = Gym()
         gym.ParseFromString(item_bytes)
-        json_string = MessageToJson(gym)
 
         should_remove = False
         if not args.uuid and not args.user and args.all:
@@ -36,7 +35,7 @@ def remove(args):
         if should_remove:
             remove_any = True
             table.delete_item(Key={'gym': gym_encoded})
-            print(json_string)
+            print_json(gym, args.depth, args.user)
 
     if not remove_any:
         print("No items matching criteria")

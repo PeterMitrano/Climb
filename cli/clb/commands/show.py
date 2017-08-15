@@ -2,9 +2,9 @@ import base64
 
 import boto3
 from boto3.dynamodb.conditions import Attr
-from google.protobuf.json_format import MessageToJson
 
 from proto import Gym
+from utils import print_json
 
 
 def show(args):
@@ -13,7 +13,7 @@ def show(args):
     table = dynamodb.Table(args.table)
     if args.user:
         response = table.scan(
-                FilterExpression=Attr('user_id_key').eq(args.user)
+            FilterExpression=Attr('user_id_key').eq(args.user)
         )
     else:
         response = table.scan()
@@ -21,11 +21,11 @@ def show(args):
     items = response['Items']
     for item in items:
         gym = item['gym']
+        user = item['user_id_key']
         item_bytes = base64.standard_b64decode(gym)
         gym = Gym()
         gym.ParseFromString(item_bytes)
-        json_string = MessageToJson(gym)
-        print(json_string)
+        print_json(gym, args.depth, user)
 
     if len(items) == 0:
         print("Nothing to show.")
