@@ -230,7 +230,7 @@ function fakeGyms() {
         'https://pbs.twimg.com/profile_images/543849641700118528/TIfCknj8_400x400.jpeg');
 
     let l = [ascend, climb_north];
-    for (let i = 0; i < 100; ++i) {
+    for (let i = 0; i < 10; ++i) {
       g = new msgs.Gym();
       g.setFloorsList([floor]);
       g.setName('fake_gym_' + i);
