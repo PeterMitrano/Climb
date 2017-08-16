@@ -111,11 +111,11 @@ public class GymsContentProvider extends ContentProvider {
     int i = 0;
     for (Msgs.Gym gym : gyms.getGymsList()) {
       if (searchText.isEmpty()) {
-        sorted_rows.put(i, new Object[]{i, gym.getName(), i, gym.toByteArray()});
+        sorted_rows.put(i, new Object[]{i, gym.getName(), gym.getUuid(), gym.toByteArray()});
       } else {
         int distance = LevenshteinDistance.getDefaultInstance()
             .apply(searchText, gym.getName());
-        sorted_rows.put(distance, new Object[]{i, gym.getName(), i, gym.toByteArray()});
+        sorted_rows.put(distance, new Object[]{i, gym.getName(), gym.getUuid(), gym.toByteArray()});
       }
       i++;
     }

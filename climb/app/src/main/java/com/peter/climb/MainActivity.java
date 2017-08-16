@@ -49,18 +49,17 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
     CardListener, OnClickListener {
 
   public static final int SESSION_NOTIFICATION_ID = 1002;
+  static final String START_SESSION_ACTION = "start_session_action";
   private static final int START_SESSION_REQUEST_CODE = 1004;
   private static final String PREFS_NAME = "ClimbPreferences";
-  static final String START_SESSION_ACTION = "start_session_action";
-
-  private static final String GYM_ID_PREF_KEY = "gym_id_pref_key";
+  private static final String GYM_UUID_PREF_KEY = "gym_id_pref_key";
 
   private FloatingActionButton floatingActionButton;
   private ImageView appBarImage;
   private RecyclerView cardsRecycler;
 
   private CardsAdapter cardsAdapter;
-  private int searchedGymId;
+  private String searchedGymUuid;
 
   @Override
   public void onAttachedToWindow() {
@@ -113,8 +112,7 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
           floatingActionButton.setImageResource(R.drawable.ic_eye_black_24dp);
           if (appState.hasCurrentGym()) {
             floatingActionButton.setEnabled(true);
-          }
-          else {
+          } else {
             floatingActionButton.setEnabled(false);
           }
           cardsAdapter.clearSessions();
@@ -171,7 +169,7 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
 
     Intent intent = getIntent();
     String action = intent.getAction();
-    searchedGymId = AppState.NO_GYM_ID;
+    searchedGymUuid = AppState.NO_GYM_UUID;
     if (action.equals(Intent.ACTION_MAIN)) {
       // connect to google fit API
       if (!appState.mClient.isConnected()) {
@@ -180,18 +178,13 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
     } else if (action.equals(Intent.ACTION_SEARCH)) {
       // check if this request came from a search for a specific gym
       Uri uri = getIntent().getData();
-      try {
-        searchedGymId = Integer.parseInt(uri.getLastPathSegment().toLowerCase());
+      searchedGymUuid = uri.getLastPathSegment();
 
-        // save this search as the current setting
-        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putInt(GYM_ID_PREF_KEY, searchedGymId);
-        editor.apply();
-      } catch (NumberFormatException e) {
-        e.printStackTrace();
-        Snackbar.make(cardsRecycler, "Invalid search result", Snackbar.LENGTH_SHORT).show();
-      }
+      // save this search as the current setting
+      SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+      SharedPreferences.Editor editor = settings.edit();
+      editor.putString(GYM_UUID_PREF_KEY, searchedGymUuid);
+      editor.apply();
 
       // update the recycler
       updateSessionsRecycler();
@@ -244,8 +237,7 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
     floatingActionButton.setImageResource(R.drawable.ic_timer_black_24dp);
     if (appState.hasCurrentGym()) {
       floatingActionButton.setEnabled(true);
-    }
-    else {
+    } else {
       floatingActionButton.setEnabled(false);
     }
   }
@@ -256,8 +248,7 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
     floatingActionButton.setImageResource(R.drawable.ic_eye_black_24dp);
     if (appState.hasCurrentGym()) {
       floatingActionButton.setEnabled(true);
-    }
-    else {
+    } else {
       floatingActionButton.setEnabled(false);
     }
 
@@ -315,28 +306,26 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
   public void onGymsFound(Gyms gyms) {
     // Two possible sources of current gym are search and settings
     SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-    int prefGymId = settings.getInt(GYM_ID_PREF_KEY, AppState.NO_GYM_ID);
+    String prefGymUuid = settings.getString(GYM_UUID_PREF_KEY, AppState.NO_GYM_UUID);
 
     // First check if this request came from a search for a specific gym
-    if (searchedGymId != AppState.NO_GYM_ID) {
-      appState.setCurrentGym(searchedGymId);
+    if (appState.hasGym(searchedGymUuid)) {
+      appState.setCurrentGym(searchedGymUuid);
       displayCurrentGym();
       if (appState.mClient.isConnected()) {
         floatingActionButton.setImageResource(R.drawable.ic_timer_black_24dp);
         floatingActionButton.setEnabled(true);
-      }
-      else {
+      } else {
         floatingActionButton.setImageResource(R.drawable.ic_eye_black_24dp);
         floatingActionButton.setEnabled(true);
       }
-    } else if (prefGymId != AppState.NO_GYM_ID) {
-      appState.setCurrentGym(prefGymId);
+    } else if (appState.hasGym(prefGymUuid)) {
+      appState.setCurrentGym(prefGymUuid);
       displayCurrentGym();
       if (appState.mClient.isConnected()) {
         floatingActionButton.setImageResource(R.drawable.ic_timer_black_24dp);
         floatingActionButton.setEnabled(true);
-      }
-      else {
+      } else {
         floatingActionButton.setImageResource(R.drawable.ic_eye_black_24dp);
         floatingActionButton.setEnabled(true);
       }
@@ -377,8 +366,7 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
       Log.e(getClass().toString(), "not connected or missing datatypes");
       if (appState.mClient.isConnected()) {
         cardsAdapter.showNoSessions();
-      }
-      else {
+      } else {
         cardsAdapter.showNotSignedIn();
       }
     }

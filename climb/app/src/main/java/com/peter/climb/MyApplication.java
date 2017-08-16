@@ -54,7 +54,7 @@ public class MyApplication extends Application {
 
     static final String SESSION_START_TIME_EXTRA = "session_start_time_extra";
     static final String CURRENT_GYM_ID_EXTRA = "current_gym_id_extra";
-    static final int NO_GYM_ID = -1;
+    static final String NO_GYM_UUID = "00000000-0000-0000-0000-000000000000";
     static final long NO_START_TIME = -1;
 
     final private List<Send> sends;
@@ -62,7 +62,7 @@ public class MyApplication extends Application {
 
     boolean inProgress;
     long startTimeMillis;
-    int currentGymId;
+    String currentGymUuid;
     DataType routeDataType;
     DataType metadataType;
     GoogleApiClient mClient = null;
@@ -79,24 +79,37 @@ public class MyApplication extends Application {
     private AppState() {
       gyms = null;
       sends = new ArrayList<>();
-      currentGymId = NO_GYM_ID;
+      currentGymUuid = NO_GYM_UUID;
       inProgress = false;
       startTimeMillis = NO_START_TIME;
-    }
-
-    int getCurrentGymId() {
-      return currentGymId;
     }
 
     Gym getCurrentGym() {
       return currentGym;
     }
 
-    void setCurrentGym(int currentGymId) {
-      this.currentGymId = currentGymId;
-      if (currentGymId != NO_GYM_ID && currentGymId < gyms.getGymsCount()) {
-        this.currentGym = gyms.getGyms(currentGymId);
+    void setCurrentGym(String currentGymUuid) {
+      if (!currentGymUuid.equals(NO_GYM_UUID)) {
+        for (Gym gym : gyms.getGymsList()) {
+          if (gym.getUuid().equals(currentGymUuid)) {
+            this.currentGym = gym;
+            this.currentGymUuid = currentGymUuid;
+            return;
+          }
+        }
       }
+      throw new IllegalArgumentException("Gym UUID not found: " + currentGymUuid);
+    }
+
+    boolean hasGym(String gymUuid) {
+      if (!gymUuid.equals(NO_GYM_UUID)) {
+        for (Gym gym : gyms.getGymsList()) {
+          if (gym.getUuid().equals(gymUuid)) {
+            return true;
+          }
+        }
+      }
+      return false;
     }
 
     void addRouteIntoSession(Route route, Wall wall) {
@@ -200,7 +213,7 @@ public class MyApplication extends Application {
     }
 
     boolean hasCurrentGym() {
-      return currentGymId != NO_GYM_ID;
+      return hasGym(currentGymUuid);
     }
 
     long getSessionLength() {

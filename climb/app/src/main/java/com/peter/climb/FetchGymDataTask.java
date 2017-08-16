@@ -1,6 +1,6 @@
 package com.peter.climb;
 
-import static com.peter.climb.MyApplication.AppState.NO_GYM_ID;
+import static com.peter.climb.MyApplication.AppState.NO_GYM_UUID;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -56,14 +56,11 @@ class FetchGymDataTask extends AsyncTask<Void, Integer, Gyms> {
   protected void onPostExecute(Msgs.Gyms gyms) {
     if (gyms != null && gyms.getGymsCount() > 0) {
       appState.gyms = gyms;
-      if (appState.currentGymId != NO_GYM_ID) {
-        appState.currentGym = gyms.getGyms(appState.currentGymId);
-      }
       if (fetchGymDataListener != null) {
         fetchGymDataListener.onGymsFound(gyms);
       }
     } else {
-      appState.currentGymId = NO_GYM_ID;
+      appState.currentGymUuid = NO_GYM_UUID;
       appState.gyms = null;
       if (fetchGymDataListener != null) {
         fetchGymDataListener.onNoGymsFound();
