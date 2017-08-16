@@ -1,4 +1,5 @@
 import base64
+import re
 
 import boto3
 
@@ -30,11 +31,17 @@ def remove(args):
             print("removed by uuid:")
         if user == args.user and (gym.name == args.name or args.all):
             should_remove = True
-            print("removed by name")
+            print("removed by user and name")
+        if args.name and re.search(args.name, gym.name, re.IGNORECASE):
+            should_remove = True
+            print("removed by regex name")
 
         if should_remove:
             remove_any = True
-            table.delete_item(Key={'gym': gym_encoded})
+            if not args.dry_run:
+                table.delete_item(Key={'gym': gym_encoded})
+            else:
+                print("[dry run, not actually removed]")
             print_json(gym, args.depth, args.user)
 
     if not remove_any:

@@ -16,6 +16,8 @@ def main():
     subparsers = parser.add_subparsers()
     show_parser = subparsers.add_parser('show')
     show_parser.add_argument('-u', '--user', help='get only the gyms of this user')
+    show_parser.add_argument('-n', '--name',
+                             help='get only the gyms with this name (supports regex)')
     show_parser.set_defaults(func=show)
 
     add_parser = subparsers.add_parser('add')
@@ -31,7 +33,9 @@ def main():
     remove_parser.add_argument('-u', '--user',
                                help='user name. You should also specify gym name, or this will '
                                     'not remove anything')
-    remove_parser.add_argument('-n', '--name', help='gym name. case insensitive')
+    remove_parser.add_argument('-N', '--dry-run', action="store_true",
+                               help='Do not actually remove stuff')
+    remove_parser.add_argument('-n', '--name', help='gym name. case insensitive (supports regex)')
     remove_parser.add_argument('-a', '--all', action="store_true",
                                help='if only all is supplied, it removes every item. If user is '
                                     'supplied, it removes all gyms owned by that user')
