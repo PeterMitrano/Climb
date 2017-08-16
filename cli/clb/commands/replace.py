@@ -1,16 +1,13 @@
 import base64
-import json
 
 import boto3
-from boto3.dynamodb.conditions import Key
-from google.protobuf.json_format import MessageToJson
 from google.protobuf.json_format import Parse
 
 from proto import Gym
 from utils import print_json
 
 
-def add(args):
+def replace(args):
     dynamodb = boto3.resource('dynamodb', endpoint_url=args.endpoint)
 
     table = dynamodb.Table(args.table)
@@ -29,33 +26,20 @@ def add(args):
 
     response = table.scan()
 
-    already_exists = False
     for item in response['Items']:
         itr_gym_encoded = item['gym']
+        itr_user = item['user_id_key']
         itr_bytes = base64.standard_b64decode(itr_gym_encoded)
         itr_gym = Gym()
         itr_gym.ParseFromString(itr_bytes)
 
-        if itr_gym_encoded == gym_encoded:
-            already_exists = True
-            break
-        elif itr_gym.uuid == gym.uuid:
-            already_exists = True
-            break
+        if itr_gym.uuid == args.uuid:
+            print('Successfully replaced item')
+            print_json(itr_gym, args.depth, itr_user)
+            print("With item")
+            print_json(gym, args.depth, itr_user)
 
-    if already_exists:
-        print("Item already exists:")
-        response = table.get_item(Key={'gym': gym_encoded})
-        print_json(itr_gym, args.depth, args.user)
-    else:
-        table.put_item(
-            Item={
-                'gym': gym_encoded,
-                'user_id_key': args.user,
-            }
-        )
-
-        print('Successfully added item')
-        print_json(gym, args.depth, args.user)
+            table.delete_item(Key={'gym': itr_gym_encoded})
+            table.put_item(Item={'gym': gym_encoded, 'user_id_key': itr_user})
 
     return 0

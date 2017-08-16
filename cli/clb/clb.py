@@ -3,7 +3,7 @@
 import argparse
 import sys
 
-from commands import show, add, remove
+from commands import show, add, remove, replace
 
 
 def main():
@@ -23,9 +23,9 @@ def main():
     add_parser = subparsers.add_parser('add')
     add_parser.add_argument('-u', '--user', required=True,
                             help='set owner of this gym to this user')
-    source_group = add_parser.add_mutually_exclusive_group(required=True)
-    source_group.add_argument('-f', '--file', help='file to read JSON from')
-    source_group.add_argument('-d', '--data', help='json string to read from')
+    add_source_group = add_parser.add_mutually_exclusive_group(required=True)
+    add_source_group.add_argument('-f', '--file', help='file to read JSON from')
+    add_source_group.add_argument('-d', '--data', help='json string to read from')
     add_parser.set_defaults(func=add)
 
     remove_parser = subparsers.add_parser('remove')
@@ -40,6 +40,15 @@ def main():
                                help='if only all is supplied, it removes every item. If user is '
                                     'supplied, it removes all gyms owned by that user')
     remove_parser.set_defaults(func=remove)
+
+    replace_parser = subparsers.add_parser('replace')
+    replace_parser.add_argument('-i', '--uuid', help='gym uuid')
+    replace_parser.add_argument('-N', '--dry-run', action="store_true",
+                                help='Do not actually replace stuff')
+    replace_source_group = replace_parser.add_mutually_exclusive_group(required=True)
+    replace_source_group.add_argument('-f', '--file', help='file to read JSON from')
+    replace_source_group.add_argument('-d', '--data', help='json string to read from')
+    replace_parser.set_defaults(func=replace)
 
     args = parser.parse_args()
     args.func(args)
