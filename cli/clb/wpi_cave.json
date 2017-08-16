@@ -1,0 +1,69 @@
+{
+  "floors": [
+    {
+      "width": 20.0,
+      "height": 25.0,
+      "polygon": {
+        "color": "#eeeeee",
+        "points": [
+          {
+            "x": 0.0,
+            "y": 0.0
+          },
+          {
+            "x": 20.0,
+            "y": 0.0
+          },
+          {
+            "x": 20.0,
+            "y": 25.0
+          },
+          {
+            "x": 0.0,
+            "y": 25.0
+          }
+        ]
+      },
+      "walls": [
+        {
+          "name": "Slab",
+          "polygon": {
+            "color": "#7c570c",
+            "points": [
+              {
+                "x": 0.0,
+                "y": 16.0
+              },
+              {
+                "x": 1.0,
+                "y": 16.0
+              },
+              {
+                "x": 1.0,
+                "y": 25.0
+              },
+              {
+                "x": 0.0,
+                "y": 25.0
+              }
+            ]
+          },
+          "routes": [
+            {
+              "color": "#ff0000",
+              "grade": 0,
+              "name": "Beginner",
+              "position": {
+                "x": 0.5,
+                "y": 24.0
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "largeIconUrl": "https://lh3.googleusercontent.com/7-lVi-KFZAIoDaGJOE474mDv1gbzHUb-TYQGn0mYvOe21A6Z_hucUBvczigc76l5BakIIV-I2WYblsN1Kg=w329-h220-rw",
+  "name": "The WPI Cave",
+  "uuid": "70211b98-b039-44e9-964c-a5ac0e3ed685"
+}

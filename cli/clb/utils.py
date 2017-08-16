@@ -17,7 +17,10 @@ def print_json(m, depth, user=None, indent=2):
         raise TypeError("Unsupported type " + str(type(m)))
 
     # now we have m as a dict, so we can limit depth if necessary
-    j = limit_depth({'user': user, 'gym': j}, max_depth=depth)
+    if 'user_id_key' not in j:
+        j = {'user_id_key': user, 'gym': j}
+
+    j = limit_depth(j, max_depth=depth)
     print(json.dumps(j, indent=indent, sort_keys=True))
 
 

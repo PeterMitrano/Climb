@@ -107,6 +107,10 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
       case R.id.app_settings: {
         break;
       }
+      case R.id.refresh: {
+        appState.refreshGyms(this);
+        break;
+      }
       case R.id.change_accounts: {
         if (appState.mClient.isConnected()) {
           floatingActionButton.setImageResource(R.drawable.ic_eye_black_24dp);
@@ -391,7 +395,7 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
     ImageLoader.ImageListener listener = ImageLoader.getImageListener(
         appBarImage,
         0,
-        R.drawable.ic_error_black_24dp);
+        R.drawable.ic_terrain_black_24dp);
     RequestorSingleton.getInstance(
         getApplicationContext()).getImageLoader().get(url, listener);
   }
