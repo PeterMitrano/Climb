@@ -13,7 +13,6 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.AbsSavedState;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -24,7 +23,6 @@ import com.peter.Climb.Msgs.Point;
 import com.peter.Climb.Msgs.Route;
 import com.peter.Climb.Msgs.Wall;
 import com.peter.climb.R;
-import com.peter.climb.Utils;
 import com.peter.climb.Views.RouteLabelView.RouteClickedListener;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -397,11 +395,9 @@ public class GymMapView extends ViewGroup implements RouteClickedListener {
       }
 
       floorPath.reset();
-      Log.e(Utils.m(), " FLOOR ===========");
       for (Point p : gym.getFloors(currentFloor).getPolygon().getPointsList()) {
         float px = metersToPixels * p.getX();
         float py = metersToPixels * p.getY();
-        Log.e(Utils.m(), px + ", " + py);
         if (floorPath.isEmpty()) {
           floorPath.moveTo(px, py);
         } else {

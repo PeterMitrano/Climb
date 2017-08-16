@@ -167,6 +167,20 @@ public class RouteLabelView extends View {
       markerPaint.setColor(Color.LTGRAY);
     }
 
+    int r = (routeColor >> 16) & 0xff;  // extract red
+    int g = (routeColor >> 8) & 0xff;  // extract green
+    int b = routeColor & 0xff;  // extract blue
+    int luma = (int) (0.2126 * r + 0.7152 * g + 0.0722 * b); // per ITU-R BT.709
+
+    if (luma < 40) {
+      gradePaint.setColor(Color.WHITE);
+      namePaint.setColor(Color.WHITE);
+    }
+    else {
+      gradePaint.setColor(Color.BLACK);
+      namePaint.setColor(Color.BLACK);
+    }
+
     onDataChanged();
   }
 

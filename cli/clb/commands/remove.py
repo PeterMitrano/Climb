@@ -42,6 +42,7 @@ def remove(args):
                 table.delete_item(Key={'gym': gym_encoded})
             else:
                 print("[dry run, not actually removed]")
+
             print_json(gym, args.depth, args.user)
 
     if not remove_any:

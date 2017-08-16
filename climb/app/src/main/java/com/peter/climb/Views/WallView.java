@@ -67,11 +67,9 @@ public class WallView extends View {
       }
 
       wallPath.reset();
-      Log.e(Utils.m(), " WALL ===========");
       for (Msgs.Point p : this.wall.getPolygon().getPointsList()) {
         float px = metersToPixels * p.getX();
         float py = metersToPixels * p.getY();
-        Log.e(Utils.m(), px + ", " + py);
         if (wallPath.isEmpty()) {
           wallPath.moveTo(px, py);
           wallShadowPath.moveTo(px + shadowOffsetX, py + shadowOffsetY);

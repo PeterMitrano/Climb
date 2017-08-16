@@ -1,9 +1,6 @@
 import base64
-import json
 
 import boto3
-from boto3.dynamodb.conditions import Key
-from google.protobuf.json_format import MessageToJson
 from google.protobuf.json_format import Parse
 
 from proto import Gym
@@ -30,6 +27,7 @@ def add(args):
     response = table.scan()
 
     already_exists = False
+    itr_gym = "{ no gym }"
     for item in response['Items']:
         itr_gym_encoded = item['gym']
         itr_bytes = base64.standard_b64decode(itr_gym_encoded)
@@ -45,16 +43,9 @@ def add(args):
 
     if already_exists:
         print("Item already exists:")
-        response = table.get_item(Key={'gym': gym_encoded})
         print_json(itr_gym, args.depth, args.user)
     else:
-        table.put_item(
-            Item={
-                'gym': gym_encoded,
-                'user_id_key': args.user,
-            }
-        )
-
+        table.put_item(Item={'gym': gym_encoded, 'user_id_key': args.user})
         print('Successfully added item')
         print_json(gym, args.depth, args.user)
 
