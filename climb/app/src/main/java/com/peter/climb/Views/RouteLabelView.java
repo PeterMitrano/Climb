@@ -9,6 +9,7 @@ import android.graphics.Rect;
 import android.graphics.Shader;
 import android.graphics.Shader.TileMode;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
@@ -20,15 +21,10 @@ import java.util.List;
 
 public class RouteLabelView extends View {
 
-  private static final float GRADE_FONT_SIZE = 14f;
-  private static final float NAME_FONT_SIZE = 10f;
-  private static final float SEND_COUNT_FONT_SIZE = 4f;
-  private static final float SHOW_GRADE_SCALE = 1.5f;
-  private static final float SHOW_NAME_SCALE = 3f;
-  private static final float MIN_SIZE = 10f;
-  private static final float PADDING = 6f;
-  private static final float GRADE_NAME_PADDING = 2f;
-  private static final float SENDS_RECT_PADDING = 2f;
+  private static final int BUBBLE_RADIUS_PX = 10;
+  private static final float MIN_SIZE_M = 0.25f;
+  private static final int ROUND_RADIUS_PX = 4;
+  final int TEXT_PADDING_PX = 6;
   private final Paint gradePaint;
   private final Paint namePaint;
   private final Paint markerPaint;
@@ -36,29 +32,31 @@ public class RouteLabelView extends View {
   private final Paint leftShadowMarkerPaint;
   private final Paint sendCountBubblePaint;
   private final Paint sendCountPaint;
-  private final Rect gradeRect;
-  private final Rect nameRect;
-  private final Rect sendsRect;
   private final Paint rightShadowMarkerPaint;
   private final Paint topShadowMarkerPaint;
-  private int routeGrade;
+
   private Msgs.Point position;
   private float metersToPixels;
   private float scaleFactor = 1.f;
-  private float x1;
-  private float y1;
-  private float x2;
-  private float y2;
+  private int x1_px;
+  private int y1_px;
+  private int x2_px;
+  private int y2_px;
   private int routeColor;
   private List<RouteClickedListener> routeClickedListeners;
   private boolean routeOwnsEvent;
   private int sendCount;
   private long eventStartTime;
-  private float cx;
-  private float cy;
+  private int cx_px;
+  private int cy_px;
   private String gradeString;
   private String routeName;
   private String sendsString;
+  private boolean showName;
+  private boolean showGrade;
+  private Rect gradeRect;
+  private Rect nameRect;
+  private Rect sendCountRect;
 
   public RouteLabelView(Context context) {
     super(context);
@@ -80,10 +78,6 @@ public class RouteLabelView extends View {
     leftShadowMarkerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     rightShadowMarkerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-    gradeRect = new Rect();
-    nameRect = new Rect();
-    sendsRect = new Rect();
-
     gradePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     gradePaint.setColor(Color.BLACK);
 
@@ -95,47 +89,77 @@ public class RouteLabelView extends View {
 
     sendCountPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     sendCountPaint.setColor(Color.WHITE);
+
+    gradeRect = new Rect();
+    nameRect = new Rect();
+    sendCountRect = new Rect();
+  }
+
+  /**
+   * Sets the text size for a Paint object so a given string of text will be a
+   * given width.
+   *
+   * @param paint the Paint to set the text size for
+   * @param desiredWidthPx the desired width
+   * @param text the text that should be that width
+   */
+  private static void setTextSizeForWidth(Paint paint, int desiredWidthPx,
+      String text) {
+
+    final float testTextSizeSp = 96f;
+
+    // Get the bounds of the text, using our testTextSize.
+    paint.setTextSize(testTextSizeSp);
+    Rect bounds = new Rect();
+    paint.getTextBounds(text, 0, text.length(), bounds);
+
+    // Calculate the desired size as a proportion of our testTextSize.
+    float desiredTextSizeSp = testTextSizeSp * desiredWidthPx / bounds.width();
+
+    // Set the paint for that size.
+    paint.setTextSize(desiredTextSizeSp);
   }
 
   @Override
   public void onDraw(Canvas canvas) {
     super.onDraw(canvas);
 
-    float sendCountRadius = sendsString.length() * 2 + SENDS_RECT_PADDING;
-    float sendCountCx = x2;
-    float sendCountCy = y1;
+    // Draw shadows and the main route label box
+    canvas.drawRect(x1_px, y1_px - 1f, x1_px, y1_px, topShadowMarkerPaint);
+    canvas.drawRect(x1_px, y2_px, x2_px, y2_px + 2f, bottomShadowMarkerPaint);
+    canvas.drawRect(x1_px - 1f, y1_px, x1_px, y2_px, leftShadowMarkerPaint);
+    canvas.drawRect(x2_px, y1_px, x2_px + 1f, y2_px, rightShadowMarkerPaint);
+    canvas.drawRoundRect(x1_px, y1_px, x2_px, y2_px, ROUND_RADIUS_PX, ROUND_RADIUS_PX, markerPaint);
 
-    canvas.drawRect(x1, y1 - 1f, x1, y1, topShadowMarkerPaint);
-    canvas.drawRect(x1, y2, x2, y2 + 2f, bottomShadowMarkerPaint);
-    canvas.drawRect(x1 - 1f, y1, x1, y2, leftShadowMarkerPaint);
-    canvas.drawRect(x2, y1, x2 + 1f, y2, rightShadowMarkerPaint);
-    canvas.drawRect(x1, y1, x2, y2, markerPaint);
-
-    if (scaleFactor > SHOW_NAME_SCALE) {
-      canvas.drawText(gradeString, cx - gradeRect.exactCenterX(),
-          y1 + PADDING / 2f + gradeRect.height(), gradePaint);
-      canvas.drawText(routeName, cx - nameRect.exactCenterX(), y2 - PADDING / 2f,
-          namePaint);
-    } else if (scaleFactor > SHOW_GRADE_SCALE) {
-      canvas.drawText(gradeString, cx - gradeRect.exactCenterX(), cy - gradeRect.exactCenterY(),
-          gradePaint);
+    // if the scale is big enough, show more info
+    if (showName && showGrade) {
+      canvas.drawText(gradeString, cx_px - gradeRect.exactCenterX(),
+          y1_px + TEXT_PADDING_PX + gradeRect.height(), gradePaint);
+      canvas
+          .drawText(routeName, cx_px - nameRect.exactCenterX(), y2_px - TEXT_PADDING_PX, namePaint);
+    } else if (showGrade) {
+      canvas
+          .drawText(gradeString, cx_px - gradeRect.exactCenterX(), cy_px - gradeRect.exactCenterY(),
+              gradePaint);
     }
 
     if (sendCount > 0) {
-      canvas.drawCircle(sendCountCx, sendCountCy, sendCountRadius, sendCountBubblePaint);
-      float offsetX = 0.5f + (sendsString.length() * .5f);
-      canvas.drawText(sendsString, sendCountCx - offsetX,
-          sendCountCy + 1.5f, sendCountPaint);
+      Log.e(Utils.m(), "" + sendCountRect.height());
+      canvas.drawCircle(
+          x2_px,
+          y1_px,
+          BUBBLE_RADIUS_PX,
+          sendCountBubblePaint);
+      canvas.drawText(sendsString,
+          x2_px - sendCountRect.exactCenterX(),
+          y1_px + 4.5f,
+          sendCountPaint);
     }
   }
 
   @org.jetbrains.annotations.Contract(pure = true)
   private String toGradeString(int routeGrade) {
     return "V" + routeGrade;
-  }
-
-  public Msgs.Point getPosition() {
-    return this.position;
   }
 
   public void setPosition(Msgs.Point position) {
@@ -148,12 +172,7 @@ public class RouteLabelView extends View {
     onDataChanged();
   }
 
-  public int getRouteGrade() {
-    return this.routeGrade;
-  }
-
   public void setRouteGrade(int routeGrade) {
-    this.routeGrade = routeGrade;
     gradeString = toGradeString(routeGrade);
     onDataChanged();
   }
@@ -175,8 +194,7 @@ public class RouteLabelView extends View {
     if (luma < 40) {
       gradePaint.setColor(Color.WHITE);
       namePaint.setColor(Color.WHITE);
-    }
-    else {
+    } else {
       gradePaint.setColor(Color.BLACK);
       namePaint.setColor(Color.BLACK);
     }
@@ -191,50 +209,63 @@ public class RouteLabelView extends View {
 
   public void setScaleFactor(float scaleFactor) {
     this.scaleFactor = scaleFactor;
-
-    float inverseScaleFactor = (float) Math.pow(scaleFactor, -0.2);
-
-    gradePaint.setTextSize(GRADE_FONT_SIZE * inverseScaleFactor);
-    namePaint.setTextSize(NAME_FONT_SIZE * inverseScaleFactor);
-    sendCountPaint.setTextSize(SEND_COUNT_FONT_SIZE);
     onDataChanged();
   }
 
   private void onDataChanged() {
-    cx = this.position.getX() * metersToPixels;
-    cy = this.position.getY() * metersToPixels;
+    final int MIN_W_OF_GRADE_FONT_PX = 20;
+    final int MIN_W_OF_NAME_FONT_PX_PER_CHAR = 12;
 
-    sendsString = String.valueOf(sendCount);
-    sendCountPaint.getTextBounds(sendsString, 0, sendsString.length(), sendsRect);
-//    Log.e(getClass().toString(), sendsRect.exactCenterX() + " , " + sendsRect.exactCenterY());
-    namePaint.getTextBounds(routeName, 0, routeName.length(), nameRect);
-    gradePaint.getTextBounds(gradeString, 0, gradeString.length(), gradeRect);
+    cx_px = (int) (this.position.getX() * metersToPixels);
+    cy_px = (int) (this.position.getY() * metersToPixels);
 
-    float labelW = MIN_SIZE;
-    float labelH = MIN_SIZE;
-    if (scaleFactor > SHOW_NAME_SCALE) {
-      labelW = Math.max(Math.max(gradeRect.width(), nameRect.width()), MIN_SIZE) + PADDING;
-      labelH =
-          Math.max(gradeRect.height() + nameRect.height(), MIN_SIZE) + PADDING + GRADE_NAME_PADDING;
-    } else if (scaleFactor > SHOW_GRADE_SCALE) {
-      labelW = Math.max(gradeRect.width(), MIN_SIZE) + PADDING;
-      labelH = Math.max(gradeRect.height(), MIN_SIZE) + PADDING;
+    // The width/height of the box is based on the current scale factor
+    int labelWPx = (int) (metersToPixels * MIN_SIZE_M);
+    int labelHPx = (int) (metersToPixels * MIN_SIZE_M);
+
+    int min_w_name_font_px = MIN_W_OF_NAME_FONT_PX_PER_CHAR * routeName.length();
+    // Check how big the text would be if we showed both grade and name
+    int minWForGradeAndNamePx =
+        TEXT_PADDING_PX * 2 + Math.max(MIN_W_OF_GRADE_FONT_PX, min_w_name_font_px);
+    int minWForGradePx = TEXT_PADDING_PX * 2 + MIN_W_OF_GRADE_FONT_PX;
+
+    if (labelWPx * scaleFactor > minWForGradeAndNamePx) {
+      showName = true;
+      showGrade = true;
+      int maxWForTextPx = labelWPx - TEXT_PADDING_PX * 2;
+      setTextSizeForWidth(gradePaint, maxWForTextPx, gradeString);
+      setTextSizeForWidth(namePaint, maxWForTextPx, routeName);
+      gradePaint.getTextBounds(gradeString, 0, gradeString.length(), gradeRect);
+      namePaint.getTextBounds(routeName, 0, routeName.length(), nameRect);
+      labelHPx = Math.max(labelHPx, TEXT_PADDING_PX * 3 + nameRect.height() + gradeRect.height());
+    } else if (labelWPx * scaleFactor > minWForGradePx) {
+      showName = false;
+      showGrade = true;
+      int wForGradePx = labelWPx - TEXT_PADDING_PX * 2;
+      setTextSizeForWidth(gradePaint, wForGradePx, gradeString);
+      gradePaint.getTextBounds(gradeString, 0, gradeString.length(), gradeRect);
+      labelHPx = Math.max(labelHPx, TEXT_PADDING_PX * 3 + gradeRect.height());
+    } else {
+      showName = false;
+      showGrade = false;
     }
 
-    x1 = cx - labelW / 2f;
-    y1 = cy - labelH / 2f;
-    x2 = cx + labelW / 2f;
-    y2 = cy + labelH / 2f;
+    x1_px = cx_px - labelWPx / 2;
+    x2_px = cx_px + labelWPx / 2;
+    y1_px = cy_px - labelHPx / 2;
+    y2_px = cy_px + labelHPx / 2;
+    sendsString = String.valueOf(sendCount);
+    sendCountPaint.getTextBounds(sendsString, 0, sendsString.length(), sendCountRect);
 
     int SHADOW_START = 0x11000000;
     int SHADOW_END = 0x00000000;
-    Shader topShader = new LinearGradient(0, y1 - 1f, 0, y1, SHADOW_END, SHADOW_START,
+    Shader topShader = new LinearGradient(0, y1_px - 1f, 0, y1_px, SHADOW_END, SHADOW_START,
         TileMode.CLAMP);
-    Shader bottomShader = new LinearGradient(0, y2, 0, y2 + 2f, SHADOW_START, SHADOW_END,
+    Shader bottomShader = new LinearGradient(0, y2_px, 0, y2_px + 2f, SHADOW_START, SHADOW_END,
         TileMode.CLAMP);
-    Shader leftShader = new LinearGradient(x1 - 1f, 0, x1, 0, SHADOW_END, SHADOW_START,
+    Shader leftShader = new LinearGradient(x1_px - 1f, 0, x1_px, 0, SHADOW_END, SHADOW_START,
         TileMode.CLAMP);
-    Shader rightShader = new LinearGradient(x1, 0, x1 + 1f, 0, SHADOW_START, SHADOW_END,
+    Shader rightShader = new LinearGradient(x1_px, 0, x1_px + 1f, 0, SHADOW_START, SHADOW_END,
         TileMode.CLAMP);
     bottomShadowMarkerPaint.setShader(bottomShader);
     leftShadowMarkerPaint.setShader(leftShader);
@@ -261,7 +292,7 @@ public class RouteLabelView extends View {
         break;
       }
       case MotionEvent.ACTION_UP: {
-        if (within(ev.getX(), ev.getY()) && routeOwnsEvent && scaleFactor > SHOW_GRADE_SCALE) {
+        if (within(ev.getX(), ev.getY()) && routeOwnsEvent && (showGrade || showName)) {
           long eventDuration = System.currentTimeMillis() - eventStartTime;
           if (eventDuration > ViewConfiguration.getLongPressTimeout()) {
             onRouteLongPressed();
@@ -331,7 +362,7 @@ public class RouteLabelView extends View {
   }
 
   private boolean within(float x, float y) {
-    return (x1 < x && x < x2) && (y1 < y && y < y2);
+    return (x1_px < x && x < x2_px) && (y1_px < y && y < y2_px);
   }
 
   public void addRouteClickedListener(RouteClickedListener listener) {

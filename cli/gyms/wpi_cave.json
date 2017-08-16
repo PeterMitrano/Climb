@@ -1,0 +1,307 @@
+{
+  "floors": [
+    {
+      "width": 6.0,
+      "height": 8.0,
+      "polygon": {
+        "color": "#eeeeee",
+        "points": [
+          {
+            "x": 0.0,
+            "y": 0.0
+          },
+          {
+            "x": 6.0,
+            "y": 0.0
+          },
+          {
+            "x": 6.0,
+            "y": 8.0
+          },
+          {
+            "x": 0.0,
+            "y": 8.0
+          }
+        ]
+      },
+      "walls": [
+        {
+          "name": "A",
+          "polygon": {
+            "color": "#7c570c",
+            "points": [
+              {
+                "x": 0.0,
+                "y": 6.0
+              },
+              {
+                "x": 1.0,
+                "y": 6.0
+              },
+              {
+                "x": 0.75,
+                "y": 8.0
+              },
+              {
+                "x": 0.0,
+                "y": 8.0
+              }
+            ]
+          },
+          "routes": [
+            {
+              "color": "#ff0000",
+              "grade": 0,
+              "name": "Pikachu",
+              "position": {
+                "x": 0.4,
+                "y": 7.5
+              }
+            },
+            {
+              "color": "#00ff00",
+              "grade": 3,
+              "name": "Eevee",
+              "position": {
+                "x": 0.5,
+                "y": 6.65
+              }
+            },
+            {
+              "color": "#00aa55",
+              "grade": 7,
+              "name": "Charizard",
+              "position": {
+                "x": 0.5,
+                "y": 7.75
+              }
+            }
+          ]
+        },
+        {
+          "name": "B",
+          "polygon": {
+            "color": "#6c470c",
+            "points": [
+              {
+                "x": 0.0,
+                "y": 2.0
+              },
+              {
+                "x": 2.0,
+                "y": 2.0
+              },
+              {
+                "x": 1.0,
+                "y": 6.0
+              },
+              {
+                "x": 0.0,
+                "y": 6.0
+              }
+            ]
+          },
+          "routes": [
+            {
+              "color": "#220022",
+              "grade": 6,
+              "name": "Really Long Route Name",
+              "position": {
+                "x": 0.4,
+                "y": 5.0
+              }
+            },
+            {
+              "color": "#00aa22",
+              "grade": 6,
+              "name": "Mr. Mime",
+              "position": {
+                "x": 0.5,
+                "y": 3.1
+              }
+            },
+            {
+              "color": "#55aa00",
+              "grade": 0,
+              "name": "Ditto",
+              "position": {
+                "x": 0.5,
+                "y": 2.3
+              }
+            }
+          ]
+        },
+        {
+          "name": "C",
+          "polygon": {
+            "color": "#2c270c",
+            "points": [
+              {
+                "x": 0.0,
+                "y": 0.0
+              },
+              {
+                "x": 3,
+                "y": 0.0
+              },
+              {
+                "x": 3,
+                "y": 1.5
+              },
+              {
+                "x": 2.5,
+                "y": 1.5
+              },
+              {
+                "x": 2.0,
+                "y": 2.0
+              },
+              {
+                "x": 0,
+                "y": 2.0
+              }
+            ]
+          },
+          "routes": [
+            {
+              "color": "#55aa00",
+              "grade": 0,
+              "name": "Greninja",
+              "position": {
+                "x": 0.3,
+                "y": 1.25
+              }
+            },
+            {
+              "color": "#00ffff",
+              "grade": 1,
+              "name": "Rowlet",
+              "position": {
+                "x": 1.5,
+                "y": 1.2
+              }
+            },
+            {
+              "color": "#ffffff",
+              "grade": 1,
+              "name": "Squirtle",
+              "position": {
+                "x": 0.5,
+                "y": 0.7
+              }
+            }
+          ]
+        },
+        {
+          "name": "D",
+          "polygon": {
+            "color": "#1c172c",
+            "points": [
+              {
+                "x": 3.0,
+                "y": 0.0
+              },
+              {
+                "x": 5.5,
+                "y": 0.0
+              },
+              {
+                "x": 5.5,
+                "y": 2.0
+              },
+              {
+                "x": 3.0,
+                "y": 1.5
+              }
+            ]
+          },
+          "routes": [
+            {
+              "color": "#55aa00",
+              "grade": 6,
+              "name": "Pichu",
+              "position": {
+                "x": 3.1,
+                "y": 1.25
+              }
+            },
+            {
+              "color": "#00ffff",
+              "grade": 2,
+              "name": "Ekans",
+              "position": {
+                "x": 4.3,
+                "y": 1.2
+              }
+            },
+            {
+              "color": "#ff0000",
+              "grade": 3,
+              "name": "MewTwo",
+              "position": {
+                "x": 3.5,
+                "y": 0.5
+              }
+            }
+          ]
+        },
+        {
+          "name": "E",
+          "polygon": {
+            "color": "#8c375c",
+            "points": [
+              {
+                "x": 5.5,
+                "y": 0.0
+              },
+              {
+                "x": 6,
+                "y": 0.0
+              },
+              {
+                "x": 6,
+                "y": 4.0
+              },
+              {
+                "x": 5.5,
+                "y": 4.0
+              }
+            ]
+          },
+          "routes": [
+            {
+              "color": "#888800",
+              "grade": 5,
+              "name": "RockRuff",
+              "position": {
+                "x": 5.75,
+                "y": 0.5
+              }
+            },
+            {
+              "color": "#00ff00",
+              "grade": 3,
+              "name": "Gengar",
+              "position": {
+                "x": 5.75,
+                "y": 1.0
+              }
+            },
+            {
+              "color": "#000000",
+              "grade": 0,
+              "name": "Lucario",
+              "position": {
+                "x": 5.75,
+                "y": 3.5
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "largeIconUrl": "https://lh3.googleusercontent.com/7-lVi-KFZAIoDaGJOE474mDv1gbzHUb-TYQGn0mYvOe21A6Z_hucUBvczigc76l5BakIIV-I2WYblsN1Kg=w329-h220-rw",
+  "name": "The WPI Cave",
+  "uuid": "70211b98-b039-44e9-964c-a5ac0e3ed685"
+}
