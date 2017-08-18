@@ -173,7 +173,7 @@ public class MyApplication extends Application {
       // Create the session to insert
       long endTime = System.currentTimeMillis();
       com.google.android.gms.fitness.data.Session session = new com.google.android.gms.fitness.data.Session.Builder()
-          .setName("Climbing Session")
+          .setName("Climbing Session at " + currentGym.getName())
           .setDescription("Session at " + currentGym.getName())
           .setIdentifier(currentGym.getUuid())
           .setActivity(FitnessActivities.ROCK_CLIMBING)
