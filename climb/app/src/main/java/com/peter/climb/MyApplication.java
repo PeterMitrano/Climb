@@ -27,7 +27,6 @@ import com.peter.climb.CreateDataTypesTask.CreateDataTypesListener;
 import com.peter.climb.FetchGymDataTask.FetchGymDataListener;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class MyApplication extends Application {
@@ -52,8 +51,6 @@ public class MyApplication extends Application {
 
   class AppState {
 
-    static final String SESSION_START_TIME_EXTRA = "session_start_time_extra";
-    static final String CURRENT_GYM_ID_EXTRA = "current_gym_id_extra";
     static final String NO_GYM_UUID = "00000000-0000-0000-0000-000000000000";
     static final long NO_START_TIME = -1;
 
@@ -62,7 +59,6 @@ public class MyApplication extends Application {
 
     boolean inProgress;
     long startTimeMillis;
-    String currentGymUuid;
     DataType routeDataType;
     DataType metadataType;
     GoogleApiClient mClient = null;
@@ -79,7 +75,6 @@ public class MyApplication extends Application {
     private AppState() {
       gyms = null;
       sends = new ArrayList<>();
-      currentGymUuid = NO_GYM_UUID;
       inProgress = false;
       startTimeMillis = NO_START_TIME;
     }
@@ -93,7 +88,6 @@ public class MyApplication extends Application {
         for (Gym gym : gyms.getGymsList()) {
           if (gym.getUuid().equals(currentGymUuid)) {
             this.currentGym = gym;
-            this.currentGymUuid = currentGymUuid;
             return;
           }
         }
@@ -181,7 +175,7 @@ public class MyApplication extends Application {
       com.google.android.gms.fitness.data.Session session = new com.google.android.gms.fitness.data.Session.Builder()
           .setName("Climbing Session")
           .setDescription("Session at " + currentGym.getName())
-          .setIdentifier(UUID.randomUUID().toString())
+          .setIdentifier(currentGym.getUuid())
           .setActivity(FitnessActivities.ROCK_CLIMBING)
           .setStartTime(startTimeMillis, TimeUnit.MILLISECONDS)
           .setEndTime(endTime, TimeUnit.MILLISECONDS)
@@ -194,9 +188,8 @@ public class MyApplication extends Application {
           .build();
 
       // attempt to insert the session into the user's google fit
-      PendingResult<Status> pendingResult = Fitness.SessionsApi
-          .insertSession(mClient, insertRequest);
-      pendingResult.setResultCallback(resultCallback);
+      PendingResult<Status> result = Fitness.SessionsApi.insertSession(mClient, insertRequest);
+      result.setResultCallback(resultCallback);
     }
 
     void deleteSession(com.google.android.gms.fitness.data.Session session, long startTime,
@@ -213,7 +206,7 @@ public class MyApplication extends Application {
     }
 
     boolean hasCurrentGym() {
-      return hasGym(currentGymUuid);
+      return hasGym(currentGym.getUuid());
     }
 
     long getSessionLength() {

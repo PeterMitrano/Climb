@@ -1,7 +1,5 @@
 package com.peter.climb;
 
-import static com.peter.climb.MyApplication.AppState.NO_GYM_UUID;
-
 import android.content.Context;
 import android.database.Cursor;
 import android.os.AsyncTask;
@@ -60,7 +58,6 @@ class FetchGymDataTask extends AsyncTask<Void, Integer, Gyms> {
         fetchGymDataListener.onGymsFound(gyms);
       }
     } else {
-      appState.currentGymUuid = NO_GYM_UUID;
       appState.gyms = null;
       if (fetchGymDataListener != null) {
         fetchGymDataListener.onNoGymsFound();

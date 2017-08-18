@@ -97,6 +97,15 @@ public class Utils {
     return formatter.format(new Date(millis));
   }
 
+  static long HMToMillis(long hours, long minutes) {
+    long m = hours * 60L + minutes;
+    return m * 60L * 1000L;
+  }
+
+  static long HMToMillis(int hours, int minutes) {
+    return (hours * 60L + minutes) * 60L * 1000L;
+  }
+
   static String timeStr(int h, int m) {
     m = m <= 0 ? 1 : m;
     return String.format(Locale.getDefault(), "%02d:%02d", h, m);

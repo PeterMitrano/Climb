@@ -27,9 +27,9 @@ import java.util.concurrent.TimeUnit;
 
 public class SessionDetailsActivity extends ActivityWrapper {
 
-  static final String SENDS_KEY = "sends_key";
+  static final String SESSION_KEY = "sends_key";
   static final String DATASETS_KEY = "datasets_key";
-  static final String METADATA_KEY = "metadata_key";
+  static final String METADATASET_KEY = "metadata_key";
   private static final int EDIT_SESSION_CODE = 1005;
 
   private LinearLayout layout;
@@ -55,8 +55,8 @@ public class SessionDetailsActivity extends ActivityWrapper {
       return true;
     } else if (item.getItemId() == R.id.edit_session_item) {
       Intent intent = new Intent(this, EditSessionActivity.class);
-      intent.putExtra(SENDS_KEY, session);
-      intent.putExtra(METADATA_KEY, metadata);
+      intent.putExtra(SESSION_KEY, session);
+      intent.putExtra(METADATASET_KEY, metadata);
       intent.putParcelableArrayListExtra(DATASETS_KEY, dataSets);
       startActivityForResult(intent, EDIT_SESSION_CODE);
       return true;
@@ -66,9 +66,9 @@ public class SessionDetailsActivity extends ActivityWrapper {
   }
 
   private void showFromIntent(Intent intent) {
-    session = intent.getParcelableExtra(SENDS_KEY);
+    session = intent.getParcelableExtra(SESSION_KEY);
     dataSets = intent.getParcelableArrayListExtra(DATASETS_KEY);
-    metadata = intent.getParcelableExtra(METADATA_KEY);
+    metadata = intent.getParcelableExtra(METADATASET_KEY);
 
     if (session != null && dataSets != null) {
       toolbar.setTitle(session.getDescription());

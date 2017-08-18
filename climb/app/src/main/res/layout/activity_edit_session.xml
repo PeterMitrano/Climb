@@ -20,25 +20,6 @@
     <LinearLayout
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:orientation="horizontal">
-
-      <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/edit_gym_spinner_icon"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:contentDescription="@string/small_gym_icon_description" />
-
-      <Spinner
-        android:id="@+id/gym_spinner"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginStart="24dp" />
-
-    </LinearLayout>
-
-    <LinearLayout
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
       android:layout_marginTop="8dp"
       android:layout_marginBottom="8dp"
       android:layout_marginStart="72dp"
@@ -103,43 +84,13 @@
         android:id="@+id/minutes_edit"
         android:layout_width="wrap_content"
         app:maxLength="2"
-        app:maxValue="60"
+        app:maxValue="59"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:padding="4dp"
         android:hint="@string/min"
         android:textColor="@color/offWhite"
         app:editWidth="48dp"
-        app:focusColor="@color/colorAccentDark" />
-
-    </LinearLayout>
-
-    <LinearLayout
-      android:id="@+id/sends_layout"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:orientation="horizontal">
-
-      <ImageView
-        android:id="@+id/send_count_icon"
-        android:contentDescription="@string/send_count_icon_description"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_gravity="bottom"
-        android:background="@drawable/ic_terrain_black_24dp" />
-
-      <com.peter.climb.Views.RightAlignedHintEdit
-        android:id="@+id/sends_edit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="48dp"
-        android:padding="4dp"
-        android:hint="@string/sends"
-        android:textColor="@color/offWhite"
-        app:maxLength="5"
-        app:maxValue="100"
-        app:editWidth="56dp"
         app:focusColor="@color/colorAccentDark" />
 
     </LinearLayout>

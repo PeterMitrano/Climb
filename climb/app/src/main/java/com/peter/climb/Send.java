@@ -45,4 +45,9 @@ class Send {
   String getWallName() {
     return wallName;
   }
+
+  public String toString() {
+    return "{name: " + getName() + ", grade: " + getGrade() + ", color: " + getColor() + ", time: "
+        + String.valueOf(getTimeMillis()) + ", wall: " + getWallName() + "}";
+  }
 }

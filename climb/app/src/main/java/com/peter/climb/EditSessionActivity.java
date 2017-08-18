@@ -1,8 +1,8 @@
 package com.peter.climb;
 
 import static com.peter.climb.SessionDetailsActivity.DATASETS_KEY;
-import static com.peter.climb.SessionDetailsActivity.METADATA_KEY;
-import static com.peter.climb.SessionDetailsActivity.SENDS_KEY;
+import static com.peter.climb.SessionDetailsActivity.METADATASET_KEY;
+import static com.peter.climb.SessionDetailsActivity.SESSION_KEY;
 
 import android.app.DatePickerDialog;
 import android.app.DatePickerDialog.OnDateSetListener;
@@ -10,6 +10,7 @@ import android.app.TimePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
@@ -18,42 +19,42 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemSelectedListener;
-import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.Spinner;
 import android.widget.TimePicker;
 import android.widget.Toast;
-import com.android.volley.toolbox.ImageLoader;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.fitness.Fitness;
+import com.google.android.gms.fitness.FitnessActivities;
 import com.google.android.gms.fitness.data.DataPoint;
 import com.google.android.gms.fitness.data.DataSet;
+import com.google.android.gms.fitness.data.DataSource;
 import com.google.android.gms.fitness.data.Session;
-import com.peter.Climb.Msgs.Gym;
+import com.google.android.gms.fitness.request.SessionInsertRequest;
 import com.peter.Climb.Msgs.Gyms;
 import com.peter.climb.Views.RightAlignedHintEdit;
-import de.hdodenhof.circleimageview.CircleImageView;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-public class EditSessionActivity extends ActivityWrapper implements OnItemSelectedListener {
+public class EditSessionActivity extends ActivityWrapper {
 
   private Bundle bundle;
-  private ArrayAdapter<String> gymSpinnerAdapter;
   private ArrayList<DataSet> routeDataSets;
-  private CircleImageView gymImageView;
-  private DataSet metadata;
+  private DataPoint metadata;
   private EditText dateView;
   private EditText timeView;
   private LinearLayout layout;
   private RightAlignedHintEdit hoursEdit;
   private RightAlignedHintEdit minutesEdit;
-  private RightAlignedHintEdit sendsEdit;
   private Session session;
-  private Spinner gymSpinner;
+  private long newEndTimeMillis;
+  private long newStartDateMillis;
+  private long newStartHrMinMillis;
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
@@ -78,13 +79,101 @@ public class EditSessionActivity extends ActivityWrapper implements OnItemSelect
       builder.create().show();
       return true;
     } else if (item.getItemId() == R.id.save_session_item) {
-      // gather current state of UI and update the dataset
-      int gymIndex = gymSpinner.getSelectedItemPosition();
-      Intent intent = getIntent();
-      intent.putExtra(SENDS_KEY, session);
-      intent.putParcelableArrayListExtra(DATASETS_KEY, routeDataSets);
-      setResult(RESULT_OK, intent);
-      finish();
+      // gather current state of UI and update a copy of the dataset
+
+      long newStartTimeMillis = newStartDateMillis + newStartHrMinMillis;
+      newEndTimeMillis = newStartTimeMillis;
+      newEndTimeMillis += Utils.HMToMillis(hoursEdit.getValue(), minutesEdit.getValue());
+
+      DataSource newMetadataSource = new DataSource.Builder()
+          .setAppPackageName(getApplicationContext())
+          .setDataType(appState.metadataType)
+          .setName("metadata_edited")
+          .setType(DataSource.TYPE_DERIVED)
+          .build();
+
+      DataSource newDataSource = new DataSource.Builder()
+          .setAppPackageName(getApplicationContext())
+          .setDataType(appState.routeDataType)
+          .setName("user_input_edited")
+          .setType(DataSource.TYPE_DERIVED)
+          .build();
+
+      DataSet newDataset = DataSet.create(newDataSource);
+      DataSet newMetadataset = DataSet.create(newMetadataSource);
+
+      // copy some existing metadata info that this interface can't yet change
+      String imageUrl = metadata.getValue(appState.imageUrlField).asString();
+      String gymName = metadata.getValue(appState.gymNameField).asString();
+      String uuid = metadata.getValue(appState.uuidField).asString();
+
+      // new metadataset based on new times
+      DataPoint newMetadata = newMetadataset.createDataPoint();
+      newMetadata.setTimeInterval(newStartTimeMillis, newEndTimeMillis, TimeUnit.MILLISECONDS);
+      newMetadata.getValue(appState.imageUrlField).setString(imageUrl);
+      newMetadata.getValue(appState.gymNameField).setString(gymName);
+      newMetadata.getValue(appState.uuidField).setString(uuid);
+      newMetadataset.add(newMetadata);
+
+      // iterate over the save route information and copy the route datapoints
+      for (DataSet ds : routeDataSets) {
+        for (DataPoint pt : ds.getDataPoints()) {
+          DataPoint nPt = newDataset.createDataPoint();
+          long newPtMillis = newStartTimeMillis + (pt.getTimestamp(TimeUnit.MILLISECONDS) - session
+              .getStartTime(TimeUnit.MILLISECONDS));
+          nPt.setTimeInterval(newPtMillis, newPtMillis, TimeUnit.MILLISECONDS);
+          nPt.setTimestamp(newPtMillis, TimeUnit.MILLISECONDS);
+          nPt.getValue(appState.gradeField).setString(pt.getValue(appState.gradeField).asString());
+          nPt.getValue(appState.nameField).setString(pt.getValue(appState.nameField).asString());
+          nPt.getValue(appState.colorField).setString(pt.getValue(appState.colorField).asString());
+          nPt.getValue(appState.wallField).setString(pt.getValue(appState.wallField).asString());
+          newDataset.add(nPt);
+        }
+      }
+
+      // Create the session to insert
+      final com.google.android.gms.fitness.data.Session newSession = new com.google.android.gms.fitness.data.Session.Builder()
+          .setName("Climbing Session")
+          .setDescription("Session at " + gymName)
+          .setIdentifier(UUID.randomUUID().toString())
+          .setActivity(FitnessActivities.ROCK_CLIMBING)
+          .setStartTime(newStartTimeMillis, TimeUnit.MILLISECONDS)
+          .setEndTime(newEndTimeMillis, TimeUnit.MILLISECONDS)
+          .build();
+
+      SessionInsertRequest insertRequest = new SessionInsertRequest.Builder()
+          .setSession(newSession)
+          .addDataSet(newDataset)
+          .addDataSet(newMetadataset)
+          .build();
+
+      // delete the old session and insert the new one
+      final ArrayList<DataSet> newRouteDatasets = new ArrayList<>();
+      newRouteDatasets.add(newDataset);
+      final PendingResult<Status> insertResult = Fitness.SessionsApi
+          .insertSession(appState.mClient, insertRequest);
+      long startTime = session.getStartTime(TimeUnit.MILLISECONDS);
+      long endTime = session.getEndTime(TimeUnit.MILLISECONDS);
+      appState.deleteSession(session, startTime, endTime, new ResultCallback<Status>() {
+        @Override
+        public void onResult(@NonNull Status deleteStatus) {
+          if (deleteStatus.isSuccess()) {
+            Status insertStatus = insertResult.await(1000, TimeUnit.MILLISECONDS);
+            if (insertStatus.isSuccess()) {
+              Toast.makeText(getApplicationContext(), "Session updated", Toast.LENGTH_SHORT).show();
+              Intent intent = getIntent();
+              intent.putExtra(SESSION_KEY, newSession);
+              intent.putParcelableArrayListExtra(DATASETS_KEY, newRouteDatasets);
+              setResult(RESULT_OK, intent);
+              finish();
+            } else {
+              Snackbar.make(layout, "Failed to update session", Snackbar.LENGTH_SHORT).show();
+            }
+          } else {
+            Snackbar.make(layout, "Failed to update session", Snackbar.LENGTH_SHORT).show();
+          }
+        }
+      });
       return true;
     }
 
@@ -102,27 +191,6 @@ public class EditSessionActivity extends ActivityWrapper implements OnItemSelect
 
   @Override
   public void onGymsFound(Gyms gyms) {
-    DataPoint metadataPt = metadata.getDataPoints().get(0);
-    String uuid = metadataPt.getValue(appState.uuidField).asString();
-
-    int i = 0;
-    for (Gym gym : gyms.getGymsList()) {
-      gymSpinnerAdapter.add(gym.getName());
-      if (gym.getUuid().equals(uuid)) {
-        gymSpinner.setSelection(i);
-      }
-      ++i;
-    }
-    gymSpinnerAdapter.notifyDataSetChanged();
-
-    String url = metadataPt.getValue(appState.imageUrlField).asString();
-    ImageLoader.ImageListener listener = ImageLoader.getImageListener(
-        gymImageView,
-        0,
-        R.drawable.ic_error_black_24dp);
-    RequestorSingleton.getInstance(
-        getApplicationContext()).getImageLoader().get(url, listener);
-
   }
 
   @Override
@@ -151,16 +219,9 @@ public class EditSessionActivity extends ActivityWrapper implements OnItemSelect
     layout = (LinearLayout) findViewById(R.id.edit_session_layout);
     hoursEdit = (RightAlignedHintEdit) findViewById(R.id.hours_edit);
     minutesEdit = (RightAlignedHintEdit) findViewById(R.id.minutes_edit);
-    sendsEdit = (RightAlignedHintEdit) findViewById(R.id.sends_edit);
     dateView = (EditText) findViewById(R.id.date_view);
     timeView = (EditText) findViewById(R.id.time_view);
-    gymSpinner = (Spinner) findViewById(R.id.gym_spinner);
-    gymImageView = (CircleImageView) findViewById(R.id.edit_gym_spinner_icon);
 
-    gymSpinnerAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.gym_spinner_item,
-        R.id.gym_spinner_name);
-    gymSpinner.setAdapter(gymSpinnerAdapter);
-    gymSpinner.setOnItemSelectedListener(this);
     ActionBar actionBar = getSupportActionBar();
 
     if (actionBar != null) {
@@ -171,15 +232,22 @@ public class EditSessionActivity extends ActivityWrapper implements OnItemSelect
 
     bundle = getIntent().getExtras();
     if (bundle != null) {
-      session = bundle.getParcelable(SENDS_KEY);
-      metadata = bundle.getParcelable(METADATA_KEY);
+      session = bundle.getParcelable(SESSION_KEY);
+      DataSet metadataset = bundle.getParcelable(METADATASET_KEY);
+      if (metadataset != null && metadataset.getDataPoints().size() == 1) {
+        metadata = metadataset.getDataPoints().get(0);
+      } else {
+        // this is a serious error, handle it well.
+        metadata = null;
+      }
+
       routeDataSets = bundle.getParcelableArrayList(DATASETS_KEY);
 
-      final int sendCount = Utils.sendCount(routeDataSets, appState.routeDataType);
       final long startTime = session.getStartTime(TimeUnit.MILLISECONDS);
       final long activeTime = Utils.activeTime(session);
       final int startHour = Utils.millisToHours(startTime);
       final int startMinute = Utils.millisToMinutes(startTime);
+      newStartHrMinMillis = Utils.HMToMillis(startHour, startMinute);
 
       timeView.setOnClickListener(new OnClickListener() {
         @Override
@@ -189,6 +257,7 @@ public class EditSessionActivity extends ActivityWrapper implements OnItemSelect
               new TimePickerDialog.OnTimeSetListener() {
                 @Override
                 public void onTimeSet(TimePicker timePicker, int h, int m) {
+                  newStartHrMinMillis = Utils.HMToMillis(h, m);
                   EditSessionActivity.this.timeView.setText(Utils.timeStr(h, m));
                 }
               }, startHour, startMinute, true);
@@ -196,6 +265,7 @@ public class EditSessionActivity extends ActivityWrapper implements OnItemSelect
         }
       });
 
+      newStartDateMillis = startTime;
       dateView.setOnClickListener(new OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -209,6 +279,9 @@ public class EditSessionActivity extends ActivityWrapper implements OnItemSelect
               new OnDateSetListener() {
                 @Override
                 public void onDateSet(DatePicker view, int y, int m, int d) {
+                  Calendar cal = Calendar.getInstance();
+                  cal.set(y, m, d);
+                  newStartDateMillis = cal.getTimeInMillis();
                   EditSessionActivity.this.dateView.setText(Utils.HMDDate(y, m, d));
                 }
               }, year, month, day);
@@ -222,27 +295,6 @@ public class EditSessionActivity extends ActivityWrapper implements OnItemSelect
       minutesEdit.setText(String.valueOf(activeMinutes));
       timeView.setText(Utils.timeStr(startHour, startMinute));
       dateView.setText(Utils.millsDate(startTime));
-      sendsEdit.setText(String.valueOf(sendCount));
     }
-  }
-
-  @Override
-  public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-    if (appState.gyms != null) {
-      if (position < appState.gyms.getGymsCount()) {
-        Gym gym = appState.gyms.getGyms(position);
-        String url = gym.getLargeIconUrl();
-        ImageLoader.ImageListener listener = ImageLoader.getImageListener(
-            gymImageView,
-            0,
-            R.drawable.ic_error_black_24dp);
-        RequestorSingleton.getInstance(
-            getApplicationContext()).getImageLoader().get(url, listener);
-      }
-    }
-  }
-
-  @Override
-  public void onNothingSelected(AdapterView<?> parent) {
   }
 }

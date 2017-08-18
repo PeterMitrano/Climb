@@ -9,7 +9,6 @@ import android.graphics.Rect;
 import android.graphics.Shader;
 import android.graphics.Shader.TileMode;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
@@ -23,7 +22,6 @@ public class RouteLabelView extends View {
 
   private static final int BUBBLE_RADIUS_PX = 10;
   private static final float MIN_SIZE_M = 0.25f;
-  private static final int ROUND_RADIUS_PX = 4;
   final int TEXT_PADDING_PX = 6;
   private final Paint gradePaint;
   private final Paint namePaint;
@@ -129,7 +127,7 @@ public class RouteLabelView extends View {
     canvas.drawRect(x1_px, y2_px, x2_px, y2_px + 2f, bottomShadowMarkerPaint);
     canvas.drawRect(x1_px - 1f, y1_px, x1_px, y2_px, leftShadowMarkerPaint);
     canvas.drawRect(x2_px, y1_px, x2_px + 1f, y2_px, rightShadowMarkerPaint);
-    canvas.drawRoundRect(x1_px, y1_px, x2_px, y2_px, ROUND_RADIUS_PX, ROUND_RADIUS_PX, markerPaint);
+    canvas.drawRect(x1_px, y1_px, x2_px, y2_px, markerPaint);
 
     // if the scale is big enough, show more info
     if (showName && showGrade) {
@@ -144,7 +142,6 @@ public class RouteLabelView extends View {
     }
 
     if (sendCount > 0) {
-      Log.e(Utils.m(), "" + sendCountRect.height());
       canvas.drawCircle(
           x2_px,
           y1_px,
@@ -259,13 +256,13 @@ public class RouteLabelView extends View {
 
     int SHADOW_START = 0x11000000;
     int SHADOW_END = 0x00000000;
-    Shader topShader = new LinearGradient(0, y1_px - 1f, 0, y1_px, SHADOW_END, SHADOW_START,
+    Shader topShader = new LinearGradient(0, y1_px - 2f, 0, y1_px, SHADOW_END, SHADOW_START,
         TileMode.CLAMP);
-    Shader bottomShader = new LinearGradient(0, y2_px, 0, y2_px + 2f, SHADOW_START, SHADOW_END,
+    Shader bottomShader = new LinearGradient(0, y2_px, 0, y2_px + 4f, SHADOW_START, SHADOW_END,
         TileMode.CLAMP);
-    Shader leftShader = new LinearGradient(x1_px - 1f, 0, x1_px, 0, SHADOW_END, SHADOW_START,
+    Shader leftShader = new LinearGradient(x1_px - 2f, 0, x1_px, 0, SHADOW_END, SHADOW_START,
         TileMode.CLAMP);
-    Shader rightShader = new LinearGradient(x1_px, 0, x1_px + 1f, 0, SHADOW_START, SHADOW_END,
+    Shader rightShader = new LinearGradient(x2_px, 0, x2_px + 2f, 0, SHADOW_START, SHADOW_END,
         TileMode.CLAMP);
     bottomShadowMarkerPaint.setShader(bottomShader);
     leftShadowMarkerPaint.setShader(leftShader);

@@ -97,6 +97,10 @@ public class RightAlignedHintEdit extends LinearLayout implements OnFocusChangeL
     invalidate();
   }
 
+  public long getValue() {
+    return Long.valueOf(edit.getText().toString());
+  }
+
   public int getTextColor() {
     return textColor;
   }

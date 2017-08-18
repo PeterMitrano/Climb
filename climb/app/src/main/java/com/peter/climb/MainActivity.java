@@ -1,8 +1,8 @@
 package com.peter.climb;
 
 import static com.peter.climb.SessionDetailsActivity.DATASETS_KEY;
-import static com.peter.climb.SessionDetailsActivity.METADATA_KEY;
-import static com.peter.climb.SessionDetailsActivity.SENDS_KEY;
+import static com.peter.climb.SessionDetailsActivity.METADATASET_KEY;
+import static com.peter.climb.SessionDetailsActivity.SESSION_KEY;
 
 import android.app.SearchManager;
 import android.content.Context;
@@ -287,11 +287,11 @@ public class MainActivity extends ActivityWrapper implements OnNavigationItemSel
   }
 
   @Override
-  public void onShowSessionDetails(Session session, ArrayList<DataSet> dataSets, DataSet metadata,
+  public void onShowSessionDetails(Session session, ArrayList<DataSet> dataSets, DataSet metadataset,
       int index) {
     Intent intent = new Intent(this, SessionDetailsActivity.class);
-    intent.putExtra(SENDS_KEY, session);
-    intent.putExtra(METADATA_KEY, metadata);
+    intent.putExtra(SESSION_KEY, session);
+    intent.putExtra(METADATASET_KEY, metadataset);
     intent.putParcelableArrayListExtra(DATASETS_KEY, dataSets);
     startActivity(intent);
   }
